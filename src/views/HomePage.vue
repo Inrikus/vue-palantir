@@ -2,9 +2,8 @@
 import BannerPanel from '../components/Banner/BannerPanel.vue'
 </script>
 
-<template>
-  <h1 class="text-3xl font-bold tracking-[8px] text-[#63b4c8]">HOME</h1>
-  <BannerPanel />
+<template> 
+  <BannerPanel /> 
 </template>
 
 <style>
