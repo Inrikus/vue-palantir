@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import HomePage from '../views/HomePage.vue';
 import CollectionsPage from '../views/CollectionsPage.vue';
 import ErrorPage from '../views/ErrorPage.vue';
+import ContactsPage from '../views/ContactsPage.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -39,6 +40,11 @@ const router = createRouter({
       path: '/404',
       name: '404',
       component: ErrorPage
+    },
+    {
+      path: '/contacts',
+      name: 'contacts',
+      component: ContactsPage
     },
     {
       path: "/:catchAll(.*)",
