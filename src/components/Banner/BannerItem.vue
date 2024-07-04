@@ -15,11 +15,11 @@ defineProps({
                 <h3 class='text-4xl lg:text-6xl xl:text-7xl font-semibold'>{{ bannerLinks[bannerName].name }}</h3>
                 <div class='flex justify-center gap-10 xl:justify-between'>
                     <div>
-                        <p class='opacity-60'>Flor price</p>
+                        <p class='opacity-60'>Floor price</p>
                         <p>{{bannerData.min_price}}</p>
                     </div>
                     <div class="text-right">
-                        <p class='opacity-60'>Listed NFTS</p>
+                        <p class='opacity-60'>Listed NFTs</p>
                         <p>{{bannerData.count_on_sale}}</p>
                     </div>
                 </div>
