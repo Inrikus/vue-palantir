@@ -1,7 +1,8 @@
 <script setup>
-import { watch, ref } from 'vue'
+import { watch, ref, provide } from 'vue'
 import { useRoute } from 'vue-router'
 import { useFilterStore } from '@/stores/filterStore'
+import { useCardStore } from '@/stores/cardStore'
 
 import FiltersPanel from '@/components/Filters/FiltersPanel.vue'
 import CardsList from '@/components/Cards/CardsList.vue'
@@ -10,6 +11,13 @@ import { pageNames } from '@/utils/dictsList.js'
 
 const route = useRoute()
 const filterStore = useFilterStore()
+const cardStore = useCardStore()
+
+const tmpFunct = ref(null)
+
+const setFunction = (func) => {
+  tmpFunct.value = func
+}
 
 const currentSort = ref({
   orderBy: 'price',
@@ -32,6 +40,8 @@ watch(currentSort, () => {
   filterStore.changeSort(currentSort.value)
 }, { deep: true })
 
+provide('tmpFunct', tmpFunct)
+provide('setFunction', setFunction)
 </script>
 
 <template>
@@ -43,9 +53,15 @@ watch(currentSort, () => {
   </div>
 
   <div class="mt-4 flex justify-between">
+    <div class="flex gap-4 items-center">
     <button @click='handleToggleFilter' class='border-2 border-[#63B4C8] text-[#63B4C8] rounded-md p-2 flex gap-2 text-xl font-semibold items-center hover:bg-gray-700'>
         <img src='../assets/filter-1.svg' class='w-6'> Filter
     </button>
+
+    <div :class="'text-l font-bold tracking-[4px] text-[#63B4C8] ' + (cardStore.getMaxCards ? 'circle circle-active' : 'circle')">
+      {{ cardStore.getMaxCards }} results
+    </div>
+  </div>
 
     <div class="relative">
         <select 
@@ -95,7 +111,40 @@ watch(currentSort, () => {
   </div>
 
   <div class="mt-10 flex flex-col sm:flex-row gap-4">
-    <FiltersPanel />
+    <FiltersPanel @handle-set-filter="handleSetFilter" />
     <CardsList />
   </div>
 </template>
+
+<style>
+.circle::before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: gray;
+  display: inline-block;
+  margin-right: 14px;
+  vertical-align: middle;
+}
+
+.circle-active::before {
+  background: #63B4C8;
+  vertical-align: middle;
+  animation: shadow-anim 1s infinite alternate;
+}
+
+@keyframes shadow-anim {
+  from {
+    -webkit-box-shadow: 0px 0px 5px 0px rgba(99, 180, 200, 0.6);
+    -moz-box-shadow: 0px 0px 5px 0px rgba(99, 180, 200, 0.6);
+    box-shadow: 0px 0px 5px 0px rgba(99, 180, 200, 0.6);
+  }
+
+  to {
+    -webkit-box-shadow: 0px 0px 5px 10px rgba(99, 180, 200, 0.6);
+    -moz-box-shadow: 0px 0px 5px 10px rgba(99, 180, 200, 0.6);
+    box-shadow: 0px 0px 5px 10px rgba(99, 180, 200, 0.6);
+  }
+}
+</style>

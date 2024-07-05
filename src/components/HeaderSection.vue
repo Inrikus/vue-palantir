@@ -41,7 +41,7 @@
     display: flex;
     width: calc(100% + 20px);
     position: absolute;
-    background: #131313;
+    background: #1a1a1a;
     padding: 10px;
     z-index: 999;
     border-radius: 0 0 20px 20px;

@@ -1,5 +1,5 @@
 <script setup>
-import { watch, ref, onMounted } from 'vue'
+import { watch, ref, onMounted, inject  } from 'vue'
 import { useFilterStore } from '@/stores/filterStore'
 import { useCardStore } from '@/stores/cardStore'
 import { useRoute } from 'vue-router'
@@ -14,6 +14,7 @@ const route = useRoute()
 
 const page = ref(1)
 const hasNextPage = ref(true)
+const setFunction = inject('setFunction')
 
 const getCardsList = async () => {
   try {
@@ -56,9 +57,9 @@ const debouncedLoadMoreCards = debounce(async () => {
   }
   page.value += 1
 
-  const { nfts: data, has_next_page: allowed } = await getCardsList()
+  const { nfts: data, has_next_page: allowed, total_items: maxCards } = await getCardsList()
 
-  cardStore.addCards(data)
+  cardStore.addCards(data, maxCards)
 
   hasNextPage.value = allowed
 }, 200)
@@ -73,6 +74,15 @@ const handleScroll = () => {
   }
 }
 
+const handleSetFilter = async () => {
+  page.value = 1
+  const { nfts: data, has_next_page: allowed, total_items: maxCards } = await getCardsList()
+
+  cardStore.changeCards(data, maxCards)
+
+  hasNextPage.value = allowed
+}
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
 })
@@ -80,25 +90,27 @@ onMounted(() => {
 onMounted(async () => {
   page.value = 1
   window.addEventListener('scroll', handleScroll)
-  const { nfts: data, has_next_page: allowed } = await getCardsList()
+  const { nfts: data, has_next_page: allowed, total_items: maxCards } = await getCardsList()
 
-  cardStore.changeCards(data)
+  setFunction(handleSetFilter)
+
+  cardStore.changeCards(data, maxCards)
 
   hasNextPage.value = allowed
 })
 
-watch(
-  filterStore,
-  async () => {
-    page.value = 1
-    const { nfts: data, has_next_page: allowed } = await getCardsList()
+// watch(
+//   filterStore,
+//   async () => {
+//     page.value = 1
+//     const { nfts: data, has_next_page: allowed, total_items: maxCards } = await getCardsList()
 
-    cardStore.changeCards(data)
+//     cardStore.changeCards(data, maxCards)
 
-    hasNextPage.value = allowed
-  },
-  { deep: true }
-)
+//     hasNextPage.value = allowed
+//   },
+//   { deep: true }
+// )
 
 watch(route, () => {
   page.value = 1
