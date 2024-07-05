@@ -17,6 +17,8 @@
                     <router-link to="/peace">PrimeACE</router-link>
                 </div>
             </div> 
+
+            <router-link to='/contacts'>Contacts</router-link>
         </nav>
     </header>
 </template>

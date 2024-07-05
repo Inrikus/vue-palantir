@@ -19,7 +19,7 @@ const getCardsList = async () => {
   try {
     let [traits, sortBy, orderType, status, sources, tradeType] = [...filterStore.getAllFilters]
     const { data: data } = await axios.post(
-      `/api/nfts/${queryName[route.name]}`,
+      `${import.meta.env.VITE_API_URL}/api/nfts/${queryName[route.name]}`,
       {
         status: status,
         page: page.value,
