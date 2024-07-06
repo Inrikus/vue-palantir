@@ -25,11 +25,16 @@ COPY --from=0 /app/dist /usr/share/nginx/html
 # Копируем конфигурационный файл Nginx
 COPY nginx.conf /etc/nginx/nginx.conf
 
+# Копируем SSL сертификаты и ключи
+COPY /ssl/palantir_ws_chain.crt /etc/ssl/certs/palantir_ws_chain.crt
+COPY /ssl/private.key /etc/ssl/private/private.key
+
 # Создаем директорию для логов внутри контейнера
 RUN mkdir -p /app/logs/nginx
 
 # Открываем порт 80 для доступа к приложению
 EXPOSE 80
+EXPOSE 443
 
 # Запускаем Nginx
 CMD ["nginx", "-g", "daemon off;"]
