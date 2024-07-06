@@ -2,11 +2,12 @@
 import { useFilterStore } from '@/stores/filterStore'
 import { filterList, filterSource } from '@/utils/dictsList.js'
 import { useRoute } from 'vue-router'
-import { watch } from 'vue'
+import { watch, inject } from 'vue'
 
 const filterStore = useFilterStore()
-
 const route = useRoute()
+
+const tmpFunct = inject('tmpFunct', () => { console.log('dont get') })
 
 const handleClick = (item) => {
   let currentFilter = ''
@@ -43,6 +44,14 @@ const handleToggleShow = async (item) => {
 
 const handleToggleFilter = () => {
   document.querySelector('#filter-panel').classList.toggle('hidden')
+}
+
+const handleResetFilter = () => {
+  filterStore.clearFilter()
+}
+
+const handleSetFilter = () => {
+  tmpFunct.value()
 }
 
 watch(route, () => {
@@ -219,6 +228,10 @@ watch(route, () => {
 
           <img src='@/assets/cross.svg' class='w-5 sm:hidden absolute top-4 right-4' @click='handleToggleFilter'>
         </div>
+      </div>
+      <div class="flex justify-between gap-1">
+        <button class="text-l font-semibold border-2 border-[#63b4c8] hover:bg-gray-700 p-2 rounded-xl" @click="handleResetFilter">Reset</button>
+        <button class="text-l font-semibold border-2 border-[#63b4c8] hover:bg-gray-700 p-2 rounded-xl" @click="handleSetFilter">Apply</button>
       </div>
     </div>
   </div>
