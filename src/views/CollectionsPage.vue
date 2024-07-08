@@ -54,7 +54,7 @@ provide('setFunction', setFunction)
 
   <div class="mt-4 flex justify-between">
     <div class="flex gap-4 items-center">
-    <button @click='handleToggleFilter' class='border-2 border-[#63B4C8] text-[#63B4C8] rounded-md p-2 flex gap-2 text-xl font-semibold items-center hover:bg-gray-700 fixed sm:static bottom-0 left-0 justify-center w-full z-10 bg-[#232228]'>
+    <button @click='handleToggleFilter' class='border-2 border-[#63B4C8] text-[#63B4C8] rounded-md p-2 flex gap-2 text-xl font-semibold items-center hover:bg-gray-700 fixed sm:static bottom-0 left-0 justify-center max-sm:w-full z-10 bg-[#232228]'>
         <img src='../assets/filter-1.svg' class='w-6'> Filter
     </button>
 
