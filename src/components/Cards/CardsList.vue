@@ -22,7 +22,7 @@ const props = defineProps({
 
 const getCardsList = async () => {
   try {
-    let [traits, sortBy, orderType, status, sources, tradeType] = [...filterStore.getAllFilters]
+    let [traits, sortBy, orderType, status, sources, tradeType, maxPrice] = [...filterStore.getAllFilters]
     const { data: data } = await axios.post(
       `${import.meta.env.VITE_API_URL}/api/nfts/${queryName[route.name]}`,
       {
@@ -33,7 +33,8 @@ const getCardsList = async () => {
         orderBy: sortBy,
         orderType: orderType,
         traits: traits,
-        sources: sources
+        sources: sources,
+        priceRangeMax: maxPrice
       }
     )
 
@@ -94,6 +95,7 @@ onMounted(() => {
 onMounted(async () => {
   page.value = 1
   window.addEventListener('scroll', handleScroll)
+  filterStore.clearFilter()
   const { nfts: data, has_next_page: allowed, total_items: maxCards } = await getCardsList()
 
   setFunction(handleSetFilter)
@@ -118,6 +120,7 @@ watch(
 
 watch(route, () => {
   page.value = 1
+  filterStore.clearFilter()
   window.addEventListener('scroll', handleScroll)
   hasNextPage.value = true
 })

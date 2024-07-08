@@ -20,7 +20,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class='mt-20 pb-20 grid grid-banner gap-4'>
+    <div class='pb-20 grid grid-banner gap-4'>
         <BannerItem v-for="banner in Object.keys(bannerData)" :key='banner' :banner-name='banner' :banner-data='bannerData[banner]' />
     </div>
 </template>

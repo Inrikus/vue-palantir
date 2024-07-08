@@ -8,14 +8,19 @@ export const useFilterStore = defineStore('filter', () => {
     const status = ref([]);
     const sources = ref([]);
     const tradeType = ref(1);
+    const maxPrice = ref(0)
 
     const getAllFilters = computed(() => {
-        return [ traits.value, sort.value, orderType.value, status.value, sources.value, tradeType.value ]
+        return [ traits.value, sort.value, orderType.value, status.value, sources.value, tradeType.value, maxPrice.value ]
     })
 
     const getOrderType = computed(() => {
         return [orderType.value, sort.value]
     })
+
+    function changeMaxPrice(price) {
+        maxPrice.value = price
+    }
 
     function changeTraits(item, filterKey) {
         console.log(item, filterKey)
@@ -71,7 +76,8 @@ export const useFilterStore = defineStore('filter', () => {
         status.value = []
         sources.value = []
         tradeType.value = 1
+        maxPrice.value = 0
     }
 
-    return { traits, sort, orderType, status, sources, changeTraits, clearFilter, changeTradeType, changeStatus, changeSources, changeSort, getOrderType, getAllFilters }
+    return { traits, sort, orderType, status, sources, changeMaxPrice,changeTraits, clearFilter, changeTradeType, changeStatus, changeSources, changeSort, getOrderType, getAllFilters }
 })

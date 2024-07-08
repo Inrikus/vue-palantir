@@ -2,10 +2,12 @@
 import { useFilterStore } from '@/stores/filterStore'
 import { filterList, filterSource } from '@/utils/dictsList.js'
 import { useRoute } from 'vue-router'
-import { watch, inject } from 'vue'
+import { watch, inject, ref } from 'vue'
 
 const filterStore = useFilterStore()
 const route = useRoute()
+
+const maxPrice = ref(0)
 
 const tmpFunct = inject('tmpFunct', () => { console.log('dont get') })
 
@@ -58,6 +60,7 @@ const handleResetFilter = () => {
 }
 
 const handleSetFilter = () => {
+  filterStore.changeMaxPrice(maxPrice.value)
   tmpFunct.value()
 }
 
@@ -67,6 +70,7 @@ watch(route, () => {
   })
 
   document.querySelector('#only-listed').checked = true
+  maxPrice.value = 0
 })
 </script>
 
@@ -235,6 +239,19 @@ watch(route, () => {
 
           <img src='@/assets/cross.svg' class='w-5 sm:hidden absolute top-4 right-4' @click='handleToggleFilter'>
         </div>
+      </div>
+
+      <div>
+        <label>
+          <p class="text-xl font-bold">Max Price</p>
+          <input
+            placeholder="Max Price"
+            type="number"
+            min="0"
+            v-model="maxPrice"
+            class="p-2 rounded-xl w-full bg-[#1F1F1F] text-[#63b4c8] border-2 border-[#63b4c8] placeholder-change mt-2"
+          />
+        </label>
       </div>
       <div class="flex justify-between gap-1">
         <button class="text-l font-semibold border-2 border-[#63b4c8] hover:bg-gray-700 p-2 rounded-xl" @click="handleResetFilter">Reset</button>
