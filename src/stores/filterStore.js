@@ -13,6 +13,10 @@ export const useFilterStore = defineStore('filter', () => {
         return [ traits.value, sort.value, orderType.value, status.value, sources.value, tradeType.value ]
     })
 
+    const getOrderType = computed(() => {
+        return [orderType.value, sort.value]
+    })
+
     function changeTraits(item, filterKey) {
         console.log(item, filterKey)
         if (item.target.checked) {
@@ -62,12 +66,12 @@ export const useFilterStore = defineStore('filter', () => {
 
     function clearFilter() {
         traits.value = []
-        sort.value = 'rarity'
-        orderType.value = -1
+        sort.value = 'price'
+        orderType.value = 1
         status.value = []
         sources.value = []
         tradeType.value = 1
     }
 
-    return { traits, sort, orderType, status, sources, changeTraits, clearFilter, changeTradeType, changeStatus, changeSources, changeSort, getAllFilters }
+    return { traits, sort, orderType, status, sources, changeTraits, clearFilter, changeTradeType, changeStatus, changeSources, changeSort, getOrderType, getAllFilters }
 })

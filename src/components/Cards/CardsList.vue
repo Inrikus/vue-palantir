@@ -16,6 +16,10 @@ const page = ref(1)
 const hasNextPage = ref(true)
 const setFunction = inject('setFunction')
 
+const props = defineProps({
+  sort: Object
+})
+
 const getCardsList = async () => {
   try {
     let [traits, sortBy, orderType, status, sources, tradeType] = [...filterStore.getAllFilters]
@@ -99,18 +103,18 @@ onMounted(async () => {
   hasNextPage.value = allowed
 })
 
-// watch(
-//   filterStore,
-//   async () => {
-//     page.value = 1
-//     const { nfts: data, has_next_page: allowed, total_items: maxCards } = await getCardsList()
+watch(
+  props,
+  async () => {
+    page.value = 1
+    const { nfts: data, has_next_page: allowed, total_items: maxCards } = await getCardsList()
 
-//     cardStore.changeCards(data, maxCards)
+    cardStore.changeCards(data, maxCards)
 
-//     hasNextPage.value = allowed
-//   },
-//   { deep: true }
-// )
+    hasNextPage.value = allowed
+  },
+  { deep: true }
+)
 
 watch(route, () => {
   page.value = 1

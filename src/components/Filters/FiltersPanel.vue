@@ -48,6 +48,13 @@ const handleToggleFilter = () => {
 
 const handleResetFilter = () => {
   filterStore.clearFilter()
+  document.querySelectorAll('input').forEach((el) => {
+    el.checked = false
+  })
+
+  document.querySelector('#only-listed').checked = true
+
+  tmpFunct.value()
 }
 
 const handleSetFilter = () => {
