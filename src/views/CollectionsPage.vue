@@ -6,14 +6,16 @@ import { useCardStore } from '@/stores/cardStore'
 
 import FiltersPanel from '@/components/Filters/FiltersPanel.vue'
 import CardsList from '@/components/Cards/CardsList.vue'
+import ActivityPanel from '@/components/Activity/ActivityPanel.vue'
 
-import { pageNames } from '@/utils/dictsList.js'
+import { pageNames, queryName } from '@/utils/dictsList.js'
 
 const route = useRoute()
 const filterStore = useFilterStore()
 const cardStore = useCardStore()
 
 const tmpFunct = ref(null)
+const currentPanel = ref('Cards')
 
 const setFunction = (func) => {
   tmpFunct.value = func
@@ -25,7 +27,20 @@ const currentSort = ref({
 })
 
 const handleToggleFilter = () => {
-  document.querySelector('#filter-panel').classList.toggle('hidden')
+  const filterPanel = document.querySelector('#filter-panel')
+  filterPanel.classList.toggle('hidden')
+
+  if (window.innerWidth <= 768) { // 768px is a common breakpoint for tablets
+    if (filterPanel.classList.contains('hidden')) {
+      document.body.classList.remove('hidden-scroll')
+    } else {
+      document.body.classList.add('hidden-scroll')
+    }
+  }
+}
+
+const handleChangePanel = (panel) => {
+  currentPanel.value = panel
 }
 
 watch(route, () => {
@@ -34,6 +49,7 @@ watch(route, () => {
     orderBy: 'price',
     orderType: 1
   }
+  currentPanel.value = 'Cards'
 })
 
 watch(currentSort, () => {
@@ -52,22 +68,28 @@ provide('setFunction', setFunction)
     </div>
   </div>
 
-  <div class="mt-4 flex justify-between">
-    <div class="flex gap-4 items-center">
-    <button @click='handleToggleFilter' class='border-2 border-[#63B4C8] text-[#63B4C8] rounded-md p-2 flex gap-2 text-xl font-semibold items-center hover:bg-gray-700 fixed sm:static bottom-0 left-0 justify-center max-sm:w-full z-10 bg-[#232228]'>
-        <img src='../assets/filter-1.svg' class='w-6'> Filter
-    </button>
-
-    <div :class="'text-l font-bold tracking-[4px] text-[#63B4C8] ' + (cardStore.getMaxCards ? 'circle circle-active' : 'circle')">
-      {{ cardStore.getMaxCards }} results
-    </div>
+  <div class="flex justify-start gap-4 text-2xl text-[#63B4C8] my-6 font-semibold" v-if="route.name !== 'peace'">
+    <button :class="'panel ' + (currentPanel === 'Cards' ? 'panel-active' : '')" @click="() => handleChangePanel('Cards')">NFTs</button>
+    <button :class="'panel ' + (currentPanel === 'Activity' ? 'panel-active' : '')" @click="() => handleChangePanel('Activity')">Activity</button>
   </div>
 
-    <div class="relative">
-        <select 
-          v-model="currentSort"
-          class="w-[100%] font-semibold text-center text-xl bg-transparent border-2 border-[#63B4C8] text-[#63B4C8] rounded-md appearance-none focus:outline-none focus:ring-0 focus:bg-gray-700 hover:bg-gray-700 cursor-pointer peer p-2"
-        >
+  <div v-if="currentPanel === 'Cards'">
+
+  <div class="mt-4 flex justify-between flex-col sm:flex-row gap-2 sticky sm:static top-0 left-0 z-10 bg-[#1a1a1a] py-2">
+    <div class="flex gap-4 items-center">
+      <button @click='handleToggleFilter' class='border-2 border-[#63B4C8] text-[#63B4C8] rounded-md p-2 flex gap-2 text-xl font-semibold items-center hover:bg-gray-700 sticky sm:static top-0 left-0 justify-center max-sm:w-full z-10 bg-[#232228]'>
+          <img src='../assets/filter-1.svg' class='w-6'> Filter
+      </button>
+    </div>
+
+    <div class="relative flex justify-between">
+      <div :class="'text-l font-bold tracking-[4px] text-[#63B4C8] ' + (cardStore.getMaxCards ? 'circle circle-active' : 'circle')">
+        {{ cardStore.getMaxCards }} results
+      </div>
+      <select 
+        v-model="currentSort"
+        class="w-[100%] font-semibold text-center text-xl bg-transparent border-2 border-[#63B4C8] text-[#63B4C8] rounded-md appearance-none focus:outline-none focus:ring-0 focus:bg-gray-700 hover:bg-gray-700 cursor-pointer peer p-2"
+      >
         <option :value="{
           orderBy: 'price',
           orderType: -1
@@ -100,20 +122,19 @@ provide('setFunction', setFunction)
           orderType: 1
         }"
         class='bg-[#232228]'>Token id: Low to high</option>
-
       </select>
-      <!-- <span class="absolute top-2 right-[-5px] flex items-center pr-2 pointer-events-none">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-        </svg>
-      </span> -->
     </div>
   </div>
 
-  <div class="mt-10 flex flex-col sm:flex-row gap-4">
+  <div class="mt-10 flex flex-col sm:flex-row gap-4 h-full items-stretch">
     <FiltersPanel />
     <CardsList :sort="currentSort" />
   </div>
+</div>
+
+<div v-else>
+  <ActivityPanel />
+</div>
 </template>
 
 <style>
@@ -145,6 +166,26 @@ provide('setFunction', setFunction)
     -webkit-box-shadow: 0px 0px 5px 10px rgba(99, 180, 200, 0.6);
     -moz-box-shadow: 0px 0px 5px 10px rgba(99, 180, 200, 0.6);
     box-shadow: 0px 0px 5px 10px rgba(99, 180, 200, 0.6);
+  }
+}
+
+.panel:hover {
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.panel-active {
+  color: #fff;
+  cursor: default
+}
+
+.panel-active:hover {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .hidden-scroll {
+    overflow: hidden;
   }
 }
 </style>

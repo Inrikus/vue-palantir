@@ -6,7 +6,7 @@ import FooterSection from './components/FooterSection.vue'
 
 <template>
 <HeaderSection />
-<main class="w-full min-h-[95vh] lg:px-20 sm:pt-10 px-2">
+<main class="w-full min-h-[90vh] lg:px-20 sm:pt-10 pb-10 pt-5 px-2">
   <router-view />
 </main>
 <FooterSection />

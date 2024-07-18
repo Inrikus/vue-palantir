@@ -8,7 +8,7 @@
             <h1 class="ml-2 text-3xl font-bold tracking-[8px] logo-grad">PALANTIR</h1>
         </router-link>
 
-        <nav class='flex gap-2 text-xl font-semibold text-[#63B4C8]'>
+        <nav class='flex gap-4 text-xl font-semibold text-[#63B4C8]'>
             <div id="collections" class='cursor-pointer relative'>Collections
                 <div class='hide-nav flex flex-col'>
                     <router-link to="/bm">Bi-Mech</router-link>

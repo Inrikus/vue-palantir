@@ -45,7 +45,16 @@ const handleToggleShow = async (item) => {
 }
 
 const handleToggleFilter = () => {
-  document.querySelector('#filter-panel').classList.toggle('hidden')
+  const filterPanel = document.querySelector('#filter-panel')
+  filterPanel.classList.toggle('hidden')
+
+  if (window.innerWidth <= 768) { // 768px is a common breakpoint for tablets
+    if (filterPanel.classList.contains('hidden')) {
+      document.body.classList.remove('hidden-scroll')
+    } else {
+      document.body.classList.add('hidden-scroll')
+    }
+  }
 }
 
 const handleResetFilter = () => {
@@ -77,9 +86,9 @@ watch(route, () => {
 <template>
   <div
     id="filter-panel"
-    class="md:w-[22%] 2xl:w-[12%] w-full z-[9999999] hidden sm:relative fixed bottom-0 left-0 sm:top-0 sm:left-0"
+    class="md:w-[22%] 2xl:w-[12%] w-full z-[9999999] hidden sm:sticky fixed bottom-0 left-0 sm:top-10 sm:left-0 h-full bg-[#1A1A1A] bg-opacity-90"
   >
-  <div class="flex sticky top-20 left-0 md:w-full p-4 xl:p-2 gap-2 bg-[#1A1A1A] text-[#63B4C8] flex-col justify-start border-2 border-[#63B4C8] rounded-xl">
+  <div class="flex absolute sm:sticky bottom-0 sm:bottom-auto sm:top-20 left-0 md:w-full p-4 xl:p-2 gap-2 bg-[#1A1A1A] text-[#63B4C8] flex-col sm:justify-start border-2 border-[#63B4C8] rounded-xl justify-end w-full">
       <div class="md:relative xl:static rounded-t-xl">
         <div
           class="flex xl:justify-between md:justify-start items-center cursor-pointer"
@@ -135,7 +144,7 @@ watch(route, () => {
             <span class="xl:ms-3 ms-1 font-medium">Normal</span>
           </label>
 
-          <label class="inline-flex items-center w-full cursor-pointer">
+          <label class="inline-flex items-center w-full cursor-pointer" v-if="['qp', 'peace'].includes(route.name)">
             <input
               type="checkbox"
               class="sr-only peer"
