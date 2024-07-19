@@ -32,7 +32,7 @@ onBeforeUnmount(() => {
         <thead>
             <tr class="text-[#63B4C8] text-sm sm:text-l xl:text-xl font-semibold">
                 <td class="text-center">Market</td>
-                <td>Price</td>
+                <td class="text-end">Price</td>
                 <td>NFT</td>
                 <td class="hidden md:table-cell">From</td>
                 <td class="hidden md:table-cell">To</td>
