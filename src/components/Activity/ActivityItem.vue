@@ -28,7 +28,7 @@ const date = new Date(props.activity.timestamp * 1000);
 <template>
     <td class="flex justify-center"><img :src="platformIcon[activity.platform]" alt="" class="w-6 h-6"></td>
     <td class="align-middle">
-        <p><img :src="'/currency/' + (activity.currency in currency ? currency[activity.currency] : 'unknown')" class="w-4 h-4 float-left mr-2 mt-1">{{ activity.price_native }}</p>
+        <p><img :src="'/currency/' + (activity.currency in currency ? currency[activity.currency] : 'unknown.svg')" class="w-4 h-4 float-left mr-2 mt-1">{{ activity.price_native }}</p>
         <p>{{ activity.price_usd }}$</p>
     </td>
     <td><img :src='"/nft/" + nftsPath[route.name] + "/" + pageNames[route.name].name + "-" + activity.tokenId + ".jpg"' class='w-10 float-left mr-2'>{{ pageNames[route.name].name }} #{{ activity.tokenId }}</td>
