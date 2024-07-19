@@ -8,7 +8,7 @@ import FiltersPanel from '@/components/Filters/FiltersPanel.vue'
 import CardsList from '@/components/Cards/CardsList.vue'
 import ActivityPanel from '@/components/Activity/ActivityPanel.vue'
 
-import { pageNames, queryName } from '@/utils/dictsList.js'
+import { pageNames } from '@/utils/dictsList.js'
 
 const route = useRoute()
 const filterStore = useFilterStore()
