@@ -63,7 +63,7 @@ provide('setFunction', setFunction)
 <template>
   <div class="">
     <div class='flex gap-2'>
-      <img :src='pageNames[route.name].link' class='w-10 rounded-full'>
+      <img :src='pageNames[route.name].link' class='w-10 h-10 rounded-full'>
       <h2 class="text-3xl font-bold tracking-[4px] text-[#63B4C8]">{{ pageNames[route.name].name }}</h2>
     </div>
   </div>

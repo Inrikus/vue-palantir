@@ -67,3 +67,8 @@ export const bannerLinks = {
     link_to: '/peace'
   }
 }
+
+export const currency = {
+  'ETH': 'eth.svg',
+  'BNB': 'bnb.svg'
+}
