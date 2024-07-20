@@ -144,7 +144,7 @@ watch(route, () => {
             <span class="xl:ms-3 ms-1 font-medium">Normal</span>
           </label>
 
-          <label class="inline-flex items-center w-full cursor-pointer" v-if="['qp', 'peace'].includes(route.name)">
+          <label class="inline-flex items-center w-full cursor-pointer" v-if="['qp', 'peace', 'pf'].includes(route.name)">
             <input
               type="checkbox"
               class="sr-only peer"

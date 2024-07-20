@@ -12,37 +12,41 @@ export const filterList = {
     peace: {
       Rarity: ['Common', 'Rare', 'Elite', 'Epic', 'Legendary', "Collector's"]
     },
-    ap: {}
+    ap: {},
+    pf: {}
 }
 
 export const filterSource = {
     bm: ['Element', 'OKX', 'Binance'],
     qp: ['Blur', 'Opensea', 'Element', 'OKX', 'Binance'],
     peace: ['Tesseract'],
-    ap: ['Blur', 'Opensea', 'Element', 'OKX', 'Binance']
+    ap: ['Blur', 'Opensea', 'Element', 'OKX', 'Binance'],
+    pf: ['Blur', 'Opensea', 'Element', 'OKX']
 }
 
 export const platformIcon = {
-    Blur: 'marketplace/blur.webp',
-    Opensea: 'marketplace/opensea.webp',
-    Binance: 'marketplace/logo.png',
-    Element: 'marketplace/element.webp',
-    OKX: 'marketplace/okx.webp',
-    Tesseract: 'marketplace/Tesseract.ico'
+  Blur: 'marketplace/blur.webp',
+  Opensea: 'marketplace/opensea.webp',
+  Binance: 'marketplace/logo.png',
+  Element: 'marketplace/element.webp',
+  OKX: 'marketplace/okx.webp',
+  Tesseract: 'marketplace/Tesseract.ico'
 }
 
 export const queryName = {
   peace: 'PrimeACE',
   qp: 'Quartan Primes',
   bm: 'Bi-Mech',
-  ap: 'Alpha Prestige'
+  ap: 'Alpha Prestige',
+  pf: 'Pioneer of Fusionist'
 }
 
 export const pageNames = {
   bm: { name: 'Bi-Mech', link: "collections/Bi-mech.webp" },
   qp: { name: 'Quartan Primes', link: "collections/Quartan Primes.webp" },
   ap: { name: 'Alpha Prestige', link: "collections/Alpha Prestige.webp" },
-  peace: {name: 'PrimeACE', link: "collections/ace.svg"}
+  peace: {name: 'PrimeACE', link: "collections/ace.svg"},
+  pf: { name: 'Pioneer of Fusionist', link: "collections/Pioneer of Fusionist.webp" }
 }
 
 export const bannerLinks = {
@@ -65,6 +69,11 @@ export const bannerLinks = {
     name: 'PrimeACE',
     image: "/banner/peace.png",
     link_to: '/peace'
+  },
+  'Pioneer of Fusionist': {
+    name: 'Pioneer of Fusionist',
+    image: "/banner/pioneer.png",
+    link_to: '/pf'
   }
 }
 

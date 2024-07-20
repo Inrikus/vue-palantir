@@ -15,6 +15,7 @@
                     <router-link to="/qp">Quartan Primes</router-link>
                     <router-link to="/ap">Alpha Prestige</router-link>
                     <router-link to="/peace">PrimeACE</router-link>
+                    <router-link to="/pf">Pioneer of Fusionist</router-link>
                 </div>
             </div> 
 

@@ -28,23 +28,40 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <table class="table-auto w-full mx-auto border-spacing-4 border-separate overflow-x-scroll">
-        <thead>
-            <tr class="text-[#63B4C8] text-sm sm:text-l xl:text-xl font-semibold">
-                <td class="text-center">Market</td>
-                <td class="text-end">Price</td>
-                <td>NFT</td>
-                <td class="hidden md:table-cell">From</td>
-                <td class="hidden md:table-cell">To</td>
-                <td class="hidden md:table-cell">txHash</td>
-                <td class="text-right">Date</td>
-            </tr>
-        </thead>
+    <div class="grid-table w-full mx-auto text-[#63B4C8] text-sm sm:text-l xl:text-xl font-normal sm:font-semibold">
+        <div class="grid-table-line items-center border-b-2 border-[#63B4C8] pb-2 border-opacity-50">
+            <span class="text-start">Market</span>
+            <span>NFT</span>
+            <span class="text-end">Price</span>
+            <span class="hidden md:inline text-center">From</span>
+            <span class="hidden md:inline text-center">To</span>
+            <span class="hidden md:inline">txHash</span>
+            <span class="text-right">Date</span>
+        </div>
 
-        <tbody class="text-[#63B4C8] text-sm sm:text-l xl:text-xl  font-semibold align-middle">
-            <tr v-for="(activity, index) in activityData" :key="index">
-                <ActivityItem :activity="activity" />
-            </tr>
-        </tbody>
-    </table>
+        <div v-for="activity in activityData" :key="activity.id" class="grid-table-line items-center hover:bg-gray-800 hover:border-2 hover:border-[#63B4C8] p-2 rounded-xl">
+            <ActivityItem :activity="activity" />
+        </div>
+
+    </div>
 </template>
+
+<style>
+    .grid-table {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .grid-table-line {
+        display: grid;
+        grid-template-columns: 0.5fr 2fr 1fr 1fr;
+        gap: 10px;
+    }
+
+    @media (min-width: 768px) {
+        .grid-table-line {
+            grid-template-columns: 0.25fr 2fr 0.75fr 2fr 2fr 2fr 1fr;
+        }
+    }
+</style>
