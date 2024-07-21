@@ -23,7 +23,6 @@ export const useFilterStore = defineStore('filter', () => {
     }
 
     function changeTraits(item, filterKey) {
-        console.log(item, filterKey)
         if (item.target.checked) {
             traits.value.push({
                 trait_type: filterKey,

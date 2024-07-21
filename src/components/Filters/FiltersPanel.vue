@@ -9,7 +9,7 @@ const route = useRoute()
 
 const maxPrice = ref(0)
 
-const tmpFunct = inject('tmpFunct', () => { console.log('dont get') })
+const tmpFunct = inject('tmpFunct', () => {})
 
 const handleClick = (item) => {
   let currentFilter = ''
