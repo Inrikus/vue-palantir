@@ -16,11 +16,11 @@ defineProps({
                 <div class='flex justify-center gap-10 xl:justify-between'>
                     <div>
                         <p class='opacity-60'>Floor price</p>
-                        <p>{{bannerData.min_price}}</p>
+                        <p class="sm:text-lg text-sm mt-2">{{bannerData.min_price}} USD</p>
                     </div>
                     <div class="text-right">
                         <p class='opacity-60'>Listed NFTs</p>
-                        <p>{{bannerData.count_on_sale}}</p>
+                        <p class="sm:text-lg text-sm mt-2">{{bannerData.count_on_sale}}</p>
                     </div>
                 </div>
             </div>

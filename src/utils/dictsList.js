@@ -79,5 +79,7 @@ export const bannerLinks = {
 
 export const currency = {
   'ETH': 'eth.svg',
-  'BNB': 'bnb.svg'
+  'BNB': 'bnb.svg',
+  'USDT': 'usdt.svg',
+  'ACE': 'ace.svg'
 }

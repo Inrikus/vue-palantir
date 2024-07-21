@@ -28,7 +28,7 @@ const date = new Date(props.activity.timestamp * 1000);
 
 <template>
     <span class="h-full"><div class="w-full h-full flex items-center justify-center"><img :src="platformIcon[activity.platform]" alt="" class="w-6 h-6"></div></span>
-    <span><img :src='"/nft/" + nftsPath[route.name] + "/" + (route.name !== "pf" ? pageNames[route.name].name + "-" + activity.tokenId + ".jpg" : activity.tokenId > 10000 ? "Steam-Key-NFT.png" : "Beta-Testing-NFT.png")' class='w-10 float-left mr-2'>{{ pageNames[route.name].name }} #{{ activity.tokenId }}</span>
+    <span class="flex items-center"><img :src='"/nft/" + nftsPath[route.name] + "/" + (route.name !== "pf" ? pageNames[route.name].name + "-" + activity.tokenId + ".jpg" : activity.tokenId > 10000 ? "Steam-Key-NFT.png" : "Beta-Testing-NFT.png")' class='w-10 float-left mr-2'>{{ pageNames[route.name].name }} #{{ activity.tokenId }}</span>
     <span class="align-middle">
         <div class="w-full flex items-end flex-col">
             <p><img :src="'/currency/' + (activity.currency in currency ? currency[activity.currency] : 'unknown.svg')" class="w-4 h-4 float-left mr-2 mt-1">{{ activity.price_native }}</p>
