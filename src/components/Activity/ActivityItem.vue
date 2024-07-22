@@ -33,10 +33,10 @@ const date = new Date(props.activity.timestamp * 1000);
             <img :src="platformIcon[activity.platform]" alt="" class="w-7 h-7">
         </div>
     </span>
-    <span class="flex place-content-center items-center">
+    <span class="flex items-center pl-4">
         <img :src='"/nft/" + nftsPath[route.name] + "/" + (route.name !== "pf" ? pageNames[route.name].name + "-" + activity.tokenId + ".jpg" : activity.tokenId > 10000 ? "Steam-Key-NFT.png" : "Beta-Testing-NFT.png")'
-            class='w-10 float-left mr-2'>
-        {{ pageNames[route.name].name }} #{{ activity.tokenId }}
+            class='w-10 mr-2'>
+        <span class="truncate">{{ pageNames[route.name].name }} #{{ activity.tokenId }}</span>
     </span>
     <span class="place-content-center">
         <div class="w-full flex flex-col items-center">
