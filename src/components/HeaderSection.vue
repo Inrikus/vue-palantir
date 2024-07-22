@@ -1,4 +1,8 @@
 <script setup>
+const handleToggleNav = () => {
+    document.getElementById('collections').classList.toggle('hidden')
+    document.getElementsByTagName('body')[0].classList.toggle('hidden-scroll')
+}
 </script>
 
 <template>
@@ -8,19 +12,24 @@
             <h1 class="ml-2 text-3xl font-bold tracking-[8px] logo-grad">PALANTIR</h1>
         </router-link>
 
-        <nav class='flex gap-4 text-xl font-semibold text-[#63B4C8]'>
-            <div id="collections" class='cursor-pointer relative'>Collections
-                <div class='hide-nav flex flex-col'>
-                    <router-link to="/bm">Bi-Mech</router-link>
-                    <router-link to="/qp">Quartan Primes</router-link>
-                    <router-link to="/ap">Alpha Prestige</router-link>
-                    <router-link to="/peace">PrimeACE</router-link>
-                    <router-link to="/pf">Pioneer of Fusionist</router-link>
-                </div>
-            </div> 
-
-            <router-link to='/contacts'>Contacts</router-link>
+        <nav class='text-[#63b4c8] font-semibold text-xl flex gap-4'>
+            <button class="hover:opacity-50" @click="handleToggleNav">Collections</button>
+            <router-link to="/contacts" class="hover:opacity-50">Contacts</router-link>
         </nav>
+
+        <div id="collections" class="fixed top-0 right-0 w-full h-[100vh] bg-gray-700 bg-opacity-70 z-[9999999] hidden">
+            <div class="absolute top-0 right-0 h-full bg-[#1a1a1a] p-10 flex flex-col text-[#63b4c8] font-semibold text-xl gap-4 " @click="handleToggleNav">
+                <router-link to="/bm">Bi-Mech</router-link>
+                <router-link to="/qp">Quartan Primes</router-link>
+                <router-link to="/ap">Alpha Prestige</router-link>
+                <router-link to="/pf">Pioneer of Fusionist</router-link>
+                <router-link to="/peace">PrimeAce</router-link>
+            </div>
+
+            <button class="w-6 h-6 absolute top-3 right-3" @click="handleToggleNav">
+                <img src="@/assets/cross.svg">
+            </button>
+        </div>
     </header>
 </template>
 
@@ -47,5 +56,9 @@
     z-index: 999;
     border-radius: 0 0 20px 20px;
     gap: 10px;
+}
+
+.hidden-scroll {
+    overflow: hidden;
 }
 </style>

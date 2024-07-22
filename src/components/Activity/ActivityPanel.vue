@@ -55,19 +55,18 @@ onBeforeUnmount(() => {
 
 .grid-table-line {
     display: grid;
-    grid-template-columns: 0.4fr 1.5fr 1fr 1fr;
     gap: 10px;
 }
 
 @media (min-width: 768px) {
     .grid-table-line {
-        grid-template-columns: 0.4fr 1.5fr 1fr 2fr 2fr 1.5fr;
+        grid-template-columns: 0.3fr 1.5fr 0.7fr 1.5fr 1.5fr 1fr;
     }
 }
 
 @media (max-width: 767px) {
     .grid-table-line {
-        grid-template-columns: 0.4fr 1.5fr 1fr 1fr;
+        grid-template-columns: 0.3fr 1.5fr 0.7fr 0.8fr;
     }
 }
 

@@ -42,8 +42,8 @@ const handleSendMessage = () => {
     </div>
 
     <div class="flex flex-col gap-3 mt-10 justify-center items-center text-[#63b4c8] bg-[#1F1F1F] px-20 py-10 rounded-xl shadow-2xl">
-        <input type="text" class="p-2 rounded-xl w-full bg-[#1F1F1F] text-[#63b4c8] border-2 border-[#63b4c8] placeholder-change" placeholder="Contact" v-model="contact" />
-        <textarea class="p-2 rounded-xl w-full bg-[#1F1F1F] text-[#63b4c8] border-2 border-[#63b4c8] placeholder-change" placeholder="Message..." rows="5" v-model="message"></textarea>
+        <input type="text" class="w-5/6 p-2 rounded-xl bg-[#1F1F1F] text-[#63b4c8] border-2 border-[#63b4c8] placeholder-change" placeholder="Contact" v-model="contact" />
+        <textarea class="w-5/6 p-2 rounded-xl bg-[#1F1F1F] text-[#63b4c8] border-2 border-[#63b4c8] placeholder-change" placeholder="Message..." rows="5" v-model="message"></textarea>
         <button class="rounded-xl py-2 px-6 border-2 font-semibold border-[#63b4c8] hover:bg-gray-700 transition-all" type="submit" @click="handleSendMessage">Send</button>
     </div>
   </div>

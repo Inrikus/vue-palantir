@@ -14,6 +14,7 @@ const nftsPath = {
 }
 
 var options = {
+    hour12: false,
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
