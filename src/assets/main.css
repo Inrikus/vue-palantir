@@ -6,4 +6,12 @@
 body {
     background-color: #1a1a1a;
     height: 100vh;
+    
 }
+body::-webkit-scrollbar { width: 0; }
+
+/* ie 10+ */
+body { -ms-overflow-style: none; }
+
+/* фф (свойство больше не работает, других способов тоже нет)*/
+.body { overflow: -moz-scrollbars-none; }

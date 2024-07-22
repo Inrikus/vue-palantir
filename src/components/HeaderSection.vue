@@ -18,7 +18,7 @@ const handleToggleNav = () => {
         </nav>
 
         <div id="collections" class="fixed top-0 right-0 w-full h-[100vh] bg-gray-700 bg-opacity-70 z-[9999999] hidden">
-            <div class="absolute top-0 right-0 h-full bg-[#1a1a1a] p-10 flex flex-col text-[#63b4c8] font-semibold text-xl gap-4 " @click="handleToggleNav">
+            <div class="absolute top-0 right-0 h-full bg-[#1a1a1a] p-10 flex flex-col text-[#63b4c8] font-semibold text-xl gap-4 w-full sm:w-auto" @click="handleToggleNav">
                 <router-link to="/bm">Bi-Mech</router-link>
                 <router-link to="/qp">Quartan Primes</router-link>
                 <router-link to="/ap">Alpha Prestige</router-link>
