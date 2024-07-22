@@ -15,7 +15,7 @@ const handleSendMessage = () => {
         return
     }
 
-    alert('Message sent')
+    alert('SOON TOON LATER')
 }
 </script>
 
