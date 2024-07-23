@@ -1,5 +1,5 @@
 <script setup>
-import { watch, ref, onMounted, inject  } from 'vue'
+import { watch, ref, onMounted, onBeforeUnmount, inject } from 'vue'
 import { useFilterStore } from '@/stores/filterStore'
 import { useCardStore } from '@/stores/cardStore'
 import { useRoute } from 'vue-router'
@@ -14,6 +14,7 @@ const route = useRoute()
 
 const page = ref(1)
 const hasNextPage = ref(true)
+const isLoading = ref(false)
 const setFunction = inject('setFunction')
 
 const props = defineProps({
@@ -22,31 +23,32 @@ const props = defineProps({
 
 const getCardsList = async () => {
   try {
-    let [traits, sortBy, orderType, status, sources, tradeType, maxPrice] = [...filterStore.getAllFilters]
-    const { data: data } = await axios.post(
+    const [traits, sortBy, orderType, status, sources, tradeType, maxPrice] = [...filterStore.getAllFilters]
+    const { data } = await axios.post(
       `${import.meta.env.VITE_API_URL}/api/nfts/${queryName[route.name]}`,
       {
-        status: status,
+        status,
         page: page.value,
         rows: 30,
-        tradeType: tradeType,
+        tradeType,
         orderBy: sortBy,
-        orderType: orderType,
-        traits: traits,
-        sources: sources,
-        priceRangeMax: maxPrice
+        orderType,
+        traits,
+        sources,
+        priceRangeMax: maxPrice,
       }
     )
 
     return data
   } catch (e) {
     console.log(e)
+    return { nfts: [], has_next_page: false, total_items: 0 }
   }
 }
 
 function debounce(fn, delay) {
   let timer
-  return async function (...args) {
+  return function (...args) {
     if (timer) {
       clearTimeout(timer)
     }
@@ -57,9 +59,10 @@ function debounce(fn, delay) {
 }
 
 const debouncedLoadMoreCards = debounce(async () => {
-  if (!hasNextPage.value) {
+  if (!hasNextPage.value || isLoading.value) {
     return
   }
+  isLoading.value = true
   page.value += 1
 
   const { nfts: data, has_next_page: allowed, total_items: maxCards } = await getCardsList()
@@ -67,6 +70,7 @@ const debouncedLoadMoreCards = debounce(async () => {
   cardStore.addCards(data, maxCards)
 
   hasNextPage.value = allowed
+  isLoading.value = false
 }, 200)
 
 const handleScroll = () => {
@@ -74,7 +78,7 @@ const handleScroll = () => {
   const clientHeight = document.documentElement.clientHeight
   const scrollHeight = document.documentElement.scrollHeight
 
-  if (scrollTop + clientHeight >= scrollHeight - 10) {
+  if (scrollTop + clientHeight >= scrollHeight - 100) {
     debouncedLoadMoreCards()
   }
 }
@@ -92,9 +96,12 @@ onMounted(() => {
   window.addEventListener('scroll', handleScroll)
 })
 
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
+
 onMounted(async () => {
   page.value = 1
-  window.addEventListener('scroll', handleScroll)
   filterStore.clearFilter()
   const { nfts: data, has_next_page: allowed, total_items: maxCards } = await getCardsList()
 
@@ -121,16 +128,13 @@ watch(
 watch(route, () => {
   page.value = 1
   filterStore.clearFilter()
-  window.addEventListener('scroll', handleScroll)
   hasNextPage.value = true
 })
 </script>
 
 <template>
-  <div
-    class="w-full grid auto-fill-grid gap-4 gap-y-5 justify-between content-start justify-items-top pb-5"
-    v-auto-animate
-  >
+  <div class="w-full grid auto-fill-grid gap-4 gap-y-5 justify-between content-start justify-items-top pb-5"
+    v-auto-animate>
     <CardItem v-for="card in cardStore.cards" :key="card.nft_name" :card="card" />
   </div>
 </template>
@@ -139,10 +143,12 @@ watch(route, () => {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .auto-fill-grid {
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
@@ -154,8 +160,8 @@ watch(route, () => {
 }
 
 @media (max-width: 480px) {
-    .auto-fill-grid {
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    }
+  .auto-fill-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
+}
 </style>
