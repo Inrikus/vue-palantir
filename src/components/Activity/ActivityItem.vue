@@ -1,17 +1,10 @@
 <script setup>
-import { platformIcon, pageNames, currency } from '@/utils/dictsList.js'
-import { useRoute } from 'vue-router';
+import { platformIcon, currency } from '@/utils/dictsList.js'
+//import { useRoute } from 'vue-router';
 
 const props = defineProps({
     activity: Object
 })
-
-const nftsPath = {
-    'bm': 'bi-mech',
-    'qp': 'quartan_primes',
-    'ap': 'alpha_prestige',
-    'pf': 'pioneer_of_fusionist',
-}
 
 var options = {
     hour12: false,
@@ -22,7 +15,7 @@ var options = {
     minute: '2-digit',
 };
 
-const route = useRoute()
+//const route = useRoute()
 
 const date = new Date(props.activity.timestamp * 1000);
 </script>
@@ -36,7 +29,7 @@ const date = new Date(props.activity.timestamp * 1000);
     <span class="flex items-center pl-4">
         <img :src="activity.nft_image"
             class='w-10 mr-2'>
-        <span class="truncate">{{ pageNames[route.name].name }} #{{ activity.tokenId }}</span>
+        <span class="truncate">{{ activity.nft_name }} </span>
     </span>
     <span class="place-content-center">
         <div class="w-full flex flex-col items-center">
