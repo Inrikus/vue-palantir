@@ -13,7 +13,7 @@ export const filterList = {
     Rarity: ['Common', 'Rare', 'Elite', 'Epic', 'Legendary', "Collector's"]
   },
   ap: {},
-  pf: {
+  planet: {
     Grade: ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4', 'Tier 5'],
     Ecology: ['Grassland', 'Land', 'Ocean', 'Lava', 'Wild', 'Gas', 'Poison', 'Frozen', 'Desert'],
     'Satellite Amount': ['0', '2', '4', '6', '8'],
@@ -24,7 +24,7 @@ export const filterList = {
     Petroleum: ['0', '1', '2', '3', '4', '5'],
     Helium: ['0', '1', '2', '3', '4', '5'],
     Hydrogen: ['0', '1', '2', '3', '4', '5'],
-  }
+  },
 }
 
 export const filterSource = {
@@ -60,7 +60,7 @@ export const pageNames = {
   ap: { name: 'Alpha Prestige', link: 'collections/Alpha Prestige.webp' },
   peace: { name: 'PrimeACE', link: 'collections/ace.svg' },
   pf: { name: 'Pioneer of Fusionist', link: 'collections/Pioneer of Fusionist.webp' },
-  planet: { name: 'Fusionist Planet', link: 'collections/Fusionist Planet.png' }
+  planet: { name: 'Fusionist Planet', link: 'collections/Fusionist Planet.png' },
 }
 
 export const bannerLinks = {

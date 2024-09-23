@@ -42,6 +42,11 @@ const router = createRouter({
       name: 'pf',
     },
     {
+      path: '/planet',
+      component: CollectionsPage,
+      name: 'planet',
+    },
+    {
       path: '/404',
       name: '404',
       component: ErrorPage
