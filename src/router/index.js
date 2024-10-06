@@ -13,38 +13,34 @@ const router = createRouter({
       component: HomePage
     },
     {
-      path: '/collections',
-      redirect: '/collections/bm'
+      path: '/planet',
+      component: CollectionsPage,
+      name: 'planet'
     },
     {
       path: '/bm',
       component: CollectionsPage,
-      name: 'bm',
+      name: 'bm'
     },
     {
       path: '/qp',
       component: CollectionsPage,
-      name: 'qp',
+      name: 'qp'
     },
     {
       path: '/ap',
       component: CollectionsPage,
-      name: 'ap',
+      name: 'ap'
     },
     {
       path: '/peace',
       component: CollectionsPage,
-      name: 'peace',
+      name: 'peace'
     },
     {
       path: '/pf',
       component: CollectionsPage,
-      name: 'pf',
-    },
-    {
-      path: '/planet',
-      component: CollectionsPage,
-      name: 'planet',
+      name: 'pf'
     },
     {
       path: '/404',
@@ -57,7 +53,7 @@ const router = createRouter({
       component: ContactsPage
     },
     {
-      path: "/:catchAll(.*)",
+      path: '/:catchAll(.*)',
       redirect: '/404'
     }
   ]

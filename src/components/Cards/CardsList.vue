@@ -1,47 +1,37 @@
 <script setup>
-import { watch, ref, onMounted, onBeforeUnmount, inject } from 'vue'
-import { useFilterStore } from '@/stores/filterStore'
-import { useCardStore } from '@/stores/cardStore'
+import { watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
-import { queryName } from '@/utils/dictsList.js'
 import axios from 'axios'
 
 import CardItem from './CardItem.vue'
+
+import { useCardStore } from '@/stores/cardStore'
+import { useFilterStore } from '@/stores/filterStore'
+import { queryName } from '@/utils/dictsList.js'
 
 const filterStore = useFilterStore()
 const cardStore = useCardStore()
 const route = useRoute()
 
-const page = ref(1)
-const hasNextPage = ref(true)
-const isLoading = ref(false)
-const setFunction = inject('setFunction')
-
-const props = defineProps({
-  sort: Object
-})
-
 const getCardsList = async () => {
   try {
-    const [traits, sortBy, orderType, status, sources, tradeType, maxPrice] = [...filterStore.getAllFilters]
     const { data } = await axios.post(
       `${import.meta.env.VITE_API_URL}/api/nfts/${queryName[route.name]}`,
       {
-        status,
-        page: page.value,
-        rows: 30,
-        tradeType,
-        orderBy: sortBy,
-        orderType,
-        traits,
-        sources,
-        priceRangeMax: maxPrice,
+        sources: filterStore.sources,
+        status: filterStore.status,
+        tradeType: filterStore.tradeType,
+        order: filterStore.order,
+        priceRangeMax: filterStore.priceRangeMax,
+        page: filterStore.page,
+        rows: filterStore.rows,
+        traits: filterStore.traits,
       }
     )
-
-    return data
-  } catch (e) {
-    console.log(e)
+    return data 
+  } 
+  catch (error) {
+    console.error("Error fetching cards:", error);
     return { nfts: [], has_next_page: false, total_items: 0 }
   }
 }
@@ -59,19 +49,39 @@ function debounce(fn, delay) {
 }
 
 const debouncedLoadMoreCards = debounce(async () => {
-  if (!hasNextPage.value || isLoading.value) {
+  if (!cardStore.hasNextPage || cardStore.isLoading) {
     return
   }
-  isLoading.value = true
-  page.value += 1
+  try {
+  cardStore.changeIsLoading(true)
+  filterStore.changePage(filterStore.page + 1)
+  const { nfts: data, has_next_page: allowed } = await getCardsList()
+  cardStore.addCards(data)
+  cardStore.changeHasNextPage(allowed)
+  } catch (error) {
+    console.error("Error fetching cards:", error);
+  } finally {
+    cardStore.changeIsLoading(false);
+  }
+}, 150)
 
-  const { nfts: data, has_next_page: allowed, total_items: maxCards } = await getCardsList()
-
-  cardStore.addCards(data, maxCards)
-
-  hasNextPage.value = allowed
-  isLoading.value = false
-}, 200)
+const debouncedApply = debounce(async () => {
+  if (cardStore.isLoading) {
+    return;
+  }
+  try {
+    cardStore.changeIsLoading(true);
+    filterStore.changePage(1); // Сброс страницы
+    const { nfts: data, has_next_page: allowed, total_items: maxCards } = await getCardsList();
+    cardStore.changeCards(data, maxCards)
+    cardStore.changeHasNextPage(allowed);
+  } catch (error) {
+    console.error("Error fetching cards:", error);
+  } finally {
+    cardStore.changeIsLoading(false);
+    filterStore.setNeedsUpdate(false);
+  }
+}, 75)
 
 const handleScroll = () => {
   const scrollTop = window.scrollY || document.documentElement.scrollTop
@@ -83,14 +93,28 @@ const handleScroll = () => {
   }
 }
 
-const handleSetFilter = async () => {
-  page.value = 1
-  const { nfts: data, has_next_page: allowed, total_items: maxCards } = await getCardsList()
+//onMounted(async () => {
+//  console.log('hasNextPage:', cardStore.hasNextPage, 'isLoading:', cardStore.isLoading);
+//  filterStore.clearFilter()
+//  debouncedApply()
+//})
 
-  cardStore.changeCards(data, maxCards)
-
-  hasNextPage.value = allowed
-}
+onMounted(async () => {
+  try {
+    //console.log('hasNextPage:', cardStore.hasNextPage, 'isLoading:', cardStore.isLoading);
+    filterStore.clearFilter()
+    const { nfts: data, has_next_page: allowed, total_items: maxCards } = await getCardsList()
+    cardStore.changeCards(data, maxCards)
+    cardStore.changeHasNextPage(allowed)
+  }
+  catch (error) {
+    console.error("Error fetching cards:", error);
+  }
+  finally {
+    cardStore.changeIsLoading(false);
+    filterStore.setNeedsUpdate(false);
+  }
+})
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
@@ -98,38 +122,41 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
+  cardStore.changeCards([], 0) //Зануление карточек после выхода в главное меню
 })
 
-onMounted(async () => {
-  page.value = 1
-  filterStore.clearFilter()
-  const { nfts: data, has_next_page: allowed, total_items: maxCards } = await getCardsList()
-
-  setFunction(handleSetFilter)
-
-  cardStore.changeCards(data, maxCards)
-
-  hasNextPage.value = allowed
-})
-
-watch(
-  props,
-  async () => {
-    page.value = 1
+watch(route, async () => {
+  try {
+    //console.log('hasNextPage:', cardStore.hasNextPage, 'isLoading:', cardStore.isLoading);
+    filterStore.clearFilter()
     const { nfts: data, has_next_page: allowed, total_items: maxCards } = await getCardsList()
-
     cardStore.changeCards(data, maxCards)
-
-    hasNextPage.value = allowed
-  },
-  { deep: true }
-)
-
-watch(route, () => {
-  page.value = 1
-  filterStore.clearFilter()
-  hasNextPage.value = true
+    cardStore.changeHasNextPage(allowed)
+  }
+  catch (error) {
+    console.error("Error fetching cards:", error);
+  }
+  finally {
+    cardStore.changeIsLoading(false);
+    filterStore.setNeedsUpdate(false);
+  }
 })
+
+watch(() => filterStore.needsUpdate,
+  async (flagValue) => {
+    //console.log('needsUpdate changed:', 'flag:', flagValue, 'hasNextPage:', cardStore.hasNextPage, 'isLoading:', cardStore.isLoading);
+    if (flagValue) {
+      debouncedApply()
+    }
+  },
+  { deep: true })
+
+watch(() => filterStore.order,
+  async () => {
+    debouncedApply()
+  },
+  { deep: true })
+
 </script>
 
 <template>
@@ -138,6 +165,7 @@ watch(route, () => {
     <CardItem v-for="card in cardStore.cards" :key="card.nft_name" :card="card" />
   </div>
 </template>
+
 
 <style scoped>
 .no-scrollbar::-webkit-scrollbar {

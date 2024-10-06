@@ -1,82 +1,102 @@
-import { ref, computed } from 'vue';
+//import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 
-export const useFilterStore = defineStore('filter', () => {
-    const traits = ref([]);
-    const sort = ref('price');
-    const orderType = ref(1);
-    const status = ref([]);
-    const sources = ref([]);
-    const tradeType = ref(1);
-    const maxPrice = ref(0)
+// Определяем глобальный стор для фильтров
+export const useFilterStore = defineStore('filter', {
+  state: () => ({
+    status: [],
+    sources: [],
+    order: 'priceAsc',
+    tradeType: 1,
+    priceRangeMax: 0,
+    page: 1,
+    rows: 30,
+    traits: [],
+    needsUpdate: false // Флаг для отслеживания обновлений
+  }),
 
-    const getAllFilters = computed(() => {
-        return [ traits.value, sort.value, orderType.value, status.value, sources.value, tradeType.value, maxPrice.value ]
-    })
-
-    const getOrderType = computed(() => {
-        return [orderType.value, sort.value]
-    })
-
-    function changeMaxPrice(price) {
-        maxPrice.value = price
+  getters: {
+    getAllFilters: (state) => {
+      return [
+        state.sources,
+        state.status,
+        state.tradeType,
+        state.order,
+        state.priceRangeMax,
+        state.page,
+        state.rows,
+        state.traits
+      ]
     }
+  },
 
-    function changeTraits(item, filterKey) {
-        if (item.target.checked) {
-            traits.value.push({
-                trait_type: filterKey,
-                value: item.target.value
-            })
+  actions: {
+    setNeedsUpdate(value) {
+      this.needsUpdate = value;
+    },
+    changeTraits(item, filterKey) {
+      if (item.target.checked) {
+        this.traits.push({
+          trait_type: filterKey,
+          value: item.target.value
+        })
+        return
+      }
 
-            return
-        }
+      const index = this.traits.findIndex((el) => el.value === item.target.value)
+      this.traits.splice(index, 1)
+    },
 
-        let index = traits.value.findIndex((el) => el.value === item.target.value)
+    changeStatus(item) {
+      if (item.target.checked) {
+        this.status.push(item.target.value)
+        return
+      }
 
-        traits.value.splice(index, 1)
+      const index = this.status.findIndex((el) => el === item.target.value)
+      this.status.splice(index, 1)
+    },
+
+    changeSources(item) {
+      if (item.target.checked) {
+        this.sources.push(item.target.value)
+        return
+      }
+
+      const index = this.sources.findIndex((el) => el === item.target.value)
+      this.sources.splice(index, 1)
+    },
+
+    changeTradeType(item) {
+      this.tradeType = item.target.checked ? 1 : 0
+    },
+
+    changeOrder(item) {
+      this.order = item
+    },
+
+    changePage(item) {
+      this.page = item
+    },
+
+    changeRows(item) {
+      this.rows = item
+    },
+
+    changeMaxPrice(price) {
+      this.maxPrice = price
+    },
+
+    clearFilter() {
+      this.status = []
+      this.sources = []
+      this.order = 'priceAsc'
+      this.tradeType = 1
+      this.priceRangeMax = 0
+      this.page = 1
+      this.rows = 30
+      this.traits = []
+      this.needsUpdate = false
     }
-
-    function changeTradeType(item) {
-        tradeType.value = item.target.checked ? 1 : 0
-    }
-
-    function changeStatus(item) {
-        if (item.target.checked) {
-            status.value.push(item.target.value)
-            return
-        }
-
-        let index = status.value.findIndex((el) => el === item.target.value)
-
-        status.value.splice(index, 1)
-    }
-
-    function changeSources(item) {
-        if (item.target.checked) {
-            sources.value.push(item.target.value)
-            return
-        }
-
-        let index = sources.value.findIndex((el) => el === item.target.value)
-
-        sources.value.splice(index, 1)
-    }
-
-    function changeSort(item) {
-        sort.value = item.orderBy
-        orderType.value = item.orderType
-    }
-
-    function clearFilter() {
-        traits.value = []
-        sort.value = 'price'
-        orderType.value = 1
-        status.value = []
-        sources.value = []
-        tradeType.value = 1
-        maxPrice.value = 0
-    }
-
-    return { traits, sort, orderType, status, sources, changeMaxPrice,changeTraits, clearFilter, changeTradeType, changeStatus, changeSources, changeSort, getOrderType, getAllFilters }
+  }
 })

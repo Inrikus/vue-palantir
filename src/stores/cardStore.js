@@ -1,28 +1,38 @@
-import { ref, computed } from 'vue';
-import { defineStore } from 'pinia';
+import { defineStore } from 'pinia'
 
-export const useCardStore = defineStore('card', () => {
-    const cards = ref([]);
-    const maxCards = ref(0);
+export const useCardStore = defineStore('card', {
+  state: () => ({
+    cards: [], // Список карточек
+    maxCards: 0, // Максимальное количество карточек
+    hasNextPage: true, // Флаг для проверки наличия следующей страницы
+    isLoading: false // Флаг для проверки загрузки данных
+  }),
 
-    const getCardsList = computed(() => {
-        return cards.value
-    })
-
-    const getMaxCards = computed(() => {
-        return maxCards.value
-    })
-
-    function addCards(data) {
-        data.forEach(element => {
-          cards.value.push(element)
-        });
+  getters: {
+    getCardsList: (state) => {
+      return state.cards // Получение списка карточек
+    },
+    getMaxCards: (state) => {
+      return state.maxCards // Получение максимального количества карточек
     }
+  },
 
-    function changeCards(data, cardsCount) {
-        cards.value = data
-        maxCards.value = cardsCount
+  actions: {
+    addCards(data) {
+      this.cards.push(...data) // Добавление карточек в массив
+    },
+
+    changeCards(data, cardsCount) {
+      this.cards = data // Замена карточек на новые
+      this.maxCards = cardsCount // Обновление максимального количества карточек
+    },
+
+    changeHasNextPage(data) {
+      this.hasNextPage = data // Установка флага наличия следующей страницы
+    },
+
+    changeIsLoading(data) {
+      this.isLoading = data // Установка флага загрузки
     }
-
-    return { cards, maxCards, getMaxCards, addCards, getCardsList, changeCards}
+  }
 })

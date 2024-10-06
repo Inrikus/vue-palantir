@@ -6,6 +6,7 @@ import BannerPanel from '../components/Banner/BannerPanel.vue'
   <BannerPanel /> 
 </template>
 
+
 <style>
   .grid-banner {
     grid-template-columns: repeat(2, 1fr);

@@ -12,6 +12,7 @@ import FooterSection from './components/FooterSection.vue'
 <FooterSection />
 </template>
 
+
 <style scoped>
 
 </style>

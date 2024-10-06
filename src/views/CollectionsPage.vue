@@ -1,30 +1,20 @@
 <script setup>
-import { watch, ref, provide } from 'vue'
+import { watch, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { useFilterStore } from '@/stores/filterStore'
-import { useCardStore } from '@/stores/cardStore'
 
-import FiltersPanel from '@/components/Filters/FiltersPanel.vue'
 import CardsList from '@/components/Cards/CardsList.vue'
+import FiltersPanel from '@/components/Filters/FiltersPanel.vue'
 import ActivityPanel from '@/components/Activity/ActivityPanel.vue'
 
+import { useCardStore } from '@/stores/cardStore'
+import { useFilterStore } from '@/stores/filterStore'
 import { pageNames } from '@/utils/dictsList.js'
 
 const route = useRoute()
-const filterStore = useFilterStore()
 const cardStore = useCardStore()
+const filterStore = useFilterStore()
 
-const tmpFunct = ref(null)
 const currentPanel = ref('Cards')
-
-const setFunction = (func) => {
-  tmpFunct.value = func
-}
-
-const currentSort = ref({
-  orderBy: 'price',
-  orderType: 1
-})
 
 const handleToggleFilter = () => {
   const filterPanel = document.querySelector('#filter-panel')
@@ -44,20 +34,10 @@ const handleChangePanel = (panel) => {
 }
 
 watch(route, () => {
-  filterStore.clearFilter()
-  currentSort.value = {
-    orderBy: 'price',
-    orderType: 1
-  }
   currentPanel.value = 'Cards'
 })
 
-watch(currentSort, () => {
-  filterStore.changeSort(currentSort.value)
-}, { deep: true })
 
-provide('tmpFunct', tmpFunct)
-provide('setFunction', setFunction)
 </script>
 
 <template>
@@ -68,74 +48,52 @@ provide('setFunction', setFunction)
     </div>
   </div>
 
-  <div class="flex justify-start gap-4 text-2xl text-[#63B4C8] my-6 font-semibold" v-if="route.name !== 'peace'">
-    <button :class="'panel ' + (currentPanel === 'Cards' ? 'panel-active' : '')" @click="() => handleChangePanel('Cards')">NFTs</button>
-    <button :class="'panel ' + (currentPanel === 'Activity' ? 'panel-active' : '')" @click="() => handleChangePanel('Activity')">Activity</button>
+  <div class="flex justify-start gap-4 text-2xl text-[#63B4C8] my-6 font-semibold" v-if="!['peace', 'planet'].includes(route.name)">
+    <button :class="'panel ' + (currentPanel === 'Cards' ? 'panel-active' : '')"
+      @click="() => handleChangePanel('Cards')">NFTs</button>
+    <button :class="'panel ' + (currentPanel === 'Activity' ? 'panel-active' : '')"
+      @click="() => handleChangePanel('Activity')">Activity</button>
   </div>
 
   <div v-if="currentPanel === 'Cards'">
 
-  <div class="mt-4 flex justify-between flex-col sm:flex-row gap-2 sticky sm:static top-0 left-0 z-10 bg-[#1a1a1a] py-2">
-    <div class="flex gap-4 items-center">
-      <button @click='handleToggleFilter' class='border-2 border-[#63B4C8] text-[#63B4C8] rounded-md p-2 flex gap-2 text-xl font-semibold items-center hover:bg-gray-700 sticky sm:static top-0 left-0 justify-center max-sm:w-full z-10 bg-[#232228]'>
+    <div
+      class="mt-4 flex justify-between flex-col sm:flex-row gap-2 sticky sm:static top-0 left-0 z-10 bg-[#1a1a1a] py-2">
+      <div class="flex gap-4 items-center">
+        <button @click='handleToggleFilter'
+          class='border-2 border-[#63B4C8] text-[#63B4C8] rounded-md p-2 flex gap-2 text-xl font-semibold items-center hover:bg-gray-700 sticky sm:static top-0 left-0 justify-center max-sm:w-full z-10 bg-[#232228]'>
           <img src='../assets/filter-1.svg' class='w-6'> Filter
-      </button>
-    </div>
-
-    <div class="relative flex justify-between">
-      <div :class="'text-l font-bold tracking-[4px] text-[#63B4C8] ' + (cardStore.getMaxCards ? 'circle circle-active' : 'circle')">
-        {{ cardStore.getMaxCards }} results
+        </button>
       </div>
-      <select 
-        v-model="currentSort"
-        class="w-[100%] font-semibold text-center text-xl bg-transparent border-2 border-[#63B4C8] text-[#63B4C8] rounded-md appearance-none focus:outline-none focus:ring-0 focus:bg-gray-700 hover:bg-gray-700 cursor-pointer peer p-2"
-      >
-        <option :value="{
-          orderBy: 'price',
-          orderType: -1
-        }"
-        class='bg-[#232228]'>
-          Price: High to low
-        </option>
-        <option :value="{
-          orderBy: 'price',
-          orderType: 1
-        }" 
-        class='bg-[#232228]'>Price: Low to high</option>
-        <option :value="{
-          orderBy: 'rarity',
-          orderType: -1
-        }"
-        class='bg-[#232228]'>Rarity: High to low</option>
-        <option :value="{
-          orderBy: 'rarity',
-          orderType: 1
-        }"
-        class='bg-[#232228]'>Rarity: Low to high</option>
-        <option :value="{
-          orderBy: 'token_id',
-          orderType: -1
-        }"
-        class='bg-[#232228]'>Token id: High to low</option>
-        <option :value="{
-          orderBy: 'token_id',
-          orderType: 1
-        }"
-        class='bg-[#232228]'>Token id: Low to high</option>
-      </select>
+
+      <div class="relative flex justify-between">
+        <div
+          :class="'text-l font-bold tracking-[4px] text-[#63B4C8] ' + (cardStore.getMaxCards ? 'circle circle-active' : 'circle')">
+          {{ cardStore.getMaxCards }} results
+        </div>
+        <select v-model="filterStore.order"
+          class="w-[100%] font-semibold text-center text-xl bg-transparent border-2 border-[#63B4C8] text-[#63B4C8] rounded-md appearance-none focus:outline-none focus:ring-0 focus:bg-gray-700 hover:bg-gray-700 cursor-pointer peer p-2">
+          <option value="priceDesc" class='bg-[#232228]'> Price: High to low </option>
+          <option value="priceAsc" class='bg-[#232228]'> Price: Low to high </option>
+          <option value="rarityDesc" class='bg-[#232228]'> Rarity: High to low </option>
+          <option value="rarityAsc" class='bg-[#232228]'> Rarity: Low to high </option>
+          <option value="tokenIdDesc" class='bg-[#232228]'> Token id: High to low </option>
+          <option value="tokenIdAsc" class='bg-[#232228]'> Token id: Low to high </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mt-10 flex flex-col sm:flex-row gap-4 h-full items-stretch">
+      <FiltersPanel />
+      <CardsList />
     </div>
   </div>
 
-  <div class="mt-10 flex flex-col sm:flex-row gap-4 h-full items-stretch">
-    <FiltersPanel />
-    <CardsList :sort="currentSort" />
+  <div v-else>
+    <ActivityPanel />
   </div>
-</div>
-
-<div v-else>
-  <ActivityPanel />
-</div>
 </template>
+
 
 <style>
 .circle::before {

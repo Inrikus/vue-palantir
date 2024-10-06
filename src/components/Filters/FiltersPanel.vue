@@ -1,15 +1,14 @@
 <script setup>
+import { watch, ref } from 'vue'
+import { useRoute } from 'vue-router'
+
 import { useFilterStore } from '@/stores/filterStore'
 import { filterList, filterSource } from '@/utils/dictsList.js'
-import { useRoute } from 'vue-router'
-import { watch, inject, ref } from 'vue'
 
 const filterStore = useFilterStore()
 const route = useRoute()
 
-const maxPrice = ref(0)
-
-const tmpFunct = inject('tmpFunct', () => {})
+const maxPrice = ref(null)
 
 const handleClick = (item) => {
   if (!item.target) return;
@@ -60,38 +59,29 @@ const handleToggleFilter = () => {
   }
 }
 
+const handleApplyFilter = () => {
+  filterStore.setNeedsUpdate(true);
+}
+
 const handleResetFilter = () => {
-  filterStore.clearFilter()
-  maxPrice.value = 0
-  document.querySelectorAll('input').forEach((el) => {
-    if (el.type === 'checkbox') {
-      el.checked = false
-    }
-  })
-  const onlyListedCheckbox = document.querySelector('#only-listed')
-  if (onlyListedCheckbox) {
-    onlyListedCheckbox.checked = true
+  filterStore.clearFilter();
+  // Убираем все галочки у чекбоксов
+  document.querySelectorAll('input[type="checkbox"]').forEach((el) => {
+    el.checked = false;
+  });
+  // Устанавливаем чекбокс "only-buy-now" в true
+  const onlyBuyNowCheckbox = document.querySelector('#only-buy-now');
+  if (onlyBuyNowCheckbox) {
+    onlyBuyNowCheckbox.checked = true;
   }
-  tmpFunct.value()
-}
+  filterStore.setNeedsUpdate(true);
+};
 
-const handleSetFilter = () => {
-  filterStore.changeMaxPrice(maxPrice.value)
-  tmpFunct.value()
-}
-
+// Вызов функции handleResetFilter при смене роутинга
 watch(() => route.fullPath, () => {
-  document.querySelectorAll('input').forEach((el) => {
-    if (el.type === 'checkbox') {
-      el.checked = false
-    }
-  })
-  const onlyListedCheckbox = document.querySelector('#only-listed')
-  if (onlyListedCheckbox) {
-    onlyListedCheckbox.checked = true
-  }
-  maxPrice.value = 0
-})
+  handleResetFilter();
+});
+
 </script>
 
 <template>
@@ -111,7 +101,7 @@ watch(() => route.fullPath, () => {
 
         <div class="flex flex-col open gap-3 mt-4 collapse-item static px-1 top-6 left-0">
           <label class="inline-flex items-center w-full cursor-pointer">
-            <input type="checkbox" class="sr-only peer" id="only-listed" @click="handleTradeTypeClick" checked />
+            <input type="checkbox" class="sr-only peer" id="only-buy-now" @click="handleTradeTypeClick" checked />
             <div
               class="relative xl:block w-9 h-5 bg-gray-200 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-500 peer-checked:bg-blue-600">
             </div>
@@ -127,7 +117,7 @@ watch(() => route.fullPath, () => {
           </label>
 
           <label class="inline-flex items-center w-full cursor-pointer"
-            v-if="['qp', 'peace', 'pf'].includes(route.name)">
+            v-if="['qp', 'peace'].includes(route.name)">
             <input type="checkbox" class="sr-only peer" value="Uncreated" @click="handleStatusClick" />
             <div
               class="relative xl:block w-9 h-5 bg-gray-200 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-500 peer-checked:bg-blue-600">
@@ -196,7 +186,7 @@ watch(() => route.fullPath, () => {
         <button class="text-l font-semibold border-2 border-[#63b4c8] hover:bg-gray-700 p-2 rounded-xl"
           @click="handleResetFilter">Reset</button>
         <button class="text-l font-semibold border-2 border-[#63b4c8] hover:bg-gray-700 p-2 rounded-xl"
-          @click="handleSetFilter">Apply</button>
+          @click="handleApplyFilter">Apply</button>
       </div>
     </div>
   </div>
