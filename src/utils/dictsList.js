@@ -29,10 +29,10 @@ export const filterList = {
 
 export const filterSource = {
   bm: ['Element', 'OKX', 'Binance'],
-  qp: ['Blur', 'Opensea', 'Element', 'OKX', 'Binance'],
+  qp: ['Blur', 'Opensea', 'Element', 'MagicEden','OKX', 'Binance'],
   peace: ['Tesseract'],
-  ap: ['Blur', 'Opensea', 'Element', 'OKX', 'Binance'],
-  pf: ['Blur', 'Opensea', 'Element', 'OKX'],
+  ap: ['Blur', 'Opensea', 'Element', 'MagicEden', 'OKX', 'Binance'],
+  pf: ['Blur', 'Opensea', 'Element', 'MagicEden', 'OKX'],
   planet: ['Tesseract'],
 }
 
@@ -42,7 +42,8 @@ export const platformIcon = {
   Binance: 'marketplace/logo.png',
   Element: 'marketplace/element.webp',
   OKX: 'marketplace/okx.webp',
-  Tesseract: 'marketplace/Tesseract.ico'
+  Tesseract: 'marketplace/Tesseract.ico',
+  MagicEden: 'marketplace/MagicEden.png'
 }
 
 export const queryName = {
