@@ -70,22 +70,22 @@ export const bannerLinks = {
     image: '/banner/planet.png',
     link_to: '/planet'
   },
-  Bi_Mech: {
+  'Bi-Mech': {
     name: 'Bi-Mech',
     image: '/banner/bm.gif',
     link_to: '/bm'
   },
-  Quartan_Primes: {
+  'Quartan Primes': {
     name: 'Quartan Primes',
     image: '/banner/qp.gif',
     link_to: '/qp'
   },
-  Alpha_Prestige: {
+  'Alpha Prestige': {
     name: 'Alpha Prestige',
     image: '/banner/ap.gif',
     link_to: '/ap'
   },
-  PrimeACE: {
+  'PrimeACE': {
     name: 'PrimeACE',
     image: '/banner/peace.png',
     link_to: '/peace'

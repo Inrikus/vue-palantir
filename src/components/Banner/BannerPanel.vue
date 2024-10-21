@@ -4,7 +4,7 @@ import BannerItem from './BannerItem.vue'
 import axios from 'axios'
 import { onMounted, ref } from 'vue'
 
-const bannerData = ref([])
+const bannerData = ref({})
 
 const getBanners = async () => {
   const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/nfts/home`)
