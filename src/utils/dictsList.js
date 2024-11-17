@@ -14,17 +14,15 @@ export const filterList = {
   },
   ap: {},
   planet: {
-    'Grade': ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4', 'Tier 5'],
-    'Ecology': ['Grassland', 'Land', 'Ocean', 'Lava', 'Wild', 'Gas', 'Poison', 'Frozen', 'Desert'],
-    'Satellite Amount': ['0', '2', '4', '6', '8'],
-    'Mineral Amount': ['2', '4', '7', '11', '16'],
-    //'Titanium': ['0', '1', '2', '3', '4', '5'],
-    //'Coal': ['0', '1', '2', '3', '4', '5'],
-    //'Sulfur': ['0', '1', '2', '3', '4', '5'],
-    //'Petroleum': ['0', '1', '2', '3', '4', '5'],
-    //'Helium': ['0', '1', '2', '3', '4', '5'],
-    //'Hydrogen': ['0', '1', '2', '3', '4', '5'],
-  },
+    Grade: ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4', 'Tier 5'],
+    Ecology: ['Grassland', 'Land', 'Ocean', 'Lava', 'Wild', 'Gas', 'Poison', 'Frozen', 'Desert'],
+    Helium: ['1', '2', '3', '4', '5'],
+    Titanium: ['1', '2', '3', '4', '5'],
+    Hydrogen: ['1', '2', '3', '4', '5'],
+    Petroleum: ['1', '2', '3', '4', '5'],
+    Coal: ['1', '2', '3', '4', '5'],
+    Sulfur: ['1', '2', '3', '4', '5']
+  }
 }
 
 export const filterSource = {

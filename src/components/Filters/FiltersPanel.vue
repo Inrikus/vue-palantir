@@ -1,5 +1,5 @@
 <script setup>
-import { watch, ref } from 'vue'
+import { watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { useFilterStore } from '@/stores/filterStore'
@@ -8,11 +8,12 @@ import { filterList, filterSource } from '@/utils/dictsList.js'
 const filterStore = useFilterStore()
 const route = useRoute()
 
-const maxPrice = ref(null)
+// const maxPrice = ref(null)
 
 const handleClick = (item) => {
   if (!item.target) return;
   let currentFilter = '';
+  
   for (let filter in filterList[route.name] || {}) {
     if (filterList[route.name][filter].includes(item.target.value)) {
       currentFilter = filter;
@@ -125,6 +126,7 @@ watch(() => route.fullPath, () => {
             <span class="xl:ms-3 ms-1 font-medium">Uncreated</span>
           </label>
         </div>
+      
       </div>
 
       <div v-for="(filter, index) in Object.keys(filterList[route.name] || {})" :key="index"
@@ -148,6 +150,7 @@ watch(() => route.fullPath, () => {
             <span class="xl:ms-3 ms-1 font-medium">{{ option }}</span>
           </label>
         </div>
+      
       </div>
 
       <div class="md:relative xl:static">
@@ -173,15 +176,17 @@ watch(() => route.fullPath, () => {
 
           <img src='@/assets/cross.svg' class='w-5 sm:hidden absolute top-4 right-4' @click='handleToggleFilter'>
         </div>
+      
       </div>
 
-      <div>
-        <label>
-          <p class="text-xl font-bold">Max Price</p>
-          <input placeholder="Max Price" type="number" min="0" v-model.number="maxPrice"
-            class="p-2 rounded-xl w-full bg-[#1F1F1F] text-[#63b4c8] border-2 border-[#63b4c8] placeholder-change mt-2" />
-        </label>
-      </div>
+      <!-- <div> -->
+        <!-- <label> -->
+          <!-- <p class="text-xl font-bold">Max Price</p> -->
+          <!-- <input placeholder="Max Price" type="number" min="0" v-model.number="maxPrice" -->
+            <!-- class="p-2 rounded-xl w-full bg-[#1F1F1F] text-[#63b4c8] border-2 border-[#63b4c8] placeholder-change mt-2" /> -->
+        <!-- </label> -->
+      <!-- </div> -->
+      
       <div class="flex justify-between gap-1">
         <button class="text-l font-semibold border-2 border-[#63b4c8] hover:bg-gray-700 p-2 rounded-xl"
           @click="handleResetFilter">Reset</button>
