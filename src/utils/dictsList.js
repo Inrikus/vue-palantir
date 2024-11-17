@@ -17,11 +17,11 @@ export const filterList = {
     Grade: ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4', 'Tier 5'],
     Ecology: ['Grassland', 'Land', 'Ocean', 'Lava', 'Wild', 'Gas', 'Poison', 'Frozen', 'Desert'],
     Helium: ['1', '2', '3', '4', '5'],
-    Titanium: ['1', '2', '3', '4', '5'],
     Hydrogen: ['1', '2', '3', '4', '5'],
-    Petroleum: ['1', '2', '3', '4', '5'],
+    Titanium: ['1', '2', '3', '4', '5'],
     Coal: ['1', '2', '3', '4', '5'],
-    Sulfur: ['1', '2', '3', '4', '5']
+    Sulfur: ['1', '2', '3', '4', '5'],
+    Petroleum: ['1', '2', '3', '4', '5'],
   }
 }
 
