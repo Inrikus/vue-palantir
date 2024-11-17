@@ -12,16 +12,14 @@ const route = useRoute()
 
 const handleClick = (item) => {
   if (!item.target) return;
-  let currentFilter = '';
-  
-  for (let filter in filterList[route.name] || {}) {
-    if (filterList[route.name][filter].includes(item.target.value)) {
-      currentFilter = filter;
-      break;
-    }
-  }
-  filterStore.changeTraits(item, currentFilter)
+
+  // Разделяем значение на название фильтра и его опцию
+  const [currentFilter, currentValue] = item.target.value.split(':');
+
+  // Передаем название фильтра и его значение в store
+  filterStore.changeTraits(item, currentFilter, currentValue);
 }
+
 
 const handleStatusClick = (item) => {
   filterStore.changeStatus(item)
@@ -117,8 +115,7 @@ watch(() => route.fullPath, () => {
             <span class="xl:ms-3 ms-1 font-medium">Normal</span>
           </label>
 
-          <label class="inline-flex items-center w-full cursor-pointer"
-            v-if="['qp', 'peace'].includes(route.name)">
+          <label class="inline-flex items-center w-full cursor-pointer" v-if="['qp', 'peace'].includes(route.name)">
             <input type="checkbox" class="sr-only peer" value="Uncreated" @click="handleStatusClick" />
             <div
               class="relative xl:block w-9 h-5 bg-gray-200 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-500 peer-checked:bg-blue-600">
@@ -126,11 +123,12 @@ watch(() => route.fullPath, () => {
             <span class="xl:ms-3 ms-1 font-medium">Uncreated</span>
           </label>
         </div>
-      
+
       </div>
 
       <div v-for="(filter, index) in Object.keys(filterList[route.name] || {})" :key="index"
         class="md:relative xl:static">
+
         <div class="flex xl:justify-between md:justify-start items-center cursor-pointer" @click="handleToggleShow">
           <h4 class="text-xl font-bold">{{ filter }}</h4>
           <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -143,17 +141,18 @@ watch(() => route.fullPath, () => {
         <div class="flex flex-col gap-3 mt-4 collapse-item static px-1 top-6 left-0">
           <label v-for="(option, index) in filterList[route.name][filter] || []" :key="index"
             class="inline-flex items-center w-full cursor-pointer">
-            <input type="checkbox" class="sr-only peer" :value="option" @click="handleClick" />
+            <input type="checkbox" class="sr-only peer" :value="`${filter}:${option}`" @click="handleClick" />
             <div
               class="relative xl:block w-9 h-5 bg-gray-200 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-500 peer-checked:bg-blue-600">
             </div>
             <span class="xl:ms-3 ms-1 font-medium">{{ option }}</span>
           </label>
         </div>
-      
+
       </div>
 
       <div class="md:relative xl:static">
+
         <div class="flex xl:justify-between md:justify-start items-center cursor-pointer md:relative xl:static"
           @click="handleToggleShow">
           <h4 class="text-xl font-bold">Sources</h4>
@@ -176,17 +175,17 @@ watch(() => route.fullPath, () => {
 
           <img src='@/assets/cross.svg' class='w-5 sm:hidden absolute top-4 right-4' @click='handleToggleFilter'>
         </div>
-      
+
       </div>
 
       <!-- <div> -->
-        <!-- <label> -->
-          <!-- <p class="text-xl font-bold">Max Price</p> -->
-          <!-- <input placeholder="Max Price" type="number" min="0" v-model.number="maxPrice" -->
-            <!-- class="p-2 rounded-xl w-full bg-[#1F1F1F] text-[#63b4c8] border-2 border-[#63b4c8] placeholder-change mt-2" /> -->
-        <!-- </label> -->
+      <!-- <label> -->
+      <!-- <p class="text-xl font-bold">Max Price</p> -->
+      <!-- <input placeholder="Max Price" type="number" min="0" v-model.number="maxPrice" -->
+      <!-- class="p-2 rounded-xl w-full bg-[#1F1F1F] text-[#63b4c8] border-2 border-[#63b4c8] placeholder-change mt-2" /> -->
+      <!-- </label> -->
       <!-- </div> -->
-      
+
       <div class="flex justify-between gap-1">
         <button class="text-l font-semibold border-2 border-[#63b4c8] hover:bg-gray-700 p-2 rounded-xl"
           @click="handleResetFilter">Reset</button>

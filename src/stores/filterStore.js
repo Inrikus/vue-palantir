@@ -34,17 +34,22 @@ export const useFilterStore = defineStore('filter', {
     setNeedsUpdate(value) {
       this.needsUpdate = value;
     },
-    changeTraits(item, filterKey) {
+    
+    changeTraits(item, filterKey, value) {
       if (item.target.checked) {
         this.traits.push({
           trait_type: filterKey,
-          value: item.target.value
-        })
-        return
+          value: value
+        });
+        return;
       }
 
-      const index = this.traits.findIndex((el) => el.value === item.target.value)
-      this.traits.splice(index, 1)
+      const index = this.traits.findIndex(
+        (el) => el.trait_type === filterKey && el.value === value
+      );
+      if (index !== -1) {
+        this.traits.splice(index, 1);
+      }
     },
 
     changeStatus(item) {
