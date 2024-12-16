@@ -37,6 +37,7 @@ const handleToggleShow = async (item) => {
   if (item.target.classList.contains('flex')) {
     if (item.target.nextSibling) {
       item.target.nextSibling.classList.toggle('open');
+      console.log(item.target.childNodes[1].classList.toggle('rotate-180'))
     }
     return;
   }
@@ -48,7 +49,7 @@ const handleToggleShow = async (item) => {
 const handleToggleFilter = () => {
   const filterPanel = document.querySelector('#filter-panel')
   filterPanel.classList.toggle('hidden')
-
+  hidden
   if (window.innerWidth <= 768) {
     if (filterPanel.classList.contains('hidden')) {
       document.body.classList.remove('hidden-scroll')
@@ -85,13 +86,14 @@ watch(() => route.fullPath, () => {
 
 <template>
   <div id="filter-panel"
-    class="md:w-[22%] 2xl:w-[12%] w-full z-[9999999] hidden sm:sticky fixed bottom-0 left-0 sm:top-10 sm:left-0 h-full bg-[#1A1A1A] bg-opacity-90">
+    class="md:w-[22%] 2xl:w-[12%] w-full z-[9999999] hidden sm:sticky fixed bottom-0 left-0 sm:top-10 sm:left-0 h-[100vh] bg-[#1A1A1A] bg-opacity-90">
     <div
       class="flex absolute sm:sticky bottom-0 sm:bottom-auto sm:top-20 left-0 md:w-full p-4 xl:p-2 gap-2 bg-[#1A1A1A] text-[#63B4C8] flex-col sm:justify-start border-2 border-[#63B4C8] rounded-xl justify-end w-full">
+      <div class=" overflow-y-auto h-[460px] scroll-hide">
       <div class="md:relative xl:static rounded-t-xl">
         <div class="flex xl:justify-between md:justify-start items-center cursor-pointer" @click="handleToggleShow">
           <h4 class="text-xl font-bold">Status</h4>
-          <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+          <svg class="w-2.5 h-2.5 ms-3 rotate-180 transition-all" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
             viewBox="0 0 10 6">
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="m1 1 4 4 4-4" />
@@ -131,7 +133,7 @@ watch(() => route.fullPath, () => {
 
         <div class="flex xl:justify-between md:justify-start items-center cursor-pointer" @click="handleToggleShow">
           <h4 class="text-xl font-bold">{{ filter }}</h4>
-          <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+          <svg class="w-2.5 h-2.5 ms-3 transition-all" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
             viewBox="0 0 10 6">
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="m1 1 4 4 4-4" />
@@ -177,6 +179,7 @@ watch(() => route.fullPath, () => {
         </div>
 
       </div>
+    </div>
 
       <!-- <div> -->
       <!-- <label> -->
@@ -204,6 +207,9 @@ watch(() => route.fullPath, () => {
   transition: max-height 400ms ease-in;
 }
 
+.scroll-hide::-webkit-scrollbar{
+  width: 0px;
+}
 .open {
   max-height: 1000px;
 }
