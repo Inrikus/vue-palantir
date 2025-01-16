@@ -18,6 +18,46 @@ var options = {
 //const route = useRoute()
 
 const date = new Date(props.activity.timestamp * 1000);
+
+// Метод для получения ссылки на обозреватель
+const getExplorerLink = (chain, txHash) => {
+    switch (chain) {
+        case 'BSC':
+            return `https://bscscan.com/tx/${txHash}`;
+        case 'Ethereum':
+            return `https://etherscan.io/tx/${txHash}`;
+        case 'Endurance':
+            return `https://explorer-endurance.fusionist.io/tx/${txHash}`;
+        default:
+            return '#'; // Ссылка по умолчанию, если цепь неизвестна
+    }
+};
+const getMarketLink = (chain, adress) => {
+    switch (chain) {
+        case 'BSC':
+            return `https://element.market/account/${adress}`;
+        case 'Ethereum':
+            return `https://opensea.io/${adress}`;
+        case 'Endurance':
+            return `https://explorer-endurance.fusionist.io/address/${adress}?tab=tokens_nfts`;
+        default:
+            return '#'; // Ссылка по умолчанию, если цепь неизвестна
+    }
+};
+const getNFTLink = (chain, collectionAddress, tokenId) => {
+    switch (chain) {
+        case 'BSC':
+            return `https://element.market/assets/bsc/${collectionAddress}/${tokenId}`;
+        case 'Ethereum':
+            return `https://blur.io/eth/asset/${collectionAddress}/${tokenId}`;
+        case 'Endurance':
+            return `https://www.tesseract.world/nfts/detail/648-${collectionAddress}-${tokenId}`;
+            
+        default:
+            return '#'; // Ссылка по умолчанию, если цепь неизвестна
+    }
+};
+
 </script>
 
 <template>
@@ -26,11 +66,14 @@ const date = new Date(props.activity.timestamp * 1000);
             <img :src="platformIcon[activity.platform]" alt="" class="w-7 h-7">
         </div>
     </span>
+
     <span class="flex items-center pl-4">
-        <img :src="activity.nft_image"
-            class='w-10 mr-2'>
-        <span class="truncate">{{ activity.nft_name }} </span>
+        <a :href="getNFTLink(activity.chain, activity.collectionAddress, activity.tokenId)" class="flex items-center">
+            <img :src="activity.nft_image" class='w-10 mr-2'>
+            <span class="truncate"> {{ activity.nft_name }} </span>
+        </a>
     </span>
+
     <span class="place-content-center">
         <div class="w-full flex flex-col items-center">
             <p class="flex items-center">
@@ -41,19 +84,21 @@ const date = new Date(props.activity.timestamp * 1000);
             <p>{{ activity.price_usd }}$</p>
         </div>
     </span>
+    
     <span class="hover:opacity-50 transition-all hidden md:inline text-center">
-        <a :href="'https://element.market/account/' + activity.from_address">
+        <a :href="getMarketLink(activity.chain, activity.from_address)">
             {{ activity.from_address.slice(0, 6) + '...' + activity.from_address.slice(-3) }}
         </a>
     </span>
+    
     <span class="hover:opacity-50 transition-all hidden md:inline text-center">
-        <a :href="'https://element.market/account/' + activity.to">
+        <a :href="getMarketLink(activity.chain, activity.to)">
             {{ activity.to.slice(0, 6) + '...' + activity.to.slice(-3) }}
         </a>
     </span>
+    
     <span class="hover:opacity-50 transition-all text-center">
-        <a
-            :href="(activity.chain === 'BSC' ? 'https://bscscan.com/tx/' : 'https://etherscan.io/tx/') + activity.txHash">
+        <a :href="getExplorerLink(activity.chain, activity.txHash)">
             {{ date.toLocaleString('en-US', options).replace(',', '') }}
         </a>
     </span>

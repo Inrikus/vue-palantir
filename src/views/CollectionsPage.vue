@@ -48,7 +48,7 @@ watch(route, () => {
     </div>
   </div>
 
-  <div class="flex justify-start gap-4 text-2xl text-[#63B4C8] my-6 font-semibold" v-if="!['peace', 'planet'].includes(route.name)">
+  <div class="flex justify-start gap-4 text-2xl text-[#63B4C8] my-6 font-semibold" v-if="!['peace'].includes(route.name)">
     <button :class="'panel ' + (currentPanel === 'Cards' ? 'panel-active' : '')"
       @click="() => handleChangePanel('Cards')">NFTs</button>
     <button :class="'panel ' + (currentPanel === 'Activity' ? 'panel-active' : '')"

@@ -19,7 +19,7 @@ let activityInterval = null
 
 onMounted(() => {
     getActivities()
-    activityInterval = setInterval(getActivities, 5000)
+    activityInterval = setInterval(getActivities, 20000)
 })
 
 onBeforeUnmount(() => {

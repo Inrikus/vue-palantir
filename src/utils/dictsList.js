@@ -99,5 +99,7 @@ export const currency = {
   'ETH': 'eth.svg',
   'BNB': 'bnb.svg',
   'USDT': 'usdt.svg',
-  'ACE': 'ace.svg'
+  'ACE': 'ace.svg',
+  'WACE': 'wace.svg',
+  'Unknown': 'unknown.svg'
 }
