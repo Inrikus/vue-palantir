@@ -1,30 +1,29 @@
 <script setup>
-import axios from 'axios'
-import { onMounted, onBeforeUnmount, ref } from 'vue'
+import { fetchActivities } from '@/utils/api'; // Импортируем метод
+import { onMounted, ref } from 'vue' //onBeforeUnmount
 import { useRoute } from 'vue-router';
 
 import ActivityItem from './ActivityItem.vue';
-
 import { queryName } from '@/utils/dictsList.js'
 
 const activityData = ref([])
 const route = useRoute()
 
 const getActivities = async () => {
-    const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/nfts/activity/${queryName[route.name]}`)
-    activityData.value = data.actions
-}
+  const { data } = await fetchActivities(queryName[route.name]);
+  activityData.value = data.actions;
+};
 
-let activityInterval = null
+//let activityInterval = null
 
 onMounted(() => {
     getActivities()
-    activityInterval = setInterval(getActivities, 20000)
+    //activityInterval = setInterval(getActivities, 60000)
 })
 
-onBeforeUnmount(() => {
-    clearInterval(activityInterval)
-})
+//onBeforeUnmount(() => {
+//    clearInterval(activityInterval)
+//})
 </script>
 
 <template>

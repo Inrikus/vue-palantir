@@ -1,7 +1,7 @@
 <script setup>
 import { watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
-import axios from 'axios'
+import { fetchCardsList } from '@/utils/api'; // Импортируем метод
 
 import CardItem from './CardItem.vue'
 
@@ -15,26 +15,22 @@ const route = useRoute()
 
 const getCardsList = async () => {
   try {
-    const { data } = await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/nfts/${queryName[route.name]}`,
-      {
-        sources: filterStore.sources,
-        status: filterStore.status,
-        tradeType: filterStore.tradeType,
-        order: filterStore.order,
-        priceRangeMax: filterStore.priceRangeMax,
-        page: filterStore.page,
-        rows: filterStore.rows,
-        traits: filterStore.traits,
-      }
-    )
-    return data 
-  } 
-  catch (error) {
-    console.error("Error fetching cards:", error);
-    return { nfts: [], has_next_page: false, total_items: 0 }
+    const { data } = await fetchCardsList(queryName[route.name], {
+      sources: filterStore.sources,
+      status: filterStore.status,
+      tradeType: filterStore.tradeType,
+      order: filterStore.order,
+      priceRangeMax: filterStore.priceRangeMax,
+      page: filterStore.page,
+      rows: filterStore.rows,
+      traits: filterStore.traits,
+    });
+    return data;
+  } catch (error) {
+    console.error('Error fetching cards:', error);
+    return { nfts: [], has_next_page: false, total_items: 0 };
   }
-}
+};
 
 function debounce(fn, delay) {
   let timer
