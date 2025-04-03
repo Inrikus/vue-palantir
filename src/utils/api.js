@@ -17,15 +17,15 @@ const api = axios.create({
 
 // Методы для конкретных запросов
 export const fetchCardsList = (endpoint, filters) => {
-  return api.post(`/nfts/${endpoint}`, filters);
+  return api.post(`/api/nfts/${endpoint}`, filters);
 };
 
 export const fetchBanners = () => {
-  return api.get(`/nfts/home`);
+  return api.get(`/api/nfts/home`);
 };
 
 export const fetchActivities = (endpoint) => {
-  return api.get(`/nfts/activity/${endpoint}`);
+  return api.get(`/api/nfts/activity/${endpoint}`);
 };
 
 export default api;
