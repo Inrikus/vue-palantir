@@ -99,10 +99,16 @@ const weaponCount = getTraitValue('Weapons')
 
 .grade-icon {
     position: absolute;
-    top: 4px;
-    left: 4px;
+    top: 50%;
+    left: 5.2%;
     width: 24px;
     height: 24px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    /* чтобы не мешать кликам */
 }
 
 .grade-icon-img {
