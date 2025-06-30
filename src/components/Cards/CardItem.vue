@@ -1,27 +1,14 @@
 <script setup>
 import { platformIcon, currency } from '@/utils/dictsList.js'
+import BadgeMech from '@/components/Badges/BadgeMech.vue'
+import BadgePlanet from '@/components/Badges/BadgePlanet.vue'
 
 const props = defineProps({
     card: Object
 })
 
-// Коллекции, для которых отображается блок
-const supportedCollections = ['Bi-Mech', 'Quartan Primes']
-
-// Универсальный поиск по trait_type
-const getTraitValue = (type) =>
-    props.card.traits?.find(t => t.trait_type === type)?.value || ''
-
-// Вынесенные значения
-const showBadge =
-    supportedCollections.includes(props.card.collection_name) &&
-    props.card.status === 'Normal'
-const grade = getTraitValue('GRADE')
-const className = getTraitValue('Class')
-const weaponCount = getTraitValue('Weapons')
-
-// Пример расширения: если нужно показывать LEVEL или RARITY
-// const level = getTraitValue('Level')
+const isMechBadge = ['Bi-Mech', 'Quartan Primes'].includes(props.card.collection_name) && props.card.status === 'Normal'
+const isPlanetBadge = props.card.collection_name === 'Fusionist Planet'
 
 </script>
 
@@ -33,24 +20,9 @@ const weaponCount = getTraitValue('Weapons')
                 class="w-full h-[130px] md:min-h-[300px] rounded-t-2xl object-cover img-cust" />
             <img :src="platformIcon[card.link.source]" alt="" class="w-6 h-6 absolute top-1 left-1" />
 
-            <!-- Grade/Class/Weapon badge -->
-            <div v-if="showBadge" class="grade-block">
-                <!-- Фон с текстом WEAPON COUNT встроен в изображение -->
-                <img :src="`/cards/bg_${grade}.png`" alt="grade background" class="grade-bg" />
-
-                <!-- Иконка класса -->
-                <div class="grade-icon">
-                    <img :src="`/cards/Icon_${className}.png`" alt="class" class="grade-icon-img" />
-                </div>
-
-                <!-- Количество оружий -->
-                <div class="weapon-count-overlay">
-                    {{ weaponCount }}
-                </div>
-                <!-- При необходимости отобразим дополнительные поля -->
-                <!--<div class="badge-extra">Lvl: {{ level }}</div> -->
-
-            </div>
+            <BadgeMech v-if="isMechBadge" :card="card" />
+            <BadgePlanet v-else-if="isPlanetBadge" :card="card" />
+        
         </div>
 
         <div class="ml-2 self-start mt-2">
@@ -75,70 +47,5 @@ const weaponCount = getTraitValue('Weapons')
 .img-cust {
     image-rendering: smooth;
 }
-
-/* ---- Weapon badge styles ---- */
-.grade-block {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 150px;
-    height: 32px;
-    margin: 4px;
-    overflow: hidden;
-    border-radius: 4px;
-}
-
-.grade-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.grade-icon {
-    position: absolute;
-    top: 50%;
-    left: 5.2%;
-    width: 24px;
-    height: 24px;
-    transform: translateY(-50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    /* чтобы не мешать кликам */
-}
-
-.grade-icon-img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-/* Цифра внутри белой рамки (спозиционирована точно под рамку на изображении) */
-.weapon-count-overlay {
-    position: absolute;
-        top: 0px;
-        right: 5px;
-        font-size: 12px;
-        font-weight: bold;
-        color: black;
-        line-height: 1;
-    }
-
-/* Доп. метки при необходимости */
-/* .badge-extra { */
-    /* position: absolute; */
-    /* bottom: 100%; */
-    /* right: 0; */
-    /* font-size: 10px; */
-    /* background: rgba(0, 0, 0, 0.6); */
-    /* color: white; */
-    /* padding: 2px 4px; */
-    /* border-radius: 2px; */
-    /* margin-bottom: 2px; */
-/* } */
 
 </style>
