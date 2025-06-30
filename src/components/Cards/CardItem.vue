@@ -43,7 +43,7 @@ const isPlanetBadge = props.card.collection_name === 'Fusionist Planet'
     background-color: #1F1F1F;
     border-radius: 1rem;
     overflow: hidden;
-    padding-bottom: 12px;
+    padding-bottom: 8px;
     color: #63b4c8;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
     transition: all 0.2s ease-in-out;
@@ -57,12 +57,11 @@ const isPlanetBadge = props.card.collection_name === 'Fusionist Planet'
 
 .card-image {
     width: 100%;
-    height: 130px;
-    min-height: 300px;
+    height: 260px;
     object-fit: cover;
     border-top-left-radius: 1rem;
     border-top-right-radius: 1rem;
-    image-rendering: smooth;
+    /* image-rendering: smooth; */
 }
 
 .platform-icon {
@@ -111,9 +110,17 @@ const isPlanetBadge = props.card.collection_name === 'Fusionist Planet'
 .price-value {
     display: inline-block;
 }
+
 .usd-price {
     font-size: 0.875rem;
     color: rgba(255, 255, 255, 0.75);
+}
+
+@media (max-width: 600px) {
+    .card-image {
+        height: 160px;
+        /* десктоп/планшет */
+    }
 }
 
 </style>
