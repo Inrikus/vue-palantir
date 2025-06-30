@@ -13,39 +13,107 @@ const isPlanetBadge = props.card.collection_name === 'Fusionist Planet'
 </script>
 
 <template>
-    <a class="flex w-full flex-col shadow-xl justify-around rounded-2xl overflow-hidden cursor-pointer text-[#63b4c8] bg-[#1F1F1F] pb-3 hover:translate-y-[-5px] transition-all hover:shadow-2xl"
-        :href="card.link.value">
-        <div class='relative'>
-            <img :src="card.nft_image" alt=""
-                class="w-full h-[130px] md:min-h-[300px] rounded-t-2xl object-cover img-cust" />
-            <img :src="platformIcon[card.link.source]" alt="" class="w-6 h-6 absolute top-1 left-1" />
+    <a class="card-wrapper" :href="card.link.value">
+        <div class="relative">
+            <img :src="card.nft_image" alt="" class="card-image" />
+            <img :src="platformIcon[card.link.source]" alt="" class="platform-icon" />
 
             <BadgeMech v-if="isMechBadge" :card="card" />
             <BadgePlanet v-else-if="isPlanetBadge" :card="card" />
-        
         </div>
 
-        <div class="ml-2 self-start mt-2">
-            <p class="text-lg font-bold tracking-[1px]">{{ card.nft_name }}</p>
-            <p class="text-sm font-bold tracking-[1px] mt-2">
-                <span class="inline-flex flex-col">
-                    <span class="flex items-center text-lg">
-                        <img :src="'/currency/' + (Object.keys(currency).includes(card.price_native.currency) ? currency[card.price_native.currency] : 'unknown.svg')"
-                            class="w-4 h-4 float-left mr-2" />
-                        {{ card.price_native.value }}
-                    </span>
-                    <span class="text-sm opacity-75">
-                        {{ card.price ? card.price + ' USD' : "Not Listed" }}
-                    </span>
-                </span>
-            </p>
+        <div class="card-info">
+            <p class="card-title" :title="card.nft_name">{{ card.nft_name }}</p>
+            <div class="card-price">
+                <img :src="'/currency/' + (Object.keys(currency).includes(card.price_native.currency) ? currency[card.price_native.currency] : 'unknown.svg')"
+                    class="price-icon" />
+                <span class="price-value">{{ card.price_native.value }}</span>
+            </div>
+            <p class="usd-price">{{ card.price ? card.price + ' USD' : 'Not Listed' }}</p>
         </div>
     </a>
 </template>
 
 <style scoped>
-.img-cust {
+.card-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    justify-content: space-around;
+    background-color: #1F1F1F;
+    border-radius: 1rem;
+    overflow: hidden;
+    padding-bottom: 12px;
+    color: #63b4c8;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.card-wrapper:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+}
+
+.card-image {
+    width: 100%;
+    height: 130px;
+    min-height: 300px;
+    object-fit: cover;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
     image-rendering: smooth;
+}
+
+.platform-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+}
+
+.card-info {
+    margin-left: 8px;
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #63b4c8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-price {
+    display: flex;
+    align-items: center;
+    /* <-- идеальное вертикальное выравнивание */
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #63b4c8;
+    line-height: 1;
+}
+
+.price-icon {
+    width: 1em;
+    height: 1em;
+    object-fit: contain;
+}
+
+.price-value {
+    display: inline-block;
+}
+.usd-price {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.75);
 }
 
 </style>

@@ -37,13 +37,13 @@ const visibleResources = computed(() => {
     background: rgba(0, 0, 0, 0.4);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 0 0 8px 8px;
+    min-height: 54px; /* Высота баджа */
 }
 
 .resource-slot {
     display: flex;
     align-items: center;
-    gap: 4px;
-    min-width: 80px;
+    gap: 8px;
     justify-content: center;
 }
 
@@ -57,5 +57,11 @@ const visibleResources = computed(() => {
     font-size: 14px;
     font-weight: bold;
     color: #fff;
+}
+
+@media (max-width: 600px) {
+    .resource-slot {
+        width: 30%;
+    }
 }
 </style>
