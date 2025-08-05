@@ -1,3 +1,9 @@
+export const filterStatus = {
+  'Only Buy Now': [],
+  'Normal': [],
+  'Uncreated': ['qp', 'peace'],
+}
+
 export const filterList = {
   bm: {
     GRADE: ['Common', 'Elite', 'Epic', 'Legend', 'Mythical'],

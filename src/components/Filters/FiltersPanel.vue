@@ -1,25 +1,79 @@
 <script setup>
-import { watch } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-
 import { useFilterStore } from '@/stores/filterStore'
-import { filterList, filterSource } from '@/utils/dictsList.js'
+import { filterList, filterSource, platformIcon } from '@/utils/dictsList.js'
+import ArrowIcon from '@/components/UI/ArrowIcon.vue'
+
+const props = defineProps({
+  isOpen: {
+    type: Boolean,
+    required: true
+  }
+})
+
+const emit = defineEmits(['toggle'])
 
 const filterStore = useFilterStore()
 const route = useRoute()
+const openSections = ref({ Status: true }) // Status открыт по умолчанию
+const isMobile = computed(() => window.innerWidth <= 768)
 
-// const maxPrice = ref(null)
+const panelClasses = computed(() => ({
+  'fixed top-0 left-0 w-full h-full z-50 bg-[#1A1A1A] bg-opacity-90': true,
+  'translate-x-0': props.isOpen && !isMobile.value,
+  '-translate-x-full': !props.isOpen && !isMobile.value,
+  'translate-y-0': props.isOpen && isMobile.value,
+  'translate-y-full': !props.isOpen && isMobile.value
+}))
+
+// Проверка состояния чекбоксов
+const isTraitChecked = (filter, option) => {
+  return filterStore.traits.some(trait => trait.trait_type === filter && trait.value === option)
+}
+
+const isStatusChecked = (status) => {
+  return filterStore.status?.includes(status) || false
+}
+
+const isSourceChecked = (source) => {
+  return filterStore.sources?.includes(source) || false
+}
+
+const isTradeTypeChecked = () => {
+  return filterStore.tradeType === 1
+}
+
+// Синхронизация чекбоксов при монтировании
+onMounted(() => {
+  // Синхронизация для tradeType
+  const onlyBuyNowCheckbox = document.querySelector('#only-buy-now');
+  if (onlyBuyNowCheckbox) {
+    onlyBuyNowCheckbox.checked = isTradeTypeChecked();
+  }
+
+  // Синхронизация для status
+  document.querySelectorAll('input[name="status"]').forEach((el) => {
+    el.checked = isStatusChecked(el.value);
+  });
+
+  // Синхронизация для sources
+  document.querySelectorAll('input[name="source"]').forEach((el) => {
+    el.checked = isSourceChecked(el.value);
+  });
+
+  // Синхронизация для traits
+  document.querySelectorAll('input[name="trait"]').forEach((el) => {
+    const [filter, option] = el.value.split(':');
+    el.checked = isTraitChecked(filter, option);
+  });
+})
 
 const handleClick = (item) => {
   if (!item.target) return;
-
-  // Разделяем значение на название фильтра и его опцию
   const [currentFilter, currentValue] = item.target.value.split(':');
-
-  // Передаем название фильтра и его значение в store
   filterStore.changeTraits(item, currentFilter, currentValue);
 }
-
 
 const handleStatusClick = (item) => {
   filterStore.changeStatus(item)
@@ -33,187 +87,186 @@ const handleTradeTypeClick = (item) => {
   filterStore.changeTradeType(item)
 }
 
-const handleToggleShow = async (item) => {
-  if (item.target.classList.contains('flex')) {
-    if (item.target.nextSibling) {
-      item.target.nextSibling.classList.toggle('open');
-      console.log(item.target.childNodes[1].classList.toggle('rotate-180'))
-    }
-    return;
-  }
-  if (item.target.parentNode.nextSibling) {
-    item.target.parentNode.nextSibling.classList.toggle('open');
-  }
+const handleToggleShow = (section) => {
+  openSections.value[section] = !openSections.value[section]; // Сворачиваем/разворачиваем все секции, включая Status
 }
 
 const handleToggleFilter = () => {
-  const filterPanel = document.querySelector('#filter-panel')
-  filterPanel.classList.toggle('hidden')
-  if (window.innerWidth <= 768) {
-    if (filterPanel.classList.contains('hidden')) {
-      document.body.classList.remove('hidden-scroll')
-    } else {
-      document.body.classList.add('hidden-scroll')
-    }
+  emit('toggle') // Только отправляем событие
+}
+
+const handleOutsideClick = (event) => {
+  const panel = document.querySelector('#filter-panel');
+  const innerPanel = document.querySelector('#filter-inner-panel');
+  if (panel && innerPanel && panel.contains(event.target) && !innerPanel.contains(event.target)) {
+    handleToggleFilter();
   }
 }
 
 const handleApplyFilter = () => {
   filterStore.setNeedsUpdate(true);
+  emit('toggle') // Закрываем панель после применения
 }
 
 const handleResetFilter = () => {
   filterStore.clearFilter();
-  // Убираем все галочки у чекбоксов
   document.querySelectorAll('input[type="checkbox"]').forEach((el) => {
     el.checked = false;
   });
-  // Устанавливаем чекбокс "only-buy-now" в true
   const onlyBuyNowCheckbox = document.querySelector('#only-buy-now');
   if (onlyBuyNowCheckbox) {
     onlyBuyNowCheckbox.checked = true;
   }
   filterStore.setNeedsUpdate(true);
-};
+  emit('toggle') // Только отправляем событие
+}
 
-// Вызов функции handleResetFilter при смене роутинга
 watch(() => route.fullPath, () => {
   handleResetFilter();
 });
-
 </script>
 
 <template>
-  <div id="filter-panel"
-    class="md:w-[22%] 2xl:w-[12%] w-full z-[9999999] hidden sm:sticky fixed bottom-0 left-0 sm:top-10 sm:left-0 h-[100vh] bg-[#1A1A1A] bg-opacity-90">
-    <div
-      class="flex absolute sm:sticky bottom-0 sm:bottom-auto sm:top-20 left-0 md:w-full p-4 xl:p-2 gap-2 bg-[#1A1A1A] text-[#63B4C8] flex-col sm:justify-start border-2 border-[#63B4C8] rounded-xl justify-end w-full">
-      <div class=" overflow-y-auto h-[450px] scroll-hide">
-      <div class="md:relative xl:static rounded-t-xl">
-        <div class="flex xl:justify-between md:justify-start items-center cursor-pointer" @click="handleToggleShow">
-          <h4 class="text-xl font-bold">Status</h4>
-          <svg class="w-2.5 h-2.5 ms-3 rotate-180 transition-all" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-            viewBox="0 0 10 6">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="m1 1 4 4 4-4" />
-          </svg>
+  <div
+    id="filter-panel"
+    v-if="isOpen"
+    class="flex justify-center items-center transform transition-transform duration-300"
+    :class="panelClasses"
+    @click="handleOutsideClick"
+  >
+    <div id="filter-inner-panel" class="w-full max-w-lg p-6 gap-6 flex flex-col bg-[#1A1A1A] text-[#63B4C8] border-2 border-[#63B4C8] rounded-xl mx-4">
+      <div class="overflow-y-auto scroll-hide max-h-[calc(100vh-140px)]">
+        <div class="section-container">
+          <div class="section-header" @click="handleToggleShow('Status')">
+            <h4 class="text-xl font-bold">Status</h4>
+            <ArrowIcon :is-open="openSections.Status" />
+          </div>
+          <div :class="['section-content', { open: openSections.Status }]">
+            <label class="checkbox-label">
+              <input type="checkbox" class="custom-checkbox" id="only-buy-now"
+                name="tradeType" :checked="isTradeTypeChecked()" @click="handleTradeTypeClick" />
+              <span class="text-lg font-medium">Only Buy Now</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" class="custom-checkbox" value="Normal"
+                name="status" :checked="isStatusChecked('Normal')" @click="handleStatusClick" />
+              <span class="text-lg font-medium">Normal</span>
+            </label>
+            <label class="checkbox-label" v-if="['qp', 'peace'].includes(route.name)">
+              <input type="checkbox" class="custom-checkbox" value="Uncreated"
+                name="status" :checked="isStatusChecked('Uncreated')" @click="handleStatusClick" />
+              <span class="text-lg font-medium">Uncreated</span>
+            </label>
+          </div>
         </div>
 
-        <div class="flex flex-col open gap-3 mt-4 collapse-item static px-1 top-6 left-0">
-          <label class="inline-flex items-center w-full cursor-pointer">
-            <input type="checkbox" class="sr-only peer" id="only-buy-now" @click="handleTradeTypeClick" checked />
-            <div
-              class="relative xl:block w-9 h-5 bg-gray-200 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-500 peer-checked:bg-blue-600">
-            </div>
-            <span class="xl:ms-3 ms-1 font-medium" @click="handleTradeTypeClick">Only Buy Now</span>
-          </label>
-
-          <label class="inline-flex items-center w-full cursor-pointer">
-            <input type="checkbox" class="sr-only peer" value="Normal" @click="handleStatusClick" />
-            <div
-              class="relative xl:block w-9 h-5 bg-gray-200 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-500 peer-checked:bg-blue-600">
-            </div>
-            <span class="xl:ms-3 ms-1 font-medium">Normal</span>
-          </label>
-
-          <label class="inline-flex items-center w-full cursor-pointer" v-if="['qp', 'peace'].includes(route.name)">
-            <input type="checkbox" class="sr-only peer" value="Uncreated" @click="handleStatusClick" />
-            <div
-              class="relative xl:block w-9 h-5 bg-gray-200 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-500 peer-checked:bg-blue-600">
-            </div>
-            <span class="xl:ms-3 ms-1 font-medium">Uncreated</span>
-          </label>
+        <div v-for="(filter, index) in Object.keys(filterList[route.name] || {})" :key="index" class="section-container">
+          <div class="section-header" @click="handleToggleShow(filter)">
+            <h4 class="text-xl font-bold">{{ filter }}</h4>
+            <ArrowIcon :is-open="openSections[filter]" />
+          </div>
+          <div :class="['section-content', { open: openSections[filter] }]">
+            <label v-for="(option, index) in filterList[route.name][filter] || []" :key="index" class="checkbox-label">
+              <input type="checkbox" class="custom-checkbox"
+                :value="`${filter}:${option}`" name="trait" :checked="isTraitChecked(filter, option)" @click="handleClick" />
+              <span class="text-lg font-medium">{{ option }}</span>
+            </label>
+          </div>
         </div>
 
+        <div class="section-container">
+          <div class="section-header" @click="handleToggleShow('Sources')">
+            <h4 class="text-xl font-bold">Sources</h4>
+            <ArrowIcon :is-open="openSections.Sources" />
+          </div>
+          <div :class="['section-content', { open: openSections.Sources }]">
+            <label v-for="(option, index) in filterSource[route.name] || []" :key="index" class="checkbox-label">
+              <input type="checkbox" class="custom-checkbox" :value="option"
+                name="source" :checked="isSourceChecked(option)" @click="handleSourcesClick" />
+              <img :src="platformIcon[option]" class="w-5 h-5 ms-2 mr-2" />
+              <span class="text-lg font-medium">{{ option }}</span>
+            </label>
+            <img src='@/assets/cross.svg' class='w-6 absolute top-6 right-6' @click='handleToggleFilter'>
+          </div>
+        </div>
       </div>
 
-      <div v-for="(filter, index) in Object.keys(filterList[route.name] || {})" :key="index"
-        class="md:relative xl:static">
-
-        <div class="flex xl:justify-between md:justify-start items-center cursor-pointer" @click="handleToggleShow">
-          <h4 class="text-xl font-bold">{{ filter }}</h4>
-          <svg class="w-2.5 h-2.5 ms-3 transition-all" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-            viewBox="0 0 10 6">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="m1 1 4 4 4-4" />
-          </svg>
-        </div>
-
-        <div class="flex flex-col gap-3 mt-4 collapse-item static px-1 top-6 left-0">
-          <label v-for="(option, index) in filterList[route.name][filter] || []" :key="index"
-            class="inline-flex items-center w-full cursor-pointer">
-            <input type="checkbox" class="sr-only peer" :value="`${filter}:${option}`" @click="handleClick" />
-            <div
-              class="relative xl:block w-9 h-5 bg-gray-200 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-500 peer-checked:bg-blue-600">
-            </div>
-            <span class="xl:ms-3 ms-1 font-medium">{{ option }}</span>
-          </label>
-        </div>
-
-      </div>
-
-      <div class="md:relative xl:static">
-
-        <div class="flex xl:justify-between md:justify-start items-center cursor-pointer md:relative xl:static"
-          @click="handleToggleShow">
-          <h4 class="text-xl font-bold">Sources</h4>
-          <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-            viewBox="0 0 10 6">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="m1 1 4 4 4-4" />
-          </svg>
-        </div>
-
-        <div class="flex flex-col gap-3 mt-4 collapse-item static px-1 top-6 left-0">
-          <label v-for="(option, index) in filterSource[route.name] || []" :key="index"
-            class="inline-flex items-center w-full cursor-pointer">
-            <input type="checkbox" class="sr-only peer" :value="option" @click="handleSourcesClick" />
-            <div
-              class="relative xl:block w-9 h-5 bg-gray-200 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-500 peer-checked:bg-blue-600">
-            </div>
-            <span class="xl:ms-3 ms-1 font-medium">{{ option }}</span>
-          </label>
-
-          <img src='@/assets/cross.svg' class='w-5 sm:hidden absolute top-4 right-4' @click='handleToggleFilter'>
-        </div>
-
-      </div>
-    </div>
-
-      <!-- <div> -->
-      <!-- <label> -->
-      <!-- <p class="text-xl font-bold">Max Price</p> -->
-      <!-- <input placeholder="Max Price" type="number" min="0" v-model.number="maxPrice" -->
-      <!-- class="p-2 rounded-xl w-full bg-[#1F1F1F] text-[#63b4c8] border-2 border-[#63b4c8] placeholder-change mt-2" /> -->
-      <!-- </label> -->
-      <!-- </div> -->
-
-      <div class="flex justify-between gap-1">
-        <button class="text-l font-semibold border-2 border-[#63b4c8] hover:bg-gray-700 p-2 rounded-xl"
-          @click="handleResetFilter">Reset</button>
-        <button class="text-l font-semibold border-2 border-[#63b4c8] hover:bg-gray-700 p-2 rounded-xl"
-          @click="handleApplyFilter">Apply</button>
+      <div class="flex justify-between gap-2 section-container">
+        <button class="action-button" @click="handleResetFilter">Reset</button>
+        <button class="action-button" @click="handleApplyFilter">Apply</button>
       </div>
     </div>
   </div>
 </template>
 
+<style scoped>
+.section-container {
+  max-width: 24rem; /* Tailwind max-w-sm = 384px */
+  margin-left: auto;
+  margin-right: auto;
+}
 
-<style>
-.collapse-item {
-  max-height: 0px;
+.section-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.75rem; /* Tailwind gap-3 = 12px */
+  cursor: pointer;
+}
+
+.section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* Tailwind gap-4 = 16px */
+  margin-top: 1rem; /* Tailwind mt-4 = 16px */
+  padding-left: 0.5rem; /* Tailwind px-2 = 8px */
+  padding-right: 0.5rem;
+  max-height: 0;
   overflow: hidden;
   transition: max-height 400ms ease-in;
 }
 
-.scroll-hide::-webkit-scrollbar{
-  width: 0px;
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  cursor: pointer;
+  gap: 0.75rem; /* Tailwind gap-3 = 12px */
 }
+
+.custom-checkbox {
+  width: 1.5rem; /* Tailwind w-6 = 24px */
+  height: 1.5rem; /* Tailwind h-6 = 24px */
+  color: #2563eb; /* Tailwind text-blue-600 */
+  background-color: #e5e7eb; /* Tailwind bg-gray-200 */
+  border-color: #d1d5db; /* Tailwind border-gray-300 */
+  border-radius: 0.25rem; /* Tailwind rounded */
+}
+
+.action-button {
+  font-size: 1.125rem; /* Tailwind text-lg = 18px */
+  font-weight: 600; /* Tailwind font-semibold */
+  border: 2px solid #63B4C8; /* Tailwind border-2 border-[#63B4C8] */
+  padding: 0.75rem; /* Tailwind p-3 = 12px */
+  border-radius: 0.75rem; /* Tailwind rounded-xl */
+  width: 100%;
+}
+
+.action-button:hover {
+  background-color: #4b5563; /* Tailwind hover:bg-gray-700 */
+}
+
+.scroll-hide::-webkit-scrollbar {
+  width: 0;
+}
+
 .open {
   max-height: 1000px;
 }
 
-path {
-  pointer-events: none;
+label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 </style>

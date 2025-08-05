@@ -1,11 +1,11 @@
 <script setup>
-import { watch, ref } from 'vue'
+import { watch, ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 import CardsList from '@/components/Cards/CardsList.vue'
 import FiltersPanel from '@/components/Filters/FiltersPanel.vue'
 import ActivityPanel from '@/components/Activity/ActivityPanel.vue'
-import TabsPanel from '@/components/UI/TabsPanel.vue' // 👈 Новый компонент
+import TabsPanel from '@/components/UI/TabsPanel.vue'
 
 import { useCardStore } from '@/stores/cardStore'
 import { useFilterStore } from '@/stores/filterStore'
@@ -14,25 +14,30 @@ import { pageNames } from '@/utils/dictsList.js'
 const route = useRoute()
 const cardStore = useCardStore()
 const filterStore = useFilterStore()
+const isFilterPanelOpen = ref(false)
 
 const currentPanel = ref('Cards')
+const isMobile = computed(() => window.innerWidth <= 768)
+
+const selectedFiltersCount = computed(() => {
+  return filterStore.traits.length; // Считаем только элементы в filterStore.traits
+});
 
 const handleToggleFilter = () => {
-  const filterPanel = document.querySelector('#filter-panel')
-  filterPanel?.classList.toggle('hidden')
-
-  if (window.innerWidth <= 768) {
-    document.body.classList.toggle('hidden-scroll', !filterPanel.classList.contains('hidden'))
+  isFilterPanelOpen.value = !isFilterPanelOpen.value;
+  if (isMobile.value) {
+    document.body.classList.toggle('hidden-scroll', isFilterPanelOpen.value);
   }
 }
 
 watch(route, () => {
   currentPanel.value = 'Cards'
+  isFilterPanelOpen.value = false; // Закрываем панель при смене маршрута
 })
 </script>
 
 <template>
-  <div>
+  <div class="min-h-screen">
     <!-- Заголовок -->
     <div class="flex gap-2">
       <img :src="pageNames[route.name]?.link" class="w-10 h-10 rounded-full" alt="icon" />
@@ -41,28 +46,29 @@ watch(route, () => {
       </h2>
     </div>
 
-    <!-- TabsPanel вместо кнопок -->
+    <!-- TabsPanel -->
     <TabsPanel v-model="currentPanel" />
 
     <!-- Контент: либо Cards, либо Activity -->
     <div v-if="currentPanel === 'Cards'">
-      <div class="mt-4 flex justify-between flex-col sm:flex-row gap-2 sticky sm:static top-0 left-0 z-10 bg-[#1a1a1a] py-2">
+      <div class="mt-4 flex justify-between flex-col sm:flex-row gap-2 sticky sm:static top-0 left-0 z-20 bg-[#1a1a1a] py-2">
         <div class="flex gap-4 items-center">
           <button
             @click="handleToggleFilter"
-            class="border-2 border-[#63B4C8] text-[#63B4C8] rounded-md p-2 flex gap-2 text-xl font-semibold items-center hover:bg-gray-700 sticky sm:static top-0 left-0 justify-center max-sm:w-full z-10 bg-[#232228]"
+            class="border-2 border-[#63B4C8] text-[#63B4C8] rounded-md p-2 flex gap-2 text-xl font-semibold items-center hover:bg-gray-700 sticky sm:static top-0 left-0 justify-center max-sm:w-full z-30 bg-[#232228]"
           >
-            <img src="../assets/filter-1.svg" class="w-6" alt="filter" /> Filter
+            <img src="../assets/filter-1.svg" class="w-6" alt="filter" />
+            Filter ({{ selectedFiltersCount }})
           </button>
         </div>
 
         <div class="relative flex justify-between">
-          <div :class="'text-l font-bold tracking-[4px] text-[#63B4C8] ' + (cardStore.getMaxCards ? 'circle circle-active' : 'circle')">
+          <div :class="'text-lg font-bold tracking-[4px] text-[#63B4C8] ' + (cardStore.getMaxCards ? 'circle circle-active' : 'circle')">
             {{ cardStore.getMaxCards }} results
           </div>
           <select
             v-model="filterStore.order"
-            class="w-full font-semibold text-center text-xl bg-transparent border-2 border-[#63B4C8] text-[#63B4C8] rounded-md appearance-none focus:outline-none focus:ring-0 focus:bg-gray-700 hover:bg-gray-700 cursor-pointer peer p-2"
+            class="w-full font-semibold text-center text-xl bg-transparent border-2 border-[#63B4C8] text-[#63B4C8] rounded-md appearance-none focus:outline-none focus:ring-0 focus:bg-gray-700 hover:bg-gray-700 cursor-pointer p-2"
           >
             <option value="priceDesc" class="bg-[#232228]">Price: High to low</option>
             <option value="priceAsc" class="bg-[#232228]">Price: Low to high</option>
@@ -74,8 +80,8 @@ watch(route, () => {
         </div>
       </div>
 
-      <div class="mt-10 flex flex-col sm:flex-row gap-4 h-full items-stretch">
-        <FiltersPanel />
+      <div class="mt-10 relative h-full">
+        <FiltersPanel :is-open="isFilterPanelOpen" @toggle="handleToggleFilter" />
         <CardsList />
       </div>
     </div>
@@ -86,8 +92,7 @@ watch(route, () => {
   </div>
 </template>
 
-
-<style>
+<style scoped>
 .circle::before {
   content: '';
   width: 20px;

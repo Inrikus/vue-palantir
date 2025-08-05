@@ -14,9 +14,10 @@ app.use(createPinia())
 app.use(router)
 app.use(autoAnimatePlugin)
 
-// Настройка vue-gtag
 app.use(VueGtag, {
-    config: { id: 'G-5NRKG76JQG' } // Замените GA_MEASUREMENT_ID на ваш идентификатор Google Analytics
-},router)
+  property: {
+    id: 'G-5NRKG76JQG'  // <-- Замени на свой ID
+  }
+}, router);
 
 app.mount('#app')
