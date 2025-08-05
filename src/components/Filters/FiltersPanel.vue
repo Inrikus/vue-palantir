@@ -6,7 +6,7 @@ import { filterList, filterSource, platformIcon } from '@/utils/dictsList.js'
 import ArrowIcon from '@/components/UI/ArrowIcon.vue'
 
 const props = defineProps({
-  isOpen: {
+  isFilterPanelOpen: {
     type: Boolean,
     required: true
   }
@@ -18,13 +18,14 @@ const filterStore = useFilterStore()
 const route = useRoute()
 const openSections = ref({ Status: true }) // Status открыт по умолчанию
 const isMobile = computed(() => window.innerWidth <= 768)
+const isRouteChange = ref(false) // Флаг для отслеживания смены маршрута
 
 const panelClasses = computed(() => ({
   'fixed top-0 left-0 w-full h-full z-50 bg-[#1A1A1A] bg-opacity-90': true,
-  'translate-x-0': props.isOpen && !isMobile.value,
-  '-translate-x-full': !props.isOpen && !isMobile.value,
-  'translate-y-0': props.isOpen && isMobile.value,
-  'translate-y-full': !props.isOpen && isMobile.value
+  'translate-x-0': props.isFilterPanelOpen && !isMobile.value,
+  '-translate-x-full': !props.isFilterPanelOpen && !isMobile.value,
+  'translate-y-0': props.isFilterPanelOpen && isMobile.value,
+  'translate-y-full': !props.isFilterPanelOpen && isMobile.value
 }))
 
 // Проверка состояния чекбоксов
@@ -118,23 +119,28 @@ const handleResetFilter = () => {
     onlyBuyNowCheckbox.checked = true;
   }
   filterStore.setNeedsUpdate(true);
-  emit('toggle') // Только отправляем событие
+  // Закрываем панель только если сброс вызван пользователем (не сменой маршрута)
+  if (!isRouteChange.value) {
+    emit('toggle');
+  }
 }
 
 watch(() => route.fullPath, () => {
+  isRouteChange.value = true; // Устанавливаем флаг перед сбросом
   handleResetFilter();
+  isRouteChange.value = false; // Сбрасываем флаг после сброса
 });
 </script>
 
 <template>
   <div
     id="filter-panel"
-    v-if="isOpen"
+    v-if="isFilterPanelOpen"
     class="flex justify-center items-center transform transition-transform duration-300"
     :class="panelClasses"
     @click="handleOutsideClick"
   >
-    <div id="filter-inner-panel" class="w-full max-w-lg p-6 gap-6 flex flex-col bg-[#1A1A1A] text-[#63B4C8] border-2 border-[#63B4C8] rounded-xl mx-4">
+    <div id="filter-inner-panel" class="w-full max-w-lg p-6 gap-6 flex flex-col bg-[#1A1A1A] text-[#63B4C8] border-2 border-[#63B4C8] rounded-xl mx-4 shadow-panel">
       <div class="overflow-y-auto scroll-hide max-h-[calc(100vh-140px)]">
         <div class="section-container">
           <div class="section-header" @click="handleToggleShow('Status')">
@@ -186,7 +192,7 @@ watch(() => route.fullPath, () => {
               <img :src="platformIcon[option]" class="w-5 h-5 ms-2 mr-2" />
               <span class="text-lg font-medium">{{ option }}</span>
             </label>
-            <img src='@/assets/cross.svg' class='w-6 absolute top-6 right-6' @click='handleToggleFilter'>
+            <button class="close-button" @click="handleToggleFilter">Close</button>
           </div>
         </div>
       </div>
@@ -254,6 +260,29 @@ watch(() => route.fullPath, () => {
 
 .action-button:hover {
   background-color: #4b5563; /* Tailwind hover:bg-gray-700 */
+}
+
+.close-button {
+  position: absolute;
+  top: 1.5rem; /* Tailwind top-6 = 24px */
+  right: 1.5rem; /* Tailwind right-6 = 24px */
+  font-size: 1rem; /* Tailwind text-base = 16px */
+  font-weight: 600; /* Tailwind font-semibold */
+  color: #63B4C8;
+  border: 2px solid #63B4C8;
+  padding: 0.5rem 1rem; /* Tailwind p-2 */
+  border-radius: 0.5rem; /* Tailwind rounded-lg */
+  background: none;
+  cursor: pointer;
+  transition: all 0.2s ease; /* Анимация для ховера */
+}
+
+.close-button:hover {
+  background-color: #4b5563; /* Tailwind hover:bg-gray-700 */
+}
+
+.shadow-panel {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .scroll-hide::-webkit-scrollbar {

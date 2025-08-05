@@ -14,7 +14,7 @@ import { pageNames } from '@/utils/dictsList.js'
 const route = useRoute()
 const cardStore = useCardStore()
 const filterStore = useFilterStore()
-const isFilterPanelOpen = ref(false)
+const showFilterPanel = ref(false)
 
 const currentPanel = ref('Cards')
 const isMobile = computed(() => window.innerWidth <= 768)
@@ -24,15 +24,15 @@ const selectedFiltersCount = computed(() => {
 });
 
 const handleToggleFilter = () => {
-  isFilterPanelOpen.value = !isFilterPanelOpen.value;
+  showFilterPanel.value = !showFilterPanel.value;
   if (isMobile.value) {
-    document.body.classList.toggle('hidden-scroll', isFilterPanelOpen.value);
+    document.body.classList.toggle('hidden-scroll', showFilterPanel.value);
   }
 }
 
 watch(route, () => {
   currentPanel.value = 'Cards'
-  isFilterPanelOpen.value = false; // Закрываем панель при смене маршрута
+  showFilterPanel.value = false; // Закрываем панель при смене маршрута
 })
 </script>
 
@@ -58,7 +58,7 @@ watch(route, () => {
             class="border-2 border-[#63B4C8] text-[#63B4C8] rounded-md p-2 flex gap-2 text-xl font-semibold items-center hover:bg-gray-700 sticky sm:static top-0 left-0 justify-center max-sm:w-full z-30 bg-[#232228]"
           >
             <img src="../assets/filter-1.svg" class="w-6" alt="filter" />
-            Filter ({{ selectedFiltersCount }})
+            Filters ({{ selectedFiltersCount }})
           </button>
         </div>
 
@@ -81,7 +81,7 @@ watch(route, () => {
       </div>
 
       <div class="mt-10 relative h-full">
-        <FiltersPanel :is-open="isFilterPanelOpen" @toggle="handleToggleFilter" />
+        <FiltersPanel :is-filter-panel-open="showFilterPanel" @toggle="handleToggleFilter" />
         <CardsList />
       </div>
     </div>
