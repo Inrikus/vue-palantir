@@ -68,10 +68,13 @@ const getNFTLink = (chain, collectionAddress, tokenId) => {
     </span>
 
     <span class="flex items-center pl-4">
-        <a :href="getNFTLink(activity.chain, activity.collectionAddress, activity.tokenId)" class="flex items-center">
-            <img :src="activity.nft_image" class='w-10 mr-2'>
-            <span class="truncate"> {{ activity.nft_name }} </span>
-        </a>
+      <a
+        :href="getNFTLink(activity.chain, activity.collectionAddress, activity.tokenId)"
+        class="flex items-center max-w-full"
+      >
+        <img :src="activity.nft_image" class="w-10 h-10 mr-2 flex-shrink-0" />
+        <span class="nft-name truncate-text">{{ activity.nft_name }}</span>
+      </a>
     </span>
 
     <span class="place-content-center">
@@ -104,4 +107,25 @@ const getNFTLink = (chain, collectionAddress, tokenId) => {
     </span>
 </template>
 
-<style></style>
+<style scoped>
+.truncate-text {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .truncate-text {
+    font-size: 0.875rem; /* адаптивно уменьшим размер текста */
+    max-width: 120px; /* ширина имени NFT в мобильной версии */
+  }
+}
+
+@media (min-width: 768px) {
+  .truncate-text {
+    max-width: 220px; /* для десктопа можно шире */
+  }
+}
+
+</style>
