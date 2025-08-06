@@ -2867,10 +2867,10 @@ vue-eslint-parser@^9.4.2:
     lodash "^4.17.21"
     semver "^7.3.6"
 
-vue-gtag-next@^1.14.0:
-  version "1.14.0"
-  resolved "https://registry.yarnpkg.com/vue-gtag-next/-/vue-gtag-next-1.14.0.tgz#793aef0b90dff4213b9f3a79827cd99b06e678dd"
-  integrity sha512-iJl+cOG2GU5NuxqzSSIpt03WVOvZqyKB9TOy7d55KiuvRklcnb2nlqxW5B/a3/sbIt7fla+XEkRyMCcoz0zAHw==
+vue-gtag@^3.5.2:
+  version "3.5.2"
+  resolved "https://registry.yarnpkg.com/vue-gtag/-/vue-gtag-3.5.2.tgz#ef56195ddec0ce9bdccf5636baee982e50ead9cc"
+  integrity sha512-efTY4yrkNraFSu6CZqhFZLX5LggqCr44d6kcPnPPtzYhvu5ywrTFUnuvM2Vm238QC+YT43HkVEXV/L1OYnHvNg==
 
 vue-router@^4.5.1:
   version "4.5.1"
