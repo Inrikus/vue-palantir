@@ -9,7 +9,7 @@ import TabsPanel from '@/components/UI/TabsPanel.vue'
 
 import { useCardStore } from '@/stores/cardStore'
 import { useFilterStore } from '@/stores/filterStore'
-import { pageNames } from '@/utils/dictsList.js'
+import { collections } from '@/utils/dictsList.js'
 
 const route = useRoute()
 const cardStore = useCardStore()
@@ -18,6 +18,13 @@ const showFilterPanel = ref(false)
 
 const currentPanel = ref('Cards')
 const isMobile = computed(() => window.innerWidth <= 768)
+
+const sortOrder = computed({
+  get: () => filterStore.order,
+  set: (val) => filterStore.setOrder(val),
+})
+
+const endPoint = computed(() => collections[route.name].queryName)
 
 const selectedFiltersCount = computed(() => {
   return filterStore.traits.length; // Считаем только элементы в filterStore.traits
@@ -40,9 +47,9 @@ watch(route, () => {
   <div class="min-h-screen">
     <!-- Заголовок -->
     <div class="flex gap-2">
-      <img :src="pageNames[route.name]?.link" class="w-10 h-10 rounded-full" alt="icon" />
+      <img :src="collections[route.name]?.page.image" class="w-10 h-10 rounded-full" alt="icon" />
       <h2 class="text-3xl font-bold tracking-[4px] text-[#63B4C8]">
-        {{ pageNames[route.name]?.name }}
+        {{ collections[route.name]?.page.name }}
       </h2>
     </div>
 
@@ -63,11 +70,11 @@ watch(route, () => {
         </div>
 
         <div class="relative flex justify-between">
-          <div :class="'text-lg font-bold tracking-[4px] text-[#63B4C8] ' + (cardStore.getMaxCards ? 'circle circle-active' : 'circle')">
-            {{ cardStore.getMaxCards }} results
+          <div :class="'text-lg font-bold tracking-[4px] text-[#63B4C8] ' + (cardStore.maxCards ? 'circle circle-active' : 'circle')">
+            {{ cardStore.maxCards }} results
           </div>
           <select
-            v-model="filterStore.order"
+            v-model="sortOrder"
             class="w-full font-semibold text-center text-xl bg-transparent border-2 border-[#63B4C8] text-[#63B4C8] rounded-md appearance-none focus:outline-none focus:ring-0 focus:bg-gray-700 hover:bg-gray-700 cursor-pointer p-2"
           >
             <option value="priceDesc" class="bg-[#232228]">Price: High to low</option>
@@ -82,12 +89,12 @@ watch(route, () => {
 
       <div class="mt-10 relative h-full">
         <FiltersPanel :is-filter-panel-open="showFilterPanel" @toggle="handleToggleFilter" />
-        <CardsList />
+        <CardsList :endpoint="endPoint" :key="endPoint" />
       </div>
     </div>
 
     <div v-else>
-      <ActivityPanel />
+      <ActivityPanel :endpoint="endPoint" />
     </div>
   </div>
 </template>

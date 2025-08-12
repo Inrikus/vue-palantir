@@ -7,8 +7,8 @@ const props = defineProps({
     card: Object
 })
 
-const isMechBadge = ['Bi-Mech', 'Quartan Primes'].includes(props.card.collection_name) && props.card.status === 'Normal'
-const isPlanetBadge = props.card.collection_name === 'Fusionist Planet'
+const isMechBadge = ['bi_mech', 'quartan_primes'].includes(props.card.collection_name) && props.card.status === 'Normal'
+const isPlanetBadge = props.card.collection_name === 'fusionist_planet'
 
 </script>
 

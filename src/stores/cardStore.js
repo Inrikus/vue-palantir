@@ -1,38 +1,35 @@
+// stores/cardStore.js
 import { defineStore } from 'pinia'
 
-export const useCardStore = defineStore('card', {
-  state: () => ({
-    cards: [], // Список карточек
-    maxCards: 0, // Максимальное количество карточек
-    hasNextPage: true, // Флаг для проверки наличия следующей страницы
-    isLoading: false // Флаг для проверки загрузки данных
-  }),
+const initial = () => ({
+  cards: [],
+  maxCards: 0,
+  hasNextPage: false,
+  isLoading: false,
+})
 
-  getters: {
-    getCardsList: (state) => {
-      return state.cards // Получение списка карточек
-    },
-    getMaxCards: (state) => {
-      return state.maxCards // Получение максимального количества карточек
-    }
-  },
+export const useCardStore = defineStore('card', {
+  state: initial,
 
   actions: {
-    addCards(data) {
-      this.cards.push(...data) // Добавление карточек в массив
+    // Полная замена списка
+    setCards(list = []) {
+      this.cards = Array.isArray(list) ? list : []
     },
 
-    changeCards(data, cardsCount) {
-      this.cards = data // Замена карточек на новые
-      this.maxCards = cardsCount // Обновление максимального количества карточек
+    // Дозагрузка (для пагинации/инфинит-скролла)
+    appendCards(list = []) {
+      if (Array.isArray(list) && list.length) this.cards.push(...list)
     },
 
-    changeHasNextPage(data) {
-      this.hasNextPage = data // Установка флага наличия следующей страницы
+    // Метаданные страницы: total, hasNextPage и т.п.
+    setMeta({ maxCards = 0, hasNextPage = true } = {}) {
+      this.maxCards = Number(maxCards) || 0
+      this.hasNextPage = !!hasNextPage
     },
 
-    changeIsLoading(data) {
-      this.isLoading = data // Установка флага загрузки
-    }
-  }
+    setLoading(v) {
+      this.isLoading = !!v
+    },
+  },
 })

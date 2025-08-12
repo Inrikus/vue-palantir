@@ -1,14 +1,14 @@
 <script setup>
-import BannerItem from './BannerItem.vue'
-import { fetchBanners } from '@/utils/api'; // Импортируем метод
 import { onMounted, ref } from 'vue'
+import BannerItem from './BannerItem.vue'
+import { fetchBanners } from '@/utils/api'
 
 const bannerData = ref({})
 
 const getBanners = async () => {
-  const { data } = await fetchBanners();
-  bannerData.value = data.collections;
-};
+  const { data } = await fetchBanners()
+  bannerData.value = data.collections
+}
 
 onMounted(() => {
   getBanners()
@@ -16,7 +16,12 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class='pb-20 grid grid-banner gap-4'>
-        <BannerItem v-for="banner in Object.keys(bannerData)" :key='banner' :banner-name='banner' :banner-data='bannerData[banner]' />
-    </div>
+  <div class="pb-20 grid-banner">
+    <BannerItem
+      v-for="banner in Object.keys(bannerData)"
+      :key="banner"
+      :banner-name="banner"
+      :banner-data="bannerData[banner]"
+    />
+  </div>
 </template>

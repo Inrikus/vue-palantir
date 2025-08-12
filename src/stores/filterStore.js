@@ -1,107 +1,55 @@
-//import { ref, computed } from 'vue';
-import { defineStore } from 'pinia';
+// stores/filterStore.js
+import { defineStore } from 'pinia'
 
-// Определяем глобальный стор для фильтров
+const initial = () => ({
+  status: [],
+  sources: [],
+  order: 'priceAsc',
+  tradeType: 1,
+  priceRangeMax: 0,
+  page: 1,
+  rows: 30,
+  traits: [],           // [{ trait_type, value }]
+  needsUpdate: false,
+})
+
 export const useFilterStore = defineStore('filter', {
-  state: () => ({
-    status: [],
-    sources: [],
-    order: 'priceAsc',
-    tradeType: 1,
-    priceRangeMax: 0,
-    page: 1,
-    rows: 30,
-    traits: [],
-    needsUpdate: false // Флаг для отслеживания обновлений
-  }),
-
+  state: initial,
   getters: {
-    getAllFilters: (state) => {
-      return [
-        state.sources,
-        state.status,
-        state.tradeType,
-        state.order,
-        state.priceRangeMax,
-        state.page,
-        state.rows,
-        state.traits
-      ]
-    }
+    getAllFilters: (s) => [s.sources, s.status, s.tradeType, s.order, s.priceRangeMax, s.page, s.rows, s.traits],
   },
-
   actions: {
-    setNeedsUpdate(value) {
-      this.needsUpdate = value;
+    setNeedsUpdate(v) { this.needsUpdate = v },
+
+    changeStatus(e) {
+      const v = e?.target?.value, checked = !!e?.target?.checked
+      if (checked) { if (!this.status.includes(v)) this.status.push(v); return }
+      const i = this.status.findIndex(x => x === v); if (i !== -1) this.status.splice(i, 1)
     },
-    
-    changeTraits(item, filterKey, value) {
-      if (item.target.checked) {
-        this.traits.push({
-          trait_type: filterKey,
-          value: value
-        });
-        return;
-      }
-
-      const index = this.traits.findIndex(
-        (el) => el.trait_type === filterKey && el.value === value
-      );
-      if (index !== -1) {
-        this.traits.splice(index, 1);
-      }
+    changeSources(e) {
+      const v = e?.target?.value, checked = !!e?.target?.checked
+      if (checked) { if (!this.sources.includes(v)) this.sources.push(v); return }
+      const i = this.sources.findIndex(x => x === v); if (i !== -1) this.sources.splice(i, 1)
     },
-
-    changeStatus(item) {
-      if (item.target.checked) {
-        this.status.push(item.target.value)
-        return
-      }
-
-      const index = this.status.findIndex((el) => el === item.target.value)
-      this.status.splice(index, 1)
+    changeTraits(e, key, value) {
+      if (e?.target?.checked) { this.traits.push({ trait_type: key, value }); return }
+      const i = this.traits.findIndex(t => t.trait_type === key && t.value === value)
+      if (i !== -1) this.traits.splice(i, 1)
     },
+    changeTradeType(e) { this.tradeType = e?.target?.checked ? 1 : 0 },
 
-    changeSources(item) {
-      if (item.target.checked) {
-        this.sources.push(item.target.value)
-        return
-      }
-
-      const index = this.sources.findIndex((el) => el === item.target.value)
-      this.sources.splice(index, 1)
+    setOrder(newOrder) {
+    if (this.order === newOrder) return
+    this.order = newOrder
+    this.page = 1
+    // не трогаем needsUpdate — список перезагрузится через watch по order
     },
+    changePage(v) { this.page = v },
+    changeRows(v) { this.rows = v },
+    changeMaxPrice(v) { this.priceRangeMax = Number(v) || 0 },
 
-    changeTradeType(item) {
-      this.tradeType = item.target.checked ? 1 : 0
+    clearFilter() { // если нужны «кастомные» дефолты вместо $reset()
+      this.$patch(initial())
     },
-
-    changeOrder(item) {
-      this.order = item
-    },
-
-    changePage(item) {
-      this.page = item
-    },
-
-    changeRows(item) {
-      this.rows = item
-    },
-
-    changeMaxPrice(price) {
-      this.maxPrice = price
-    },
-
-    clearFilter() {
-      this.status = []
-      this.sources = []
-      this.order = 'priceAsc'
-      this.tradeType = 1
-      this.priceRangeMax = 0
-      this.page = 1
-      this.rows = 30
-      this.traits = []
-      this.needsUpdate = false
-    }
   }
 })

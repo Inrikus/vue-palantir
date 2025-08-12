@@ -1,16 +1,18 @@
 <script setup>
 import { fetchActivities } from '@/utils/api'; // Импортируем метод
 import { onMounted, ref } from 'vue' //onBeforeUnmount
-import { useRoute } from 'vue-router';
 
 import ActivityItem from './ActivityItem.vue';
-import { queryName } from '@/utils/dictsList.js'
+//import { collections } from '@/utils/dictsList.js'
+
+const props = defineProps({
+  endpoint: { type: String, required: true },   // ← приходит от родителя
+})
 
 const activityData = ref([])
-const route = useRoute()
 
 const getActivities = async () => {
-  const { data } = await fetchActivities(queryName[route.name]);
+  const { data } = await fetchActivities(props.endpoint);
   activityData.value = data.actions;
 };
 
