@@ -125,7 +125,7 @@ const collectionUrl = computed(() => {
             :href="getNFTLink(item.chain, item.collectionAddress, item.tokenId)"
             target="_blank" rel="noopener"
           >
-            {{ item.nft_name || ('#' + item.tokenId) }}
+            {{ (item.nft_name || ('#' + item.tokenId)).slice(0, 19) + '…' }}
           </a>
         </div>
       </div>
