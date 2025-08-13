@@ -117,5 +117,5 @@ watch(isOpen, (val) => {
   -webkit-text-fill-color: transparent;
 }
 .header-grad { background: linear-gradient(to bottom, rgba(19, 19, 19, 1) 10%, rgba(26, 26, 26, 1) 100%); }
-.hidden-scroll { overflow: hidden; }
+
 </style>

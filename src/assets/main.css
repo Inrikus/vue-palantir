@@ -3,11 +3,7 @@
 @tailwind utilities;
 
 
-body {
-    background-color: #1a1a1a;
-    height: 100vh;
-    
-}
+body { background-color: #1a1a1a; }
 body::-webkit-scrollbar { width: 0; }
 
 /* ie 10+ */
@@ -15,3 +11,16 @@ body { -ms-overflow-style: none; }
 
 /* фф (свойство больше не работает, других способов тоже нет)*/
 .body { overflow: -moz-scrollbars-none; }
+
+/* Глобальная блокировка скролла для body */
+body.hidden-scroll {
+  overflow: hidden !important;
+}
+
+/* (Опционально) iOS/мобильные фиксы — если есть «дрожание» при лочке */
+@supports (-webkit-touch-callout: none) {
+  body.hidden-scroll {
+    position: fixed;
+    width: 100%;
+  }
+}

@@ -1,5 +1,5 @@
 <script setup>
-import { watch, ref, computed } from 'vue'
+import { onBeforeUnmount, watch, ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 import CardsList from '@/components/Cards/CardsList.vue'
@@ -36,6 +36,10 @@ const handleToggleFilter = () => {
     document.body.classList.toggle('hidden-scroll', showFilterPanel.value);
   }
 }
+onBeforeUnmount(() => {
+  document.body.classList.remove('hidden-scroll')
+})
+
 
 watch(route, () => {
   currentPanel.value = 'Cards'
@@ -126,9 +130,4 @@ watch(route, () => {
   }
 }
 
-@media (max-width: 768px) {
-  .hidden-scroll {
-    overflow: hidden;
-  }
-}
 </style>
