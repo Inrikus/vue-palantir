@@ -3,11 +3,10 @@ import { computed } from 'vue'
 import { platformIcon, currency as currencyDict, getCollectionLink } from '@/utils/dictsList.js'
 
 const props = defineProps({
-  item: { type: Object, required: true },          // объект сделки из actions[]
-  collectionKey: { type: String, required: true }, // bi_mech | quartan_primes | ...
+  item: { type: Object, required: true },
+  collectionKey: { type: String, required: true },
 })
 
-/* ====== Хелперы ссылок (как у тебя) ====== */
 const getExplorerLink = (chain, txHash) => {
   switch (chain) {
     case 'BSC':       return `https://bscscan.com/tx/${txHash}`
@@ -33,7 +32,6 @@ const getNFTLink = (chain, collectionAddress, tokenId) => {
   }
 }
 
-/* ====== Утилиты отображения ====== */
 const shortAddr = (a) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : '—')
 const humanPrice = (v) => (v || v === 0)
   ? (v >= 1000 ? Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 })
@@ -54,7 +52,6 @@ const timeLabel = (tsSec) => {
   return `${abs} · ${rel}`
 }
 
-/* ====== Иконки из словарей ====== */
 const platformSrc = (platform) => `/${platformIcon[platform] || platformIcon.Element}`
 const currencySrc  = (code) => {
   const key = (code || '').toUpperCase()
@@ -62,7 +59,6 @@ const currencySrc  = (code) => {
   return `/currency/${file}`
 }
 
-/* ====== Ссылка на коллекцию через getCollectionLink ====== */
 const collectionUrl = computed(() => {
   const dict = getCollectionLink[props.collectionKey] || {}
   return dict[props.item.platform] || dict.default || '#'
@@ -72,7 +68,6 @@ const collectionUrl = computed(() => {
 <template>
   <!-- Desktop row -->
   <div class="row hidden sm:grid">
-    <!-- Asset -->
     <div class="cell asset">
       <img v-if="item.nft_image" :src="item.nft_image" alt="" class="thumb" />
       <div class="asset-info">
@@ -84,11 +79,9 @@ const collectionUrl = computed(() => {
         >
           {{ item.nft_name || ('#' + item.tokenId) }}
         </a>
-        <div class="sub">#{{ item.tokenId }}</div>
       </div>
     </div>
 
-    <!-- Price -->
     <div class="cell price">
       <img :src="currencySrc(item.currency)" alt="" class="icon" />
       <span class="price-v">{{ humanPrice(item.price_native) }}</span>
@@ -96,7 +89,6 @@ const collectionUrl = computed(() => {
       <span v-if="item.price_usd !== undefined" class="usd">{{ humanUsd(item.price_usd) }}</span>
     </div>
 
-    <!-- Market → ссылка на коллекцию -->
     <div class="cell market">
       <img :src="platformSrc(item.platform)" alt="" class="icon" />
       <a class="chip" :href="collectionUrl" target="_blank" rel="noopener">
@@ -104,26 +96,19 @@ const collectionUrl = computed(() => {
       </a>
     </div>
 
-    <!-- From → To -->
     <div class="cell actors">
-      <a class="mono link" :href="getMarketLink(item.chain, item.from_address)" target="_blank" rel="noopener" :title="item.from_address">
+      <a class="mono link" :href="getMarketLink(item.chain, item.from_address)" target="_blank" rel="noopener">
         {{ shortAddr(item.from_address) }}
       </a>
       <span class="sep">→</span>
-      <a class="mono link" :href="getMarketLink(item.chain, item.to)" target="_blank" rel="noopener" :title="item.to">
+      <a class="mono link" :href="getMarketLink(item.chain, item.to)" target="_blank" rel="noopener">
         {{ shortAddr(item.to) }}
       </a>
     </div>
 
-    <!-- Time / Tx -->
     <div class="cell time">
       <div class="muted">{{ timeLabel(item.timestamp) }}</div>
-      <a
-        v-if="item.txHash"
-        class="tx link"
-        :href="getExplorerLink(item.chain, item.txHash)"
-        target="_blank" rel="noopener"
-      >
+      <a v-if="item.txHash" class="tx link" :href="getExplorerLink(item.chain, item.txHash)" target="_blank" rel="noopener">
         View tx
       </a>
     </div>
@@ -142,7 +127,6 @@ const collectionUrl = computed(() => {
           >
             {{ item.nft_name || ('#' + item.tokenId) }}
           </a>
-          <div class="sub">#{{ item.tokenId }}</div>
         </div>
       </div>
       <div class="right">
@@ -160,20 +144,25 @@ const collectionUrl = computed(() => {
         </a>
       </div>
       <div class="actors">
-        <a class="mono link" :href="getMarketLink(item.chain, item.from_address)" target="_blank" rel="noopener">{{ shortAddr(item.from_address) }}</a>
+        <a class="mono link" :href="getMarketLink(item.chain, item.from_address)" target="_blank" rel="noopener">
+          {{ shortAddr(item.from_address) }}
+        </a>
         <span class="sep">→</span>
-        <a class="mono link" :href="getMarketLink(item.chain, item.to)" target="_blank" rel="noopener">{{ shortAddr(item.to) }}</a>
+        <a class="mono link" :href="getMarketLink(item.chain, item.to)" target="_blank" rel="noopener">
+          {{ shortAddr(item.to) }}
+        </a>
       </div>
       <div class="time">
         <span class="muted">{{ timeLabel(item.timestamp) }}</span>
-        <a v-if="item.txHash" class="tx link" :href="getExplorerLink(item.chain, item.txHash)" target="_blank" rel="noopener">View tx</a>
+        <a v-if="item.txHash" class="tx link" :href="getExplorerLink(item.chain, item.txHash)" target="_blank" rel="noopener">
+          View tx
+        </a>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* GRID (desktop) */
 .row {
   grid-template-columns: 1.3fr 0.9fr 0.9fr 1.2fr 1fr;
   align-items: center;
@@ -186,8 +175,9 @@ const collectionUrl = computed(() => {
 
 .asset .thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
 .asset-info { min-width: 0; }
-.name { font-weight: 600; color: #e7f7ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sub  { color: #9cc7d3; font-size: 12px; opacity: .8; }
+.name { font-weight: 600; color: #FFFFFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.link  { text-decoration: none; }
+.link:hover { text-decoration: underline; color: #cfe8ef; }
 
 .icon     { width: 18px; height: 18px; object-fit: contain; }
 .price-v  { font-weight: 700; }
@@ -195,26 +185,29 @@ const collectionUrl = computed(() => {
 .usd      { opacity: .7; font-size: 12px; margin-left: 6px; }
 
 .chip {
-  padding: 2px 8px; border: 1px solid rgba(99,180,200,.5);
-  border-radius: 9999px; font-size: 12px; color: #9dd1de;
+  padding: 2px 8px;
+  border: 1px solid rgba(99,180,200,.5);
+  border-radius: 9999px;
+  font-size: 12px;
+  color: #9dd1de;
   white-space: nowrap;
 }
 
-.mono  { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12px; color: #cfe8ef; }
+.mono  { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; color: #cfe8ef; }
 .muted { color: #9cc7d3; opacity: .8; }
 .sep   { opacity: .6; }
-.link  { text-decoration: none; color: inherit; }
-.link:hover { text-decoration: underline; color: #cfe8ef; }
+
 .tx { margin-left: 8px; font-size: 12px; opacity: .9; }
 
 /* MOBILE */
 .row-mobile {
-  padding: 12px; border-bottom: 1px solid rgba(255,255,255,.06);
+  padding: 12px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
 }
 .row-mobile .top { display: flex; justify-content: space-between; gap: 10px; }
-.row-mobile .left { display: flex; gap: 10px; min-width: 0; }
+.row-mobile .left { display: flex; gap: 10px; min-width: 0; align-items: center; }
 .row-mobile .thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
-.row-mobile .right { display: flex; align-items: center; gap: 6px; }
+.row-mobile .right { display: flex; gap: 6px; align-items: center; }
 .meta { margin-top: 8px; display: grid; gap: 6px; }
 .market { display: flex; align-items: center; gap: 8px; }
 .actors { display: flex; align-items: center; gap: 6px; color: #cfe8ef; }
