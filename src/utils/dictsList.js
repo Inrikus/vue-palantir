@@ -1,3 +1,43 @@
+export const getCollectionLink = {
+  bi_mech: {
+    Element: 'https://element.market/collections/bi-mech',
+    OKX: 'https://www.okx.com/ru/web3/marketplace/nft/collection/bsc/bi-mech',
+    default: 'https://element.market/collections/bi-mech'
+  },
+  quartan_primes: {
+    Opensea: 'https://opensea.io/assets/ethereum/0xd396e2018b67446b134c30a89166487a8b2abd2e',
+    Blur: 'https://blur.io/eth/collection/fusionist-quartan-primes',
+    Element: 'https://element.market/collections/fusionist-quartan-primes',
+    OKX: 'https://www.okx.com/ru/web3/marketplace/nft/collection/eth/fusionist-quartan-primes',
+    MagicEden: 'https://magiceden.io/ru/collections/ethereum/0xd396e2018b67446b134c30a89166487a8b2abd2e',
+    default: 'https://element.market/collections/fusionist-quartan-primes'
+  },
+  alpha_prestige: {
+    Opensea: 'https://opensea.io/assets/ethereum/0xcbeb9b45ba9fbfbbccc289ee48dadd6fb65ae2a7',
+    Blur: 'https://blur.io/eth/collection/alpha-prestige-fusionist-official',
+    Element: 'https://element.market/collections/alpha-prestige-fusionist-official',
+    OKX: 'https://www.okx.com/ru/web3/marketplace/nft/collection/eth/alpha-prestige-fusionist',
+    MagicEden: 'https://magiceden.io/ru/collections/ethereum/0xcbeb9b45ba9fbfbbccc289ee48dadd6fb65ae2a7',
+    default: 'https://element.market/collections/alpha-prestige-fusionist-official'
+  },
+  pioneer_of_fusionist: {
+    Opensea: 'https://opensea.io/assets/ethereum/0x4e475806fbc814d6b7b8426d5e183722b2603d4b',
+    Blur: 'https://blur.io/eth/collection/pioneer-of-fusionist',
+    Element: 'https://element.market/collections/pioneer-of-fusionist',
+    OKX: 'https://web3.okx.com/ru/nft/collection/eth/pioneer-of-fusionist',
+    MagicEden: 'https://magiceden.io/ru/collections/ethereum/0x4e475806fbc814d6b7b8426d5e183722b2603d4b',
+    default: 'https://element.market/collections/pioneer-of-fusionist'
+  },
+  fusionist_planet: {
+    Tesseract: 'https://www.tesseract.world/nfts/list/648-0x7db2ee56b2c19ea0758631c24415ce3a5ec498f5',
+    default: 'https://www.tesseract.world/nfts/list/648-0x7db2ee56b2c19ea0758631c24415ce3a5ec498f5'
+  },
+  primeace: {
+    Tesseract: 'https://www.tesseract.world/nfts/list/648-0xaf8ef2b180fe7cade68643705adae08d1d2791a1',
+    default: 'https://www.tesseract.world/nfts/list/648-0xaf8ef2b180fe7cade68643705adae08d1d2791a1'
+  },
+}
+
 export const platformIcon = {
   Blur: 'marketplace/blur.webp',
   Opensea: 'marketplace/opensea.webp',

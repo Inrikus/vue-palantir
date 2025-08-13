@@ -10,6 +10,7 @@ import TabsPanel from '@/components/UI/TabsPanel.vue'
 import { useCardStore } from '@/stores/cardStore'
 import { useFilterStore } from '@/stores/filterStore'
 import { collections } from '@/utils/dictsList.js'
+import { toggleScrollLock } from '@/utils/scrollLock'
 
 const route = useRoute()
 const cardStore = useCardStore()
@@ -31,15 +32,10 @@ const selectedFiltersCount = computed(() => {
 });
 
 const handleToggleFilter = () => {
-  showFilterPanel.value = !showFilterPanel.value;
-  if (isMobile.value) {
-    document.body.classList.toggle('hidden-scroll', showFilterPanel.value);
-  }
+  showFilterPanel.value = !showFilterPanel.value
+  if (isMobile.value) toggleScrollLock(showFilterPanel.value)
 }
-onBeforeUnmount(() => {
-  document.body.classList.remove('hidden-scroll')
-})
-
+onBeforeUnmount(() => toggleScrollLock(false))
 
 watch(route, () => {
   currentPanel.value = 'Cards'

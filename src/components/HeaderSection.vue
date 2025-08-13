@@ -1,5 +1,6 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { onBeforeUnmount, ref, watch } from 'vue'
+import { toggleScrollLock } from '@/utils/scrollLock'
 
 const isOpen = ref(false)
 const panelRef = ref(null)
@@ -20,8 +21,10 @@ const toggle = () => { isOpen.value ? close() : open() }
 
 // Лочим скролл body только когда открыт дровер
 watch(isOpen, (val) => {
-  document.body.classList.toggle('hidden-scroll', val)
+  toggleScrollLock(val)
 })
+onBeforeUnmount(() => toggleScrollLock(false))
+
 </script>
 
 <template>

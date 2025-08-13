@@ -1,131 +1,222 @@
 <script setup>
-import { platformIcon, currency } from '@/utils/dictsList.js'
-//import { useRoute } from 'vue-router';
+import { computed } from 'vue'
+import { platformIcon, currency as currencyDict, getCollectionLink } from '@/utils/dictsList.js'
 
 const props = defineProps({
-    activity: Object
+  item: { type: Object, required: true },          // объект сделки из actions[]
+  collectionKey: { type: String, required: true }, // bi_mech | quartan_primes | ...
 })
 
-var options = {
-    hour12: false,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-};
-
-//const route = useRoute()
-
-const date = new Date(props.activity.timestamp * 1000);
-
-// Метод для получения ссылки на обозреватель
+/* ====== Хелперы ссылок (как у тебя) ====== */
 const getExplorerLink = (chain, txHash) => {
-    switch (chain) {
-        case 'BSC':
-            return `https://bscscan.com/tx/${txHash}`;
-        case 'Ethereum':
-            return `https://etherscan.io/tx/${txHash}`;
-        case 'Endurance':
-            return `https://explorer-endurance.fusionist.io/tx/${txHash}`;
-        default:
-            return '#'; // Ссылка по умолчанию, если цепь неизвестна
-    }
-};
-const getMarketLink = (chain, adress) => {
-    switch (chain) {
-        case 'BSC':
-            return `https://element.market/account/${adress}`;
-        case 'Ethereum':
-            return `https://opensea.io/${adress}`;
-        case 'Endurance':
-            return `https://explorer-endurance.fusionist.io/address/${adress}?tab=tokens_nfts`;
-        default:
-            return '#'; // Ссылка по умолчанию, если цепь неизвестна
-    }
-};
+  switch (chain) {
+    case 'BSC':       return `https://bscscan.com/tx/${txHash}`
+    case 'Ethereum':  return `https://etherscan.io/tx/${txHash}`
+    case 'Endurance': return `https://explorer-endurance.fusionist.io/tx/${txHash}`
+    default:          return '#'
+  }
+}
+const getMarketLink = (chain, address) => {
+  switch (chain) {
+    case 'BSC':       return `https://element.market/account/${address}`
+    case 'Ethereum':  return `https://opensea.io/${address}`
+    case 'Endurance': return `https://explorer-endurance.fusionist.io/address/${address}?tab=tokens_nfts`
+    default:          return '#'
+  }
+}
 const getNFTLink = (chain, collectionAddress, tokenId) => {
-    switch (chain) {
-        case 'BSC':
-            return `https://element.market/assets/bsc/${collectionAddress}/${tokenId}`;
-        case 'Ethereum':
-            return `https://blur.io/eth/asset/${collectionAddress}/${tokenId}`;
-        case 'Endurance':
-            return `https://www.tesseract.world/nfts/detail/648-${collectionAddress}-${tokenId}`;
-            
-        default:
-            return '#'; // Ссылка по умолчанию, если цепь неизвестна
-    }
-};
+  switch (chain) {
+    case 'BSC':       return `https://element.market/assets/bsc/${collectionAddress}/${tokenId}`
+    case 'Ethereum':  return `https://blur.io/eth/asset/${collectionAddress}/${tokenId}`
+    case 'Endurance': return `https://www.tesseract.world/nfts/detail/648-${collectionAddress}-${tokenId}`
+    default:          return '#'
+  }
+}
 
+/* ====== Утилиты отображения ====== */
+const shortAddr = (a) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : '—')
+const humanPrice = (v) => (v || v === 0)
+  ? (v >= 1000 ? Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 })
+               : Number(v).toFixed(2))
+  : '—'
+const humanUsd = (u) => (u || u === 0)
+  ? `($${Number(u).toLocaleString(undefined, { maximumFractionDigits: 2 })})`
+  : ''
+const timeLabel = (tsSec) => {
+  const d = new Date((typeof tsSec === 'number' ? tsSec * 1000 : Date.now()))
+  const abs = d.toLocaleString(undefined, {
+    year: 'numeric', month: 'short', day: '2-digit',
+    hour: '2-digit', minute: '2-digit'
+  })
+  const diff = Date.now() - d.getTime()
+  const mins = Math.max(0, Math.floor(diff / 60000))
+  const rel = mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ago`
+  return `${abs} · ${rel}`
+}
+
+/* ====== Иконки из словарей ====== */
+const platformSrc = (platform) => `/${platformIcon[platform] || platformIcon.Element}`
+const currencySrc  = (code) => {
+  const key = (code || '').toUpperCase()
+  const file = currencyDict[key] || currencyDict.Unknown
+  return `/currency/${file}`
+}
+
+/* ====== Ссылка на коллекцию через getCollectionLink ====== */
+const collectionUrl = computed(() => {
+  const dict = getCollectionLink[props.collectionKey] || {}
+  return dict[props.item.platform] || dict.default || '#'
+})
 </script>
 
 <template>
-    <span>
-        <div class="w-full h-full flex place-content-center items-center">
-            <img :src="platformIcon[activity.platform]" alt="" class="w-7 h-7">
-        </div>
-    </span>
+  <!-- Desktop row -->
+  <div class="row hidden sm:grid">
+    <!-- Asset -->
+    <div class="cell asset">
+      <img v-if="item.nft_image" :src="item.nft_image" alt="" class="thumb" />
+      <div class="asset-info">
+        <a
+          class="name link"
+          :href="getNFTLink(item.chain, item.collectionAddress, item.tokenId)"
+          target="_blank" rel="noopener"
+          :title="item.nft_name || ('#' + item.tokenId)"
+        >
+          {{ item.nft_name || ('#' + item.tokenId) }}
+        </a>
+        <div class="sub">#{{ item.tokenId }}</div>
+      </div>
+    </div>
 
-    <span class="flex items-center pl-4">
-      <a
-        :href="getNFTLink(activity.chain, activity.collectionAddress, activity.tokenId)"
-        class="flex items-center max-w-full"
-      >
-        <img :src="activity.nft_image" class="w-10 h-10 mr-2 flex-shrink-0" />
-        <span class="nft-name truncate-text">{{ activity.nft_name }}</span>
+    <!-- Price -->
+    <div class="cell price">
+      <img :src="currencySrc(item.currency)" alt="" class="icon" />
+      <span class="price-v">{{ humanPrice(item.price_native) }}</span>
+      <span class="code">{{ item.currency || '—' }}</span>
+      <span v-if="item.price_usd !== undefined" class="usd">{{ humanUsd(item.price_usd) }}</span>
+    </div>
+
+    <!-- Market → ссылка на коллекцию -->
+    <div class="cell market">
+      <img :src="platformSrc(item.platform)" alt="" class="icon" />
+      <a class="chip" :href="collectionUrl" target="_blank" rel="noopener">
+        {{ item.platform || 'Market' }}
       </a>
-    </span>
+    </div>
 
-    <span class="place-content-center">
-        <div class="w-full flex flex-col items-center">
-            <p class="flex items-center">
-                <img :src="'/currency/' + (activity.currency in currency ? currency[activity.currency] : 'unknown.svg')"
-                    class="w-4 h-4 mr-2">
-                {{ activity.price_native }}
-            </p>
-            <p>{{ activity.price_usd }}$</p>
+    <!-- From → To -->
+    <div class="cell actors">
+      <a class="mono link" :href="getMarketLink(item.chain, item.from_address)" target="_blank" rel="noopener" :title="item.from_address">
+        {{ shortAddr(item.from_address) }}
+      </a>
+      <span class="sep">→</span>
+      <a class="mono link" :href="getMarketLink(item.chain, item.to)" target="_blank" rel="noopener" :title="item.to">
+        {{ shortAddr(item.to) }}
+      </a>
+    </div>
+
+    <!-- Time / Tx -->
+    <div class="cell time">
+      <div class="muted">{{ timeLabel(item.timestamp) }}</div>
+      <a
+        v-if="item.txHash"
+        class="tx link"
+        :href="getExplorerLink(item.chain, item.txHash)"
+        target="_blank" rel="noopener"
+      >
+        View tx
+      </a>
+    </div>
+  </div>
+
+  <!-- Mobile card -->
+  <div class="row-mobile sm:hidden">
+    <div class="top">
+      <div class="left">
+        <img v-if="item.nft_image" :src="item.nft_image" alt="" class="thumb" />
+        <div class="asset-info">
+          <a
+            class="name link"
+            :href="getNFTLink(item.chain, item.collectionAddress, item.tokenId)"
+            target="_blank" rel="noopener"
+          >
+            {{ item.nft_name || ('#' + item.tokenId) }}
+          </a>
+          <div class="sub">#{{ item.tokenId }}</div>
         </div>
-    </span>
-    
-    <span class="hover:opacity-50 transition-all hidden md:inline text-center">
-        <a :href="getMarketLink(activity.chain, activity.from_address)">
-            {{ activity.from_address.slice(0, 6) + '...' + activity.from_address.slice(-3) }}
+      </div>
+      <div class="right">
+        <img :src="currencySrc(item.currency)" alt="" class="icon" />
+        <span class="price-v">{{ humanPrice(item.price_native) }}</span>
+        <span class="code">{{ item.currency || '—' }}</span>
+      </div>
+    </div>
+
+    <div class="meta">
+      <div class="market">
+        <img :src="platformSrc(item.platform)" alt="" class="icon" />
+        <a class="chip" :href="collectionUrl" target="_blank" rel="noopener">
+          {{ item.platform || 'Market' }}
         </a>
-    </span>
-    
-    <span class="hover:opacity-50 transition-all hidden md:inline text-center">
-        <a :href="getMarketLink(activity.chain, activity.to)">
-            {{ activity.to.slice(0, 6) + '...' + activity.to.slice(-3) }}
-        </a>
-    </span>
-    
-    <span class="hover:opacity-50 transition-all text-center">
-        <a :href="getExplorerLink(activity.chain, activity.txHash)">
-            {{ date.toLocaleString('en-US', options).replace(',', '') }}
-        </a>
-    </span>
+      </div>
+      <div class="actors">
+        <a class="mono link" :href="getMarketLink(item.chain, item.from_address)" target="_blank" rel="noopener">{{ shortAddr(item.from_address) }}</a>
+        <span class="sep">→</span>
+        <a class="mono link" :href="getMarketLink(item.chain, item.to)" target="_blank" rel="noopener">{{ shortAddr(item.to) }}</a>
+      </div>
+      <div class="time">
+        <span class="muted">{{ timeLabel(item.timestamp) }}</span>
+        <a v-if="item.txHash" class="tx link" :href="getExplorerLink(item.chain, item.txHash)" target="_blank" rel="noopener">View tx</a>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
-.truncate-text {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* GRID (desktop) */
+.row {
+  grid-template-columns: 1.3fr 0.9fr 0.9fr 1.2fr 1fr;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  transition: background .15s ease;
+}
+.row:hover { background: rgba(255,255,255,.04); }
+.cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+.asset .thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+.asset-info { min-width: 0; }
+.name { font-weight: 600; color: #e7f7ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sub  { color: #9cc7d3; font-size: 12px; opacity: .8; }
+
+.icon     { width: 18px; height: 18px; object-fit: contain; }
+.price-v  { font-weight: 700; }
+.code     { opacity: .85; font-size: 12px; }
+.usd      { opacity: .7; font-size: 12px; margin-left: 6px; }
+
+.chip {
+  padding: 2px 8px; border: 1px solid rgba(99,180,200,.5);
+  border-radius: 9999px; font-size: 12px; color: #9dd1de;
   white-space: nowrap;
 }
 
-@media (max-width: 767px) {
-  .truncate-text {
-    font-size: 0.875rem; /* адаптивно уменьшим размер текста */
-    max-width: 120px; /* ширина имени NFT в мобильной версии */
-  }
-}
+.mono  { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12px; color: #cfe8ef; }
+.muted { color: #9cc7d3; opacity: .8; }
+.sep   { opacity: .6; }
+.link  { text-decoration: none; color: inherit; }
+.link:hover { text-decoration: underline; color: #cfe8ef; }
+.tx { margin-left: 8px; font-size: 12px; opacity: .9; }
 
-@media (min-width: 768px) {
-  .truncate-text {
-    max-width: 220px; /* для десктопа можно шире */
-  }
+/* MOBILE */
+.row-mobile {
+  padding: 12px; border-bottom: 1px solid rgba(255,255,255,.06);
 }
-
+.row-mobile .top { display: flex; justify-content: space-between; gap: 10px; }
+.row-mobile .left { display: flex; gap: 10px; min-width: 0; }
+.row-mobile .thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
+.row-mobile .right { display: flex; align-items: center; gap: 6px; }
+.meta { margin-top: 8px; display: grid; gap: 6px; }
+.market { display: flex; align-items: center; gap: 8px; }
+.actors { display: flex; align-items: center; gap: 6px; color: #cfe8ef; }
+.time { display: flex; align-items: center; gap: 8px; }
 </style>

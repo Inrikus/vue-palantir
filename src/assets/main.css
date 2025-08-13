@@ -2,25 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
-
 body { background-color: #1a1a1a; }
-body::-webkit-scrollbar { width: 0; }
 
-/* ie 10+ */
-body { -ms-overflow-style: none; }
+/* Стабильный макет при появлении/исчезновении скроллбара */
+@supports (scrollbar-gutter: stable) {
+  html { scrollbar-gutter: stable both-edges; }
+}
 
-/* фф (свойство больше не работает, других способов тоже нет)*/
-.body { overflow: -moz-scrollbars-none; }
+/* Скрыть полосу прокрутки (если нужно) */
+body::-webkit-scrollbar { width: 0; } /* webkit */
+body { -ms-overflow-style: none; }    /* IE/Edge Legacy */
 
-/* Глобальная блокировка скролла для body */
+/* Глобальная блокировка скролла для документа */
+html.hidden-scroll,
 body.hidden-scroll {
   overflow: hidden !important;
 }
 
-/* (Опционально) iOS/мобильные фиксы — если есть «дрожание» при лочке */
+/* (опционально) фиксы iOS дерганья */
 @supports (-webkit-touch-callout: none) {
+  html.hidden-scroll,
   body.hidden-scroll {
-    position: fixed;
+    position: relative;
     width: 100%;
   }
 }
+
+/* (опционально) системная тёмная тема */
+:root { color-scheme: dark; }

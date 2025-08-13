@@ -1,78 +1,84 @@
 <script setup>
-import { fetchActivities } from '@/utils/api'; // Импортируем метод
-import { onMounted, ref } from 'vue' //onBeforeUnmount
-
-import ActivityItem from './ActivityItem.vue';
-//import { collections } from '@/utils/dictsList.js'
+import { ref, watch } from 'vue'
+import ActivityItem from './ActivityItem.vue'
+import { fetchActivities } from '@/utils/api' // должен вернуть { _id, actions: [...] }
 
 const props = defineProps({
-  endpoint: { type: String, required: true },   // ← приходит от родителя
+  endpoint: { type: String, required: true },
 })
 
-const activityData = ref([])
+const items = ref([])
+const isLoading = ref(false)
+const errorText = ref('')
 
-const getActivities = async () => {
-  const { data } = await fetchActivities(props.endpoint);
-  activityData.value = data.actions;
-};
+async function load() {
+  if (!props.endpoint) { items.value = []; return }
+  try {
+    isLoading.value = true
+    errorText.value = ''
+    items.value = []
+    const { data } = await fetchActivities(props.endpoint) // GET /api/activity/{endpoint}
+    items.value = Array.isArray(data?.actions) ? data.actions : []
+  } catch {
+    errorText.value = 'Failed to load activity.'
+    items.value = []
+  } finally {
+    isLoading.value = false
+  }
+}
 
-//let activityInterval = null
-
-onMounted(() => {
-    getActivities()
-    //activityInterval = setInterval(getActivities, 60000)
-})
-
-//onBeforeUnmount(() => {
-//    clearInterval(activityInterval)
-//})
+// первая загрузка и при смене коллекции
+watch(() => props.endpoint, load, { immediate: true })
 </script>
 
 <template>
-    <div class="grid-table w-full mx-auto text-[#63B4C8] text-sm sm:text-l xl:text-xl font-normal sm:font-semibold">
-        <div class="grid-table-line items-center border-b-2 border-[#63B4C8] pb-2 border-opacity-50">
-            <span class="text-center">Market</span>
-            <span class="text-center">NFT</span>
-            <span class="text-center">Price</span>
-            <span class="hidden md:inline text-center">From</span>
-            <span class="hidden md:inline text-center">To</span>
-            <span class="text-center">Date</span>
-        </div>
-
-        <div v-for="activity in activityData" :key="activity.id"
-            class="grid-table-line items-center hover:bg-gray-800 hover:border-2 hover:border-[#63B4C8] p-1 rounded-xl">
-            <ActivityItem :activity="activity" />
-        </div>
-
+  <section class="panel">
+    <div class="head">
+      <div class="left">
+        <h3 class="title">Recent Sales</h3>
+        <span class="muted">{{ items.length }} record(s)</span>
+      </div>
+      <button class="btn" :disabled="isLoading" @click="load">
+        <span v-if="isLoading">Loading…</span>
+        <span v-else>Refresh</span>
+      </button>
     </div>
+
+    <template v-if="isLoading && !items.length">
+      <div v-for="i in 6" :key="i" class="skeleton-row"></div>
+    </template>
+
+    <div v-else-if="!isLoading && !items.length" class="empty">
+      No recent sales yet
+    </div>
+
+    <div v-else class="list">
+    <ActivityItem
+      v-for="(it, i) in items"
+      :key="it.txHash || it.tokenId || i"
+      :item="it"
+      :collection-key="endpoint"  />
+    </div>
+
+    <div v-if="errorText" class="error">{{ errorText }}</div>
+  </section>
 </template>
 
-<style>
-.grid-table {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.grid-table-line {
-    display: grid;
-    gap: 10px;
-}
-
-@media (min-width: 768px) {
-    .grid-table-line {
-        grid-template-columns: 0.3fr 1.5fr 0.7fr 1.2fr 1.2fr 1fr;
-    }
-}
-
-@media (max-width: 767px) {
-    .grid-table-line {
-        grid-template-columns: 0.3fr 1.5fr 0.7fr 0.8fr;
-    }
-}
-
-.grid-table-line span {
-    min-width: 0;
-    /* Позволяет элементам уменьшаться до минимального размера */
-}
+<style scoped>
+.panel { border:1px solid rgba(99,180,200,.25); border-radius:12px; overflow:hidden; background:#161616; }
+.head { display:flex; align-items:center; justify-content:space-between; padding:10px 14px;
+        border-bottom:1px solid rgba(255,255,255,.08);
+        background:linear-gradient(180deg, rgba(35,34,40,.85), rgba(26,26,26,.85)); }
+.title { color:#9dd1de; font-weight:800; letter-spacing:.04em; }
+.muted { color:#9cc7d3; opacity:.8; font-size:12px; }
+.btn { min-width:120px; padding:8px 14px; border-radius:10px; border:2px solid #63B4C8; color:#E7F7FF; font-weight:700;
+       background:transparent; transition:background .15s, border-color .15s, opacity .15s; }
+.btn:disabled { opacity:.5; cursor:not-allowed; }
+.btn:not(:disabled):hover { background:rgba(99,180,200,.12); border-color:rgba(99,180,200,.8); }
+.skeleton-row { height:56px; background:linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.07) 37%, rgba(255,255,255,.04) 63%);
+                background-size:400% 100%; animation:shimmer 1.2s infinite; border-bottom:1px solid rgba(255,255,255,.06); }
+@keyframes shimmer { 0%{background-position:100% 0} 100%{background-position:0 0} }
+.empty, .error { text-align:center; padding:28px 14px; color:#9cc7d3; }
+.error { color:#ffb3b3; }
+.list { display:grid; }
 </style>
