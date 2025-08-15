@@ -70,7 +70,7 @@ const cryptos = computed(() => {
       <!-- Криптобар справа от лого (desktop) -->
       <ul
         v-if="cryptos.length"
-        class="ml-6 hidden sm:flex items-center gap-5 text-[#63b4c8] font-semibold"
+        class="ml-6 hidden sm:flex items-center gap-4 text-[#63b4c8] font-semibold"
         aria-label="Crypto prices"
       >
         <li v-for="c in cryptos" :key="c.symbol" class="flex items-center gap-2">
@@ -98,7 +98,7 @@ const cryptos = computed(() => {
     <!-- Криптобар (mobile) — под навигацией/под логотипом -->
     <ul
       v-if="cryptos.length"
-      class="sm:hidden w-full px-5 mt-2 flex items-center justify-start gap-6 text-[#63b4c8] font-semibold"
+      class="sm:hidden w-full px-5 mt-2 flex items-center justify-center gap-4 text-[#63b4c8] font-semibold"
       aria-label="Crypto prices (mobile)"
     >
       <li v-for="c in cryptos" :key="`m-${c.symbol}`" class="flex items-center gap-2">
