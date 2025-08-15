@@ -60,28 +60,27 @@ const cryptos = computed(() => {
 <template>
   <header
     class="silver-grad shadow flex sm:flex-row flex-col justify-between sm:px-20 sm:py-0 pb-10 items-center header-grad">
-    <!-- Лого + криптобар (desktop) -->
+    <!-- Лого  -->
     <div class="py-6 flex items-center">
       <router-link to="/" class="flex items-center">
         <img src="/logo_cropped.png" alt="PALANTIR logo" class="w-10 h-10" />
         <h1 class="ml-2 text-3xl font-bold tracking-[8px] logo-grad">PALANTIR</h1>
       </router-link>
-
-      <!-- Криптобар справа от лого (desktop) -->
-      <ul
-        v-if="cryptos.length"
-        class="ml-6 hidden sm:flex items-center gap-4 text-[#63b4c8] font-semibold"
-        aria-label="Crypto prices"
-      >
-        <li v-for="c in cryptos" :key="c.symbol" class="flex items-center gap-2">
-          <img :src="iconFor(c.symbol)" :alt="c.symbol" class="w-5 h-5" />
-          <span class="uppercase">{{ c.symbol }}</span>
-          <span class="opacity-70">:</span>
-          <span class="tabular-nums">{{ fmt(c.value) }}</span>
-        </li>
-      </ul>
     </div>
-
+    
+    <!-- Криптобар справа от лого (desktop) -->
+    <ul
+      v-if="cryptos.length"
+      class="ml-6 hidden sm:flex items-center gap-4 text-[#63b4c8] font-semibold"
+      aria-label="Crypto prices"
+    >
+      <li v-for="c in cryptos" :key="`d-${c.symbol}`" class="flex items-center gap-2">
+        <img :src="iconFor(c.symbol)" :alt="c.symbol" class="w-5 h-5" />
+        <span class="uppercase">{{ c.symbol }}</span>
+        <span class="opacity-70">:</span>
+        <span class="tabular-nums">{{ fmt(c.value) }}</span>
+      </li>
+    </ul>
     <!-- Навигация -->
     <nav class="text-[#63b4c8] font-semibold text-xl flex gap-4">
       <button
@@ -101,9 +100,10 @@ const cryptos = computed(() => {
       class="sm:hidden w-full px-5 mt-2 flex items-center justify-center gap-4 text-[#63b4c8] font-semibold"
       aria-label="Crypto prices (mobile)"
     >
-      <li v-for="c in cryptos" :key="`m-${c.symbol}`" class="flex items-center gap-2">
+      <li v-for="c in cryptos" :key="`m-${c.symbol}`" class="flex items-center gap-1">
         <img :src="iconFor(c.symbol)" :alt="c.symbol" class="w-5 h-5" />
-        <span class="uppercase">{{ c.symbol }}:</span>
+        <span class="uppercase">{{ c.symbol }}</span>
+        <span class="opacity-70">:</span>
         <span class="tabular-nums">{{ fmt(c.value) }}</span>
       </li>
     </ul>
