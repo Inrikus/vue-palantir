@@ -265,7 +265,6 @@ const collectionUrl = computed(() => {
 
 .price-secondary {
   font-variant-numeric: tabular-nums; /* цифры с одинаковой шириной */
-  font-size: 14px;
   font-weight: 400;
   color: rgba(255,255,255,.7);
 }
@@ -283,7 +282,7 @@ const collectionUrl = computed(() => {
 
 /* actors */
 .cell.actors { justify-content: flex-start; }
-.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 14px; color: #cfe8ef; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 16px; color: #cfe8ef; }
 .sep  { opacity: .6; }
 
 /* time */
@@ -291,7 +290,7 @@ const collectionUrl = computed(() => {
   justify-content: flex-end;
   gap: 8px; /* минимальный зазор между временем и кнопкой */
 }
-.time-text { display: inline-flex; gap: 6px; align-items: baseline; min-width: 0; }
+.time-text { display: inline-flex; gap: 6px; align-items: baseline; min-width: 0; font-size: 16px;}
 .time .abs { color: #9cc7d3; opacity: .9; }
 .time .rel { color: #9cc7d3; opacity: .8; }
 .tx-btn {

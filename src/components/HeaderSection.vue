@@ -71,7 +71,7 @@ const cryptos = computed(() => {
     <!-- Криптобар справа от лого (desktop) -->
     <ul
       v-if="cryptos.length"
-      class="ml-6 hidden sm:flex items-center gap-4 text-[#63b4c8] font-semibold"
+      class="ml-6 hidden sm:flex items-center gap-4 text-[#63b4c8] font-semibold text-lg"
       aria-label="Crypto prices"
     >
       <li v-for="c in cryptos" :key="`d-${c.symbol}`" class="flex items-center gap-2">
@@ -158,8 +158,10 @@ const cryptos = computed(() => {
         </nav>
 
         <div class="p-6 border-t border-white/10 flex items-center justify-between gap-4 text-sm text-white/70">
-          <span>© {{ new Date().getFullYear() }} Palantir</span>
-          <a href="https://palantir.ws" target="_blank" rel="noopener" class="hover:opacity-80">palantir.ws</a>
+          <span>© {{ new Date().getFullYear() }} Palantir </span>
+          <router-link to="/" class="hover:opacity-50">
+            <span class="text-[#63b4c8] font-semibold">Home</span>
+          </router-link>
         </div>
       </aside>
     </transition>

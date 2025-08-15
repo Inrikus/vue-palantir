@@ -5,14 +5,15 @@
             <!-- Левая часть: логотип + подпись -->
             <div class="justify-self-center sm:justify-self-start min-w-0">
                 <a href="https://fusionist.io" target="_blank" rel="noopener" class="flex items-center gap-2">
-                    <span class="hidden sm:inline text-gray-400 text-sm whitespace-nowrap">Inspired by</span>
+                    <span class="hidden sm:inline text-gray-400 text-lg whitespace-nowrap">Inspired by</span>
                     <img src="/fusionist-logo.svg" alt="Fusionist Logo" class="h-8 sm:h-10 w-auto shrink-0" />
                 </a>
             </div>
 
             <!-- Центр: надпись (строго по центру) -->
-            <div class="justify-self-center text-center text-sm text-gray-500">
-                Created for community by <span class="text-[#63b4c8] font-semibold">Palantir</span> team
+            <div class="justify-self-center text-center text-lg text-gray-400">
+                Created for community by 
+                <router-link to="/"> <span class="hover:opacity-50 text-[#63b4c8] font-semibold"> Palantir </span> </router-link> team
             </div>
 
             <!-- Правая часть: иконки соцсетей -->
