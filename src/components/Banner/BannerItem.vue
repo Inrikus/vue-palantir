@@ -32,13 +32,14 @@ defineProps({
       </div>
 
       <!-- Картинка -->
-      <div class="flex-shrink-0 max-w-[280px]">
+      <div class="flex-shrink-0">
         <img
           :src="collections[bannerName].banner.image"
-          class="rounded-xl object-cover h-[200px] w-full"
+          class="rounded-xl object-cover w-[260px] h-[200px]"
           alt="Banner Image"
         />
       </div>
+      
     </router-link>
   </div>
 </template>

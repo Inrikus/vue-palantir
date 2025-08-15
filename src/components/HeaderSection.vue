@@ -1,11 +1,12 @@
 <script setup>
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue'
 import { toggleScrollLock } from '@/utils/scrollLock'
+import { currency as currencyDict } from '@/utils/dictsList.js'
+import { fetchCryptocurrencies } from '@/utils/api.js'
 
 const isOpen = ref(false)
 const panelRef = ref(null)
 
-// Навигация — snake_case пути, красивые подписи
 const navItems = [
   { to: '/fusionist_planet', label: 'Fusionist Planet' },
   { to: '/bi_mech', label: 'Bi-Mech' },
@@ -19,22 +20,69 @@ const open = () => { isOpen.value = true }
 const close = () => { isOpen.value = false }
 const toggle = () => { isOpen.value ? close() : open() }
 
-// Лочим скролл body только когда открыт дровер
-watch(isOpen, (val) => {
-  toggleScrollLock(val)
-})
+watch(isOpen, (val) => { toggleScrollLock(val) })
 onBeforeUnmount(() => toggleScrollLock(false))
+
+/* ====== КУРСЫ КРИПТЫ ====== */
+const rawCryptos = ref([])
+const isLoadingCryptos = ref(false)
+const desiredOrder = ['ACE', 'ETH', 'BNB'] // порядок вывода
+
+const loadCryptos = async () => {
+  try {
+    isLoadingCryptos.value = true
+    const { data } = await fetchCryptocurrencies()
+    rawCryptos.value = Array.isArray(data?.data) ? data.data : []
+  } catch (e) {
+    console.error('cryptos load failed:', e)
+    rawCryptos.value = []
+  } finally {
+    isLoadingCryptos.value = false
+  }
+}
+onMounted(loadCryptos)
+
+const iconFor = (sym) => `/currency/${currencyDict[sym] ?? currencyDict.Unknown}`
+const fmt = (v) => {
+  if (v >= 1000) return Math.round(v).toString()
+  if (v >= 100) return v.toFixed(1)
+  if (v >= 1) return v.toFixed(2)
+  return v.toFixed(2)
+}
+
+const cryptos = computed(() => {
+  const bySymbol = Object.fromEntries(rawCryptos.value.map(c => [c.symbol, c]))
+  return desiredOrder.map(sym => bySymbol[sym]).filter(Boolean)
+})
 
 </script>
 
 <template>
   <header
     class="silver-grad shadow flex sm:flex-row flex-col justify-between sm:px-20 sm:py-0 pb-10 items-center header-grad">
-    <router-link to="/" class="py-6 flex items-center">
-      <img src="/logo_cropped.png" alt="PALANTIR logo" class="w-10 h-10" />
-      <h1 class="ml-2 text-3xl font-bold tracking-[8px] logo-grad">PALANTIR</h1>
-    </router-link>
+    <!-- Лого + криптобар (desktop) -->
+    <div class="py-6 flex items-center">
+      <router-link to="/" class="flex items-center">
+        <img src="/logo_cropped.png" alt="PALANTIR logo" class="w-10 h-10" />
+        <h1 class="ml-2 text-3xl font-bold tracking-[8px] logo-grad">PALANTIR</h1>
+      </router-link>
 
+      <!-- Криптобар справа от лого (desktop) -->
+      <ul
+        v-if="cryptos.length"
+        class="ml-6 hidden sm:flex items-center gap-5 text-[#63b4c8] font-semibold"
+        aria-label="Crypto prices"
+      >
+        <li v-for="c in cryptos" :key="c.symbol" class="flex items-center gap-2">
+          <img :src="iconFor(c.symbol)" :alt="c.symbol" class="w-5 h-5" />
+          <span class="uppercase">{{ c.symbol }}</span>
+          <span class="opacity-70">:</span>
+          <span class="tabular-nums">{{ fmt(c.value) }}</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Навигация -->
     <nav class="text-[#63b4c8] font-semibold text-xl flex gap-4">
       <button
         class="hover:opacity-50 focus:outline-none focus:ring-2 focus:ring-sky-400 rounded"
@@ -46,6 +94,19 @@ onBeforeUnmount(() => toggleScrollLock(false))
       </button>
       <router-link to="/contacts" class="hover:opacity-50">Contacts</router-link>
     </nav>
+
+    <!-- Криптобар (mobile) — под навигацией/под логотипом -->
+    <ul
+      v-if="cryptos.length"
+      class="sm:hidden w-full px-5 mt-2 flex items-center justify-start gap-6 text-[#63b4c8] font-semibold"
+      aria-label="Crypto prices (mobile)"
+    >
+      <li v-for="c in cryptos" :key="`m-${c.symbol}`" class="flex items-center gap-2">
+        <img :src="iconFor(c.symbol)" :alt="c.symbol" class="w-5 h-5" />
+        <span class="uppercase">{{ c.symbol }}:</span>
+        <span class="tabular-nums">{{ fmt(c.value) }}</span>
+      </li>
+    </ul>
   </header>
 
   <!-- Бэкдроп -->
@@ -116,9 +177,13 @@ onBeforeUnmount(() => toggleScrollLock(false))
 
 .logo-grad {
   background: linear-gradient(182deg, rgba(249,249,249,1) 0%, rgba(169,229,242,1) 35%, rgba(52,152,219,1) 100%);
+  background-clip: text;              /* стандартное свойство */
+  color: transparent;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 .header-grad { background: linear-gradient(to bottom, rgba(19, 19, 19, 1) 10%, rgba(26, 26, 26, 1) 100%); }
 
+/* Ровные цифры для цен */
+.tabular-nums { font-variant-numeric: tabular-nums; }
 </style>

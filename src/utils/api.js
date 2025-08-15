@@ -28,4 +28,8 @@ export const fetchActivities = (endpoint) => {
   return api.get(`/api/nfts/activity/${endpoint}`);
 };
 
+export const fetchCryptocurrencies = () => {
+  return api.get(`/api/nfts/cryptocurrencies`);
+};
+
 export default api;
