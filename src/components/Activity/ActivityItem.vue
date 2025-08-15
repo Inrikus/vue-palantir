@@ -211,7 +211,7 @@ const collectionUrl = computed(() => {
           :href="getExplorerLink(item.chain, item.txHash)"
           target="_blank"
           rel="noopener"
-        >Tx <span class="tx-icon">↗️</span>
+        > Tx <span class="tx-icon">↗️</span>
         </a>
       <span v-else class="tx-btn placeholder">Tx</span>
       </div>
@@ -222,7 +222,13 @@ const collectionUrl = computed(() => {
 <style scoped>
 /* ====== GRID (desktop) ====== */
 .row {
-  grid-template-columns: 0.15fr 0.7fr 0.6fr 0.4fr 1fr;
+  /* эластичные колонки, которые могут сжиматься без переполнения */
+  grid-template-columns:
+    minmax(120px, 0.18fr)   /* market */
+    minmax(220px, 0.70fr)   /* asset  */
+    minmax(150px, 0.55fr)   /* price  */
+    minmax(180px, 0.45fr)   /* actors */
+    minmax(210px, 1fr);     /* time   */
   align-items: center;
   padding: 15px 35px;
   border-bottom: 1px solid rgba(255,255,255,.06);
@@ -244,30 +250,14 @@ const collectionUrl = computed(() => {
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  gap: 2px; /* между основной ценой и USD */
+  gap: 2px;
   padding: 0 6px;
   white-space: nowrap;
 }
 
-.price-primary-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.price-primary {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.price-secondary {
-  font-variant-numeric: tabular-nums; /* цифры с одинаковой шириной */
-  font-weight: 400;
-  color: rgba(255,255,255,.7);
-}
+.price-primary-wrapper { display: flex; align-items: center; gap: 6px; }
+.price-primary { display: flex; align-items: baseline; gap: 4px; font-size: 16px; font-weight: 600; }
+.price-secondary { font-variant-numeric: tabular-nums; font-weight: 400; color: rgba(255,255,255,.7); }
 
 .price-v { text-align: left; font-weight: 700; line-height: 1.3; }
 .code   { text-align: left; line-height: 1.3; opacity: .95; font-size: 16px; }
@@ -281,30 +271,45 @@ const collectionUrl = computed(() => {
 }
 
 /* actors */
-.cell.actors { justify-content: flex-start; }
-.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 16px; color: #cfe8ef; }
+.cell.actors { justify-content: flex-start; min-width: 0; }
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 16px; color: #cfe8ef;
+  min-width: 0; max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .sep  { opacity: .6; }
 
 /* time */
 .cell.time {
   justify-content: flex-end;
-  gap: 8px; /* минимальный зазор между временем и кнопкой */
+  gap: 8px;
+  min-width: 0;
 }
-.time-text { display: inline-flex; gap: 6px; align-items: baseline; min-width: 0; font-size: 16px;}
+.time-text {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  min-width: 0;
+  overflow: hidden;            /* позволяет обрезать время */
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  font-size: 16px;
+}
 .time .abs { color: #9cc7d3; opacity: .9; }
 .time .rel { color: #9cc7d3; opacity: .8; }
 .tx-btn {
-  display:inline-flex; justify-content:center; align-items:center; gap: 4px; /* иконка чуть от текста */ padding: 0 6px;
-  height:24px; border:1px solid rgba(99,180,200,.5);
+  display:inline-flex; justify-content:center; align-items:center; gap: 4px;
+  padding: 0 6px; height:24px;
+  border:1px solid rgba(99,180,200,.5);
   color:#9dd1de; border-radius:9999px; font-size:12px; text-decoration:none;
   transition: background .15s ease, color .15s ease, border-color .15s ease;
+  flex-shrink: 0;              /* кнопка не сжимается и не залезает на текст */
 }
 .tx-btn:hover { background: rgba(99,180,200,.12); color:#cfe8ef; border-color:rgba(99,180,200,.8); }
 .tx-btn.placeholder { visibility:hidden; }
-.tx-icon {
-  font-size: 12px;
-  line-height: 1;
-}
+.tx-icon { font-size: 12px; line-height: 1; }
 
 /* ====== MOBILE ====== */
 .row-mobile { padding: 12px; border-bottom: 1px solid rgba(255,255,255,.06); }
@@ -312,24 +317,86 @@ const collectionUrl = computed(() => {
 .row-mobile .left { display:flex; gap:10px; min-width:0; align-items:center; }
 .row-mobile .thumb { width:44px; height:44px; border-radius:8px; object-fit:cover; }
 .row-mobile .right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 2px;
+  display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px;
 }
 .meta { margin-top:8px; display:grid; gap:6px; }
 .market { display:flex; align-items:center; gap:8px; }
 .actors { display:flex; align-items:center; gap:6px; color:#cfe8ef; }
-.row-mobile .time { display:flex; align-items:center; gap:8px; }
+.row-mobile .time { display:flex; align-items:center; gap:8px; font-size: 16px;}
 .muted { color:#9cc7d3; opacity:.8; }
 
-/* Узкие экраны: оставляем 2 колонки (цена + валюта), уменьшаем зазоры, скрываем USD */
-@media (max-width: 420px){
-  /* .row-mobile .right .usd{ display: none; } */
-}
+/* @media (max-width: 420px){ */
+  /* при желании можно скрыть USD на очень узких — оставлено на ваше усмотрение */
+/* } */
+
 /* Универсальные размеры иконок */
 .icon-18 { width: 18px; height: 18px; flex: 0 0 18px; object-fit: contain; }
 .icon-25 { width: 25px; height: 25px; flex: 0 0 25px; object-fit: contain; }
+
+/* ====== ПРОГРЕССИВНОЕ «СЖАТИЕ» НА ДЕСКТОПЕ (и при зуме) ====== */
+
+/* 1) Cначала убираем USD, сетку чуть пересобираем */
+@media (max-width: 1400px){
+  .price-secondary { display: none; }
+  .row {
+    grid-template-columns:
+      minmax(110px, 0.18fr)
+      minmax(200px, 0.75fr)
+      minmax(140px, 0.50fr)
+      minmax(170px, 0.45fr)
+      minmax(190px, 1fr);
+  }
+}
+
+/* 2) Прячем подпись маркетплейса (оставляем иконку) */
+@media (max-width: 1300px){
+  .cell.market .chip { display: none; }
+  .row {
+    grid-template-columns:
+      minmax(40px, 0.10fr)     /* только иконка */
+      minmax(200px, 0.85fr)
+      minmax(140px, 0.55fr)
+      minmax(160px, 0.45fr)
+      minmax(180px, 1fr);
+  }
+}
+
+/* 3) Прячем относительное время и точку-разделитель */
+@media (max-width: 1200px){
+  .time .rel, .time .dot { display: none; }
+  .row {
+    grid-template-columns:
+      minmax(40px, 0.10fr)
+      minmax(180px, 0.90fr)
+      minmax(130px, 0.55fr)
+      minmax(150px, 0.45fr)
+      minmax(160px, 1fr);
+  }
+}
+
+/* 4) Прячем адрес отправителя (оставляем только получателя) */
+@media (max-width: 1100px){
+  .cell.actors a:first-child, .cell.actors .sep { display: none; }
+  .row {
+    grid-template-columns:
+      minmax(40px, 0.10fr)
+      minmax(180px, 1fr)
+      minmax(120px, 0.55fr)
+      minmax(120px, 0.35fr)   /* actors стало короче */
+      minmax(150px, 1fr);
+  }
+}
+
+/* 5) Если совсем тесно — чуть уменьшаем минимумы времени/актеров */
+@media (max-width: 1000px){
+  .row {
+    grid-template-columns:
+      minmax(40px, 0.10fr)
+      minmax(170px, 1fr)
+      minmax(110px, 0.50fr)
+      minmax(110px, 0.30fr)
+      minmax(140px, 1fr);
+  }
+}
 
 </style>
