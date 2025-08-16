@@ -58,31 +58,23 @@ const cryptos = computed(() => {
 </script>
 
 <template>
+  <!-- Хедер -->
   <header
-    class="silver-grad shadow flex sm:flex-row flex-col justify-between sm:px-20 sm:py-0 pb-10 items-center header-grad">
-    <!-- Лого  -->
-    <div class="py-6 flex items-center">
-      <router-link to="/" class="flex items-center">
-        <img src="/logo_cropped.png" alt="PALANTIR logo" class="w-10 h-10" />
-        <h1 class="ml-2 text-3xl font-bold tracking-[8px] logo-grad">PALANTIR</h1>
-      </router-link>
-    </div>
-    
-    <!-- Криптобар справа от лого (desktop) -->
-    <ul
-      v-if="cryptos.length"
-      class="ml-6 hidden sm:flex items-center gap-4 text-[#63b4c8] font-semibold text-lg"
-      aria-label="Crypto prices"
-    >
-      <li v-for="c in cryptos" :key="`d-${c.symbol}`" class="flex items-center gap-2">
-        <img :src="iconFor(c.symbol)" :alt="c.symbol" class="w-5 h-5" />
-        <span class="uppercase">{{ c.symbol }}</span>
-        <span class="opacity-70">:</span>
-        <span class="tabular-nums">{{ fmt(c.value) }}</span>
-      </li>
-    </ul>
+    class="silver-grad shadow
+           flex flex-col items-center gap-4
+           sm:flex-row sm:justify-between sm:items-center
+           px-5 sm:px-20 py-6 header-grad"
+  >
+    <!-- Лого -->
+    <router-link to="/" class="flex items-center justify-center sm:justify-start w-full sm:w-auto">
+      <img src="/logo_cropped.png" alt="PALANTIR logo" class="w-10 h-10" />
+      <h1 class="ml-2 text-3xl font-bold tracking-[8px] logo-grad">PALANTIR</h1>
+    </router-link>
+
     <!-- Навигация -->
-    <nav class="text-[#63b4c8] font-semibold text-xl flex gap-4">
+    <nav
+      class="text-[#63b4c8] font-semibold text-xl flex gap-4 justify-center w-full sm:w-auto sm:justify-end"
+    >
       <button
         class="hover:opacity-50 focus:outline-none focus:ring-2 focus:ring-sky-400 rounded"
         @click="toggle"
@@ -93,23 +85,39 @@ const cryptos = computed(() => {
       </button>
       <router-link to="/contacts" class="hover:opacity-50">Contacts</router-link>
     </nav>
-
-    <!-- Криптобар (mobile) — под навигацией/под логотипом -->
-    <ul
-      v-if="cryptos.length"
-      class="sm:hidden w-full px-5 mt-2 flex items-center justify-center gap-4 text-[#63b4c8] font-semibold"
-      aria-label="Crypto prices (mobile)"
-    >
-      <li v-for="c in cryptos" :key="`m-${c.symbol}`" class="flex items-center gap-1">
-        <img :src="iconFor(c.symbol)" :alt="c.symbol" class="w-5 h-5" />
-        <span class="uppercase">{{ c.symbol }}</span>
-        <span class="opacity-70">:</span>
-        <span class="tabular-nums">{{ fmt(c.value) }}</span>
-      </li>
-    </ul>
   </header>
 
-  <!-- Бэкдроп -->
+  <!-- Криптобар -->
+  <section
+    v-if="cryptos.length"
+    class="w-full bg-[#121212] border-y border-white/10"
+  >
+    <div
+      class="mx-auto max-w-screen-xl px-5 text-[#63b4c8] font-semibold text-[15px] leading-10"
+      aria-label="Crypto prices"
+    >
+      <ul class="flex items-center justify-center flex-wrap gap-x-4">
+        <li
+          v-for="(c, idx) in cryptos"
+          :key="c.symbol"
+          class="flex items-center gap-2"
+        >
+          <img :src="iconFor(c.symbol)" :alt="c.symbol" class="w-4 h-4" />
+          <span class="uppercase">{{ c.symbol }}</span>
+          <span class="opacity-70">:</span>
+          <span class="tabular-nums">{{ fmt(c.value) }}</span>
+          <!-- разделитель | -->
+          <span
+            v-if="idx !== cryptos.length - 1"
+            class="mx-2 opacity-50 select-none"
+            >|</span
+          >
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Бэкдроп и дровер -->
   <teleport to="body">
     <transition name="fade" appear>
       <div
@@ -120,7 +128,6 @@ const cryptos = computed(() => {
       />
     </transition>
 
-    <!-- Дровер -->
     <transition name="slide" appear>
       <aside
         v-show="isOpen"
@@ -133,7 +140,9 @@ const cryptos = computed(() => {
         @click.stop
       >
         <div class="flex items-center justify-between p-5 border-b border-white/10">
-          <h2 id="collections-title" class="text-2xl font-semibold">Collections</h2>
+          <h2 id="collections-title" class="text-2xl font-semibold">
+            Collections
+          </h2>
           <button
             class="w-9 h-9 grid place-items-center rounded-full hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-sky-400"
             @click="close"
@@ -157,9 +166,11 @@ const cryptos = computed(() => {
           </ul>
         </nav>
 
-        <div class="p-6 border-t border-white/10 flex items-center justify-between gap-4 text-sm text-white/70">
+        <div
+          class="p-6 border-t border-white/10 flex items-center justify-between gap-4 text-sm text-white/70"
+        >
           <span>© {{ new Date().getFullYear() }} Palantir </span>
-          <router-link to="/" class="hover:opacity-50">
+          <router-link to="/" class="hover:opacity-50" @click="close">
             <span class="text-[#63b4c8] font-semibold">Home</span>
           </router-link>
         </div>
@@ -167,6 +178,9 @@ const cryptos = computed(() => {
     </transition>
   </teleport>
 </template>
+
+
+
 
 <style scoped>
 /* Backdrop fade */
