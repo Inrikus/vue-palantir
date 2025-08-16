@@ -90,14 +90,15 @@ const cryptos = computed(() => {
   <!-- Криптобар -->
   <section v-if="cryptos.length" class="w-full bg-[#121212] border-y border-white/10">
     <div
-      class="mx-auto max-w-screen-xl px-5 text-[#63b4c8] font-semibold text-[15px] leading-10"
+      class="mx-auto max-w-screen-xl px-5 text-[#63b4c8] font-semibold leading-10"
       aria-label="Crypto prices"
     >
-      <ul class="flex items-center justify-center flex-wrap">
+      <ul class="flex items-center justify-center flex-wrap text-[13px] sm:text-[15px] gap-x-3 sm:gap-x-4">
         <li
           v-for="c in cryptos"
           :key="c.symbol"
-          class="flex items-center gap-2 after:content-['|'] after:mx-2 after:opacity-50 last:after:content-none"
+          class="flex items-center gap-2
+                 sm:before:content-['|'] sm:before:mx-2 sm:before:opacity-50 sm:first:before:content-none"
         >
           <img :src="iconFor(c.symbol)" :alt="c.symbol" class="w-4 h-4" />
           <span class="uppercase">{{ c.symbol }}</span>
@@ -107,6 +108,7 @@ const cryptos = computed(() => {
       </ul>
     </div>
   </section>
+
 
 
   <!-- Бэкдроп и дровер -->
