@@ -9,8 +9,39 @@ const CollectionsPage = () => import('../views/CollectionsPage.vue')
 const ContactsPage = () => import('../views/ContactsPage.vue')
 const ErrorPage = () => import('../views/ErrorPage.vue')
 
+const WikiHome   = () => import('../views/wiki/WikiHome.vue')
+const WikiCores  = () => import('../views/wiki/WikiCores.vue')
+const WikiBuffs  = () => import('../views/wiki/WikiBuffs.vue')
+const WikiWeps   = () => import('../views/wiki/WikiWeapons.vue')
+
 // простой плоский роутинг, как у тебя было, только чище
 const routes = [
+    // WIKI
+  {
+    path: '/wiki',
+    name: 'wiki_home',
+    component: WikiHome,
+    meta: { title: 'Wiki' }
+  },
+  {
+    path: '/wiki/cores',
+    name: 'wiki_cores',
+    component: WikiCores,
+    meta: { title: 'Wiki — Cores' }
+  },
+  {
+    path: '/wiki/weapons',
+    name: 'wiki_weapons',
+    component: WikiWeps,
+    meta: { title: 'Wiki — Weapons/Skills' }
+  },
+  {
+    path: '/wiki/buffs',
+    name: 'wiki_buffs',
+    component: WikiBuffs,
+    meta: { title: 'Wiki — Buffs' }
+  },
+  
   {
     path: '/',
     name: 'home',

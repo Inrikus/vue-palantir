@@ -32,4 +32,19 @@ export const fetchCryptocurrencies = () => {
   return api.get(`/api/nfts/cryptocurrencies`);
 };
 
+export const fetchWikiCores = (locale = 'en') => {
+  return api.get(`/wiki/export/cores`, { params: { locale } });
+};
+
+export const fetchWikiLabels = (locale = 'en') => {
+  return api.get(`/wiki/export/labels`, { params: { locale } });
+};
+
+export const fetchWikiBuffs = (locale = 'en') => {
+  return api.get(`/wiki/export/buffs`, { params: { locale } });
+};
+
+
+
+
 export default api;
