@@ -25,85 +25,84 @@ const DEFAULT_SORT = { by: 'id', dir: 'asc' }
 
 export const useWikiCoreStore = defineStore('wikiCore', {
   state: () => ({
-    // данные
     items /** @type {WikiCoreItem[]} */: [],
     count: 0,
 
-    // служебное
     loading: false,
     error: '',
     loadedLocale: 'en',
 
     // клиентские фильтры
     filters: {
-      search: '',                    // текстовый поиск по englishName
+      search: '',                    // englishName (case-insensitive)
       rares: /** @type {number[]} */ ([]), // CoreRare in []
-      jobs:  /** @type {number[]} */ ([]), // JobLimit in []
-      hasBuffId: /** @type {number|null} */ (null), // конкретный BuffId (по Buff_Display)
+      jobs:  /** @type {number[]} */ ([]), // массив битов [1,2,4,8,16]
+      hasBuffId: /** @type {number|null} */ (null),
+      uniq: false, // режим «только уникальные» (JobLimit = 1|2|4|8|16)
     },
 
-    // сортировка
-    sort: { ...DEFAULT_SORT }, // 'id'|'CoreRare'|'CoreLv'|'JobLimit'|'name'
-
-    // пагинация (infinite)
+    sort: { ...DEFAULT_SORT },
     page: 1,
     pageSize: 30,
 
-    // «сырое» (для отладки)
     rawText: '',
   }),
 
   getters: {
-    // фасеты для UI
     facets(state) {
+      // оставляем на будущее (если понадобится), но jobs тут не нужен
       const rares = new Set()
-      const jobs = new Set()
-      for (const c of state.items) {
-        if (c.CoreRare != null) rares.add(c.CoreRare)
-        if (c.JobLimit != null) jobs.add(c.JobLimit)
-      }
-      return {
-        rares: Array.from(rares).sort((a, b) => a - b),
-        jobs: Array.from(jobs).sort((a, b) => a - b),
-      }
+      for (const c of state.items) if (c.CoreRare != null) rares.add(c.CoreRare)
+      return { rares: Array.from(rares).sort((a,b)=>a-b) }
     },
 
-    // локализаторы
     makeLocalizers: (state) => (locale) => ({
       nameOf: (c) => (c?.i18n?.name?.[locale] ?? c?.englishName ?? ''),
       descOf: (c) => (c?.i18n?.desc?.[locale] ?? ''),
     }),
 
-    // отфильтрованные (CoreLv всегда 1)
+    
     filtered(state) {
       const f = state.filters
       const s = (f.search || '').trim().toLowerCase()
       const needRares = new Set(f.rares || [])
-      const needJobs = new Set(f.jobs || [])
-      const buffId = f.hasBuffId
-
+      const needJobs  = new Set(f.jobs  || [])
+      const buffId    = f.hasBuffId
+    
+      // вычисляем целевую маску из выбранных джобов один раз
+      const jobMask = Array.from(needJobs).reduce((mask, bit) => (mask | bit), 0)
+    
       return state.items.filter((c) => {
-        // показываем только уровни 1
+        // показываем только уровни 1 в гриде
         if (c.CoreLv !== 1) return false
-
+      
         if (needRares.size && !needRares.has(c.CoreRare)) return false
-        if (needJobs.size && !needJobs.has(c.JobLimit)) return false
-
+      
+        if (needJobs.size) {
+          if (f.uniq) {
+            // УНИКАЛЬНЫЙ РЕЖИМ: точное равенство суммарной маске выбранных джобов
+            if (c.JobLimit !== jobMask) return false
+          } else {
+            // ОБЫЧНЫЙ РЕЖИМ: хватит совпадения хотя бы одного флага
+            if ( (c.JobLimit & jobMask) === 0 ) return false
+          }
+        }
+      
         if (buffId != null) {
           const arr = Array.isArray(c.Buff_Display) ? c.Buff_Display : []
-          const ok = arr.some((b) => b?.BuffId === buffId)
-          if (!ok) return false
+          if (!arr.some(b => b?.BuffId === buffId)) return false
         }
-
+      
         if (s) {
           const english = (c.englishName || '').toLowerCase()
           if (!english.includes(s)) return false
         }
+      
         return true
       })
     },
 
-    // сортированные
+
     sorted() {
       const arr = [...this.filtered]
       const { by, dir } = this.sort
@@ -113,70 +112,48 @@ export const useWikiCoreStore = defineStore('wikiCore', {
       arr.sort((a, b) => {
         let va, vb
         switch (by) {
-          case 'CoreRare':
-            va = a.CoreRare
-            vb = b.CoreRare
-            break
-          case 'CoreLv':
-            va = a.CoreLv
-            vb = b.CoreLv
-            break
-          case 'JobLimit':
-            va = a.JobLimit
-            vb = b.JobLimit
-            break
-          case 'name':
-            va = nameOf(a)
-            vb = nameOf(b)
-            break
-          default:
-            va = a.id
-            vb = b.id
-            break
+          case 'CoreRare': va = a.CoreRare; vb = b.CoreRare; break
+          case 'CoreLv':   va = a.CoreLv;   vb = b.CoreLv;   break
+          case 'JobLimit': va = a.JobLimit; vb = b.JobLimit; break
+          case 'name':     va = nameOf(a);  vb = nameOf(b);  break
+          default:         va = a.id;       vb = b.id;       break
         }
         if (va == null && vb == null) return 0
         if (va == null) return -1 * mul
-        if (vb == null) return 1 * mul
+        if (vb == null) return  1 * mul
         if (typeof va === 'string' && typeof vb === 'string') {
           return va.localeCompare(vb) * mul
         }
-        return (va === vb ? 0 : va < vb ? -1 : 1) * mul
+        return (va === vb ? 0 : (va < vb ? -1 : 1)) * mul
       })
       return arr
     },
 
-    // пагинированные результаты
     pageItems() {
       const end = this.page * this.pageSize
       return this.sorted.slice(0, end)
     },
-
     filteredTotal() {
       return this.sorted.length
     },
-
-    hasNextPage() {
-      return this.page * this.pageSize < this.filteredTotal
+    hasNextPage(state) {
+      return state.page * state.pageSize < this.filteredTotal
     },
-
     totalPages() {
       return Math.max(1, Math.ceil(this.sorted.length / this.pageSize))
     },
   },
 
   actions: {
-    /** Загрузка всех ядер */
     async load(locale = 'en') {
       if (this.loadedLocale !== locale) {
         this.page = 1
         this.sort = { ...DEFAULT_SORT }
         this.filters.search = ''
       }
-
       this.loading = true
       this.error = ''
       this.rawText = ''
-
       try {
         const { data } = await fetchWikiCores(locale)
         this.items = Array.isArray(data?.cores) ? data.cores : []
@@ -192,54 +169,35 @@ export const useWikiCoreStore = defineStore('wikiCore', {
       }
     },
 
-    /** Следующая страница (для infinite scroll) */
-    nextPage() {
-      if (this.hasNextPage) this.page += 1
-    },
-
-    /** Поиск */
-    setSearch(v) {
-      this.filters.search = v ?? ''
+    applyFilters(payload = {}) {
+      // ожидаем { rares?: number[], jobs?: number[], uniq?: boolean, search?: string, hasBuffId?: number|null }
+      if ('rares' in payload) this.filters.rares = Array.isArray(payload.rares) ? payload.rares : []
+      if ('jobs'  in payload) this.filters.jobs  = Array.isArray(payload.jobs)  ? payload.jobs  : []
+      if ('uniq'  in payload) this.filters.uniq  = !!payload.uniq
+      if ('search'   in payload)   this.filters.search   = payload.search ?? ''
+      if ('hasBuffId' in payload)  this.filters.hasBuffId = payload.hasBuffId ?? null
       this.page = 1
     },
 
-    /** Прямое управление фильтрами (универсальный способ) */
-    applyFilters(obj) {
-      this.filters.rares = Array.isArray(obj.rares) ? obj.rares : []
-      this.filters.jobs = Array.isArray(obj.jobs) ? obj.jobs : []
-      // возможные дополнительные фильтры (на будущее)
-      this.page = 1
-    },
+    nextPage() { if (this.hasNextPage) this.page += 1 },
 
+    setSearch(v)   { this.filters.search = v ?? ''; this.page = 1 },
+    setRares(arr)  { this.filters.rares  = Array.isArray(arr) ? arr : []; this.page = 1 },
+    setJobs(arr)   { this.filters.jobs   = Array.isArray(arr) ? arr : []; this.page = 1 },
+    setUniq(v)     { this.filters.uniq   = !!v; this.page = 1 },
     setBuffId(idOrNull) {
-      const v =
-        idOrNull === null || idOrNull === undefined || idOrNull === ''
-          ? null
-          : Number(idOrNull)
+      const v = (idOrNull === null || idOrNull === undefined || idOrNull === '') ? null : Number(idOrNull)
       this.filters.hasBuffId = Number.isFinite(v) ? v : null
       this.page = 1
     },
 
-    /** Сортировка */
-    setSort(by, dir) {
-      this.sort.by = by || this.sort.by
-      this.sort.dir = dir || this.sort.dir
-      this.page = 1
-    },
+    setSort(by, dir) { this.sort.by = by || this.sort.by; this.sort.dir = dir || this.sort.dir; this.page = 1 },
+    setPage(p)       { this.page = Math.max(1, Number(p || 1)) },
+    setPageSize(ps)  { this.pageSize = Math.min(200, Math.max(5, Number(ps || 30))); this.page = 1 },
 
-    setPage(p) {
-      this.page = Math.max(1, Number(p || 1))
-    },
-
-    setPageSize(ps) {
-      this.pageSize = Math.min(200, Math.max(5, Number(ps || 30)))
-      this.page = 1
-    },
-
-    /** Сброс фильтров */
     resetFilters() {
-      this.filters = { search: '', rares: [], jobs: [], hasBuffId: null }
+      this.filters = { search: '', rares: [], jobs: [], hasBuffId: null, uniq: false }
       this.page = 1
-    },
-  },
+    }
+  }
 })

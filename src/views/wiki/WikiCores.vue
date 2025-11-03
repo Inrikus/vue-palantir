@@ -3,35 +3,16 @@ import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useWikiCoreStore } from '@/stores/wikiCoreStore'
 import CoreCard from '@/components/wiki/CoreCard.vue'
-import WikiFilterPanel from '@/components/wiki/WikiFilterPanel.vue'
+import WikiCoreFilterPanel from '@/components/wiki/WikiCoreFilterPanel.vue'
 import InfinitePager from '@/components/wiki/InfinitePager.vue'
+import LocalePicker from '@/components/wiki/LocalePicker.vue'
 
 const route = useRoute()
 const router = useRouter()
 const store  = useWikiCoreStore()
 
-/* ---------- Locale dropdown (с флажками) ---------- */
-const LOCALES = [
-  { value: 'en', native: 'English',            flag: '/flags/Icon_Flag_English.png'     },
-  { value: 'ru', native: 'Русский',            flag: '/flags/Icon_Flag_Russia.png'      },
-  { value: 'ch', native: '中文',                flag: '/flags/Icon_Flag_Chinese.png'      },
-  { value: 'jp', native: '日本語',              flag: '/flags/Icon_Flag_Japanese.png'     },
-  { value: 'kr', native: '한국어',              flag: '/flags/Icon_Flag_Korean.png'       },
-  { value: 'vn', native: 'Tiếng Việt',         flag: '/flags/Icon_Flag_Vietnamese.png'  },
-  { value: 'id', native: 'Bahasa Indonesia',   flag: '/flags/Icon_Flag_Indonesian.png'  },
-  { value: 'tr', native: 'Türkçe',             flag: '/flags/Icon_Flag_Turkish.png'     },
-]
-
+/* ---------- Locale ---------- */
 const locale = ref(route.query.locale ?? 'en')
-const currLocale = computed(() => LOCALES.find(l => l.value === locale.value) || LOCALES[0])
-const localeOpen = ref(false)
-function toggleLocale() { localeOpen.value = !localeOpen.value }
-function chooseLocale(v) { locale.value = v; localeOpen.value = false }
-
-function onClickOutside(e) {
-  const el = document.getElementById('locale-dropdown')
-  if (el && !el.contains(e.target)) localeOpen.value = false
-}
 
 /* ---------- Поиск ---------- */
 const search = ref(route.query.q ?? '')
@@ -46,14 +27,8 @@ function updateIsMobile() {
 }
 const handleToggleFilter = () => { showFilterPanel.value = !showFilterPanel.value }
 
-// Универсальный объект фильтров для панели
-const filters = ref({
-  rares: [],
-  jobs: []
-})
-
-// Применяем в стор сразу при изменении
-watch(filters, (val) => store.applyFilters(val), { deep: true })
+const filters = ref({ rares: [], jobs: [], uniq: false })
+watch(filters, (v) => store.applyFilters(v), { deep: true })
 
 // Счётчик выбранных фильтров (без строки поиска, но с учётом hasBuffId)
 const selectedFiltersCount = computed(() => {
@@ -63,24 +38,6 @@ const selectedFiltersCount = computed(() => {
   if (Array.isArray(f.jobs))  c += f.jobs.length
   if (f.hasBuffId != null)    c += 1
   return c
-})
-
-// Человеко-читаемые наборы опций
-const RARITY_OPTIONS = [
-  { label: 'Common',   value: 1  },
-  { label: 'Elite',    value: 2  },
-  { label: 'Epic',     value: 4  },
-  { label: 'Legend',   value: 8  },
-  { label: 'Mythical', value: 16 }
-]
-
-// Конфиг секций фильтров для панели
-const filtersConfig = computed(() => {
-  const jobOpts = (store.facets?.jobs || []).map(j => ({ label: `Job ${j}`, value: j }))
-  return [
-    { key: 'rares', title: 'Rarity', options: RARITY_OPTIONS },
-    { key: 'jobs',  title: 'Jobs',   options: jobOpts }
-  ]
 })
 
 /* ---------- Загрузка / перезагрузка ---------- */
@@ -96,7 +53,7 @@ function handleReload() {
   // Reload должен сбрасывать поиск и фильтры — поведение станет очевидным
   search.value = ''
   store.resetFilters()
-  store.setSearch('')         // на всякий случай синхронизируем
+  store.setSearch('')
   load()
 }
 
@@ -121,12 +78,10 @@ watch(search, (q) => {
 onMounted(() => {
   updateIsMobile()
   window.addEventListener('resize', updateIsMobile, { passive: true })
-  document.addEventListener('click', onClickOutside, { passive: true })
   load()
 })
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateIsMobile)
-  document.removeEventListener('click', onClickOutside)
 })
 
 /* ---------- Грид / модалка / infinite ---------- */
@@ -174,40 +129,8 @@ function loadMore() { store.nextPage() }
       <h1 class="text-2xl font-semibold">Wiki — Cores</h1>
 
       <div class="sm:ml-auto flex flex-wrap items-center gap-3">
-        <!-- Локали (кнопка + выпадающий список) -->
-        <div id="locale-dropdown" class="relative">
-          <button
-            @click="toggleLocale"
-            class="inline-flex items-center gap-2 rounded-md px-2.5 py-1.5 ring-1 ring-white/10 hover:ring-white/20 bg-neutral-900/50"
-            aria-haspopup="listbox"
-            :aria-expanded="localeOpen ? 'true' : 'false'"
-          >
-            <img :src="currLocale.flag" :alt="currLocale.native" class="w-5 h-5 rounded-sm ring-1 ring-white/10 object-contain" />
-            <span class="text-sm font-medium">{{ currLocale.native }}</span>
-            <svg class="w-4 h-4 opacity-70" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd"/></svg>
-          </button>
-
-          <div
-            v-if="localeOpen"
-            class="absolute z-40 mt-2 w-56 rounded-md bg-[#232228] ring-1 ring-white/10 shadow-lg overflow-hidden"
-            role="listbox"
-          >
-            <button
-              v-for="opt in LOCALES"
-              :key="opt.value"
-              class="w-full flex items-center justify-between gap-3 px-3 py-2 text-left hover:bg-white/5"
-              @click="chooseLocale(opt.value)"
-              role="option"
-              :aria-selected="opt.value === locale"
-            >
-              <div class="flex items-center gap-2">
-                <img :src="opt.flag" :alt="opt.native" class="w-5 h-5 rounded-sm ring-1 ring-white/10 object-contain" />
-                <span class="text-sm">{{ opt.native }}</span>
-              </div>
-              <span class="text-xs opacity-70 uppercase">{{ opt.value }}</span>
-            </button>
-          </div>
-        </div>
+        <!-- LocalePicker -->
+        <LocalePicker v-model="locale" />
 
         <!-- Кнопка фильтров -->
         <div class="flex gap-2 items-center">
@@ -329,10 +252,11 @@ function loadMore() { store.nextPage() }
     </div>
 
     <!-- ПАНЕЛЬ ФИЛЬТРОВ -->
-    <WikiFilterPanel
+    <WikiCoreFilterPanel
       :open="showFilterPanel"
-      :filters-config="filtersConfig"
-      v-model:filters="filters"
+      v-model:rares="filters.rares"
+      v-model:jobs="filters.jobs"
+      v-model:uniq="filters.uniq"
       @close="handleToggleFilter"
       @reset="handleResetFromPanel"
     />
