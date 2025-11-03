@@ -13,8 +13,8 @@ import ActiveFiltersBar from '@/components/wiki/ActiveFiltersBar.vue'
 const route = useRoute()
 const router = useRouter()
 
-const store       = useWikiCoreStore()
-const labelStore  = useWikiLabelStore()
+const store      = useWikiCoreStore()
+const labelStore = useWikiLabelStore()
 
 /* ---------- Locale ---------- */
 const locale = ref(route.query.locale ?? 'en')
@@ -25,7 +25,7 @@ const search = ref(route.query.q ?? '')
 /* ---------- Фильтр-панель ---------- */
 const showFilterPanel = ref(false)
 const isMobile = ref(false)
-function updateIsMobile() {
+function updateIsMobile () {
   isMobile.value = typeof window !== 'undefined'
     ? window.matchMedia('(max-width: 640px)').matches
     : false
@@ -55,8 +55,24 @@ const selectedFiltersCount = computed(() => {
   return c
 })
 
+/* ---------- Карта лейблов для чипов ---------- */
+const labelMap = computed(() => {
+  const map = Object.create(null)
+  const ids = filters.value?.labels || []
+  for (const id of ids) {
+    const l = labelStore.byId?.[id]
+    if (!l) continue
+    map[id] = {
+      id,
+      text: l.i18n?.[locale.value] || l.Name?.text || String(id),
+      colorHex: l.LabelImageColor || '5E5E5E',
+    }
+  }
+  return map
+})
+
 /* ---------- Загрузка / перезагрузка ---------- */
-async function load() {
+async function load () {
   await store.load(locale.value)
   await labelStore.load(locale.value)
 
@@ -70,7 +86,7 @@ async function load() {
   startProgressiveFill()
 }
 
-function handleReload() {
+function handleReload () {
   // Reload явно сбрасывает и поиск, и фильтры
   search.value = ''
   store.resetFilters()
@@ -78,7 +94,7 @@ function handleReload() {
   load()
 }
 
-function handleResetFromPanel() {
+function handleResetFromPanel () {
   // Reset из панели — дополнительно чистим строку поиска
   search.value = ''
   store.resetFilters()
@@ -108,19 +124,20 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateIsMobile)
   stopProgressiveFill()
+  toggleScrollLock(false) // на всякий случай
 })
 
 /* ---------- Прогрессивная «раскатка» до максимума ---------- */
 let fillTimer = null
 
-function stopProgressiveFill() {
+function stopProgressiveFill () {
   if (fillTimer) {
     clearInterval(fillTimer)
     fillTimer = null
   }
 }
 
-function startProgressiveFill() {
+function startProgressiveFill () {
   stopProgressiveFill()
   if (!store.hasNextPage) return
 
@@ -144,9 +161,9 @@ watch(
 /* ---------- Грид / модалка ---------- */
 const items = computed(() => store.pageItems)
 
-function iconSrc(core) { return `/wiki/Cores/${core?.Icon}.png` }
+function iconSrc (core) { return `/wiki/Cores/${core?.Icon}.png` }
 
-function findByIdLevel(id, lv) {
+function findByIdLevel (id, lv) {
   return store.items.find(c => c.id === id && c.CoreLv === lv) ||
          store.items.find(c => c.id === id) || null
 }
@@ -156,17 +173,20 @@ const modalLevel   = ref(1)
 const selectedId   = ref(null)
 const selectedCore = ref(null)
 
-function openModal(core) {
-  selectedId.value  = core.id
-  modalLevel.value  = core.CoreLv || 1
+function openModal (core) {
+  selectedId.value   = core.id
+  modalLevel.value   = core.CoreLv || 1
   selectedCore.value = findByIdLevel(core.id, modalLevel.value) || core
-  modalOpen.value   = true
+  modalOpen.value    = true
 }
-function closeModal() {
-  modalOpen.value = false
-  selectedId.value = null
+
+function closeModal () {
+  modalOpen.value    = false
+  selectedId.value   = null
   selectedCore.value = null
 }
+
+// держим уровень в границах и подменяем core
 watch(modalLevel, (lv) => {
   const v = Math.min(10, Math.max(1, Number(lv || 1)))
   if (v !== lv) modalLevel.value = v
@@ -176,20 +196,16 @@ watch(modalLevel, (lv) => {
   }
 })
 
-/* ---------- Карта лейблов для чипов ---------- */
-const labelMap = computed(() => {
-  const map = Object.create(null)
-  for (const id of filters.value.labels || []) {
-    const l = labelStore.byId?.[id]
-    if (!l) continue
-    map[id] = {
-      id,
-      text: l.i18n?.[locale.value] || l.Name?.text || String(id),
-      colorHex: l.LabelImageColor || '5E5E5E'
-    }
-  }
-  return map
-})
+
+
+/* ---------- ЛОК СКРОЛЛА подложки при открытой модалке ---------- */
+function toggleScrollLock (locked) {
+  const html = document.documentElement
+  const body = document.body
+  html.classList.toggle('hidden-scroll', !!locked)
+  body.classList.toggle('hidden-scroll', !!locked)
+}
+watch(modalOpen, (v) => toggleScrollLock(v))
 </script>
 
 <template>
@@ -198,10 +214,15 @@ const labelMap = computed(() => {
     <header class="space-y-3">
       <h1 class="text-2xl font-semibold">Wiki — Cores</h1>
 
-      <!-- Линия управления: слева фильтры, центр — поиск + Reload, справа — язык -->
-      <div class="grid grid-cols-1 sm:grid-cols-[auto,1fr,auto] items-center gap-3">
-        <!-- ЛЕВО: Кнопка фильтров -->
-        <div class="justify-self-start">
+      <!-- Управляющая полоса: flex-wrap + order -->
+      <!-- Мобилка (default):
+           row 1: [Filters] ............. [Locale]
+           row 2: [Search.....................][Reload]
+           Десктоп (sm:):
+           row 1: [Filters] [Search.............] [Locale] -->
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- ЛЕВО: кнопка фильтров -->
+        <div class="order-1 sm:order-1">
           <button
             @click="handleToggleFilter"
             class="border-2 border-[#63B4C8] text-[#63B4C8] rounded-md px-3 py-1.5 flex gap-2 text-base sm:text-lg font-semibold items-center hover:bg-gray-700 bg-[#232228]"
@@ -211,9 +232,14 @@ const labelMap = computed(() => {
           </button>
         </div>
 
-        <!-- ЦЕНТР: Поиск + Reload -->
-        <div class="justify-self-center w-full flex items-center gap-3 max-w-2xl">
-          <div class="relative flex-1">
+        <!-- ПРАВО (мобилка) / ПРАВО (десктоп): Locale -->
+        <div class="order-2 sm:order-3 ml-auto">
+          <LocalePicker v-model="locale" />
+        </div>
+
+        <!-- НИЖЕ (мобилка, на всю ширину) / ЦЕНТР (десктоп): Поиск + Reload -->
+        <div class="order-3 sm:order-2 basis-full sm:basis-auto w-full sm:w-auto sm:flex-1 flex items-center gap-3">
+          <div class="relative flex-1 min-w-[260px]">
             <input
               v-model.trim="search"
               type="text"
@@ -236,14 +262,12 @@ const labelMap = computed(() => {
             </button>
           </div>
 
-          <button @click="handleReload" class="shrink-0 rounded px-3 py-1.5 ring-1 ring-white/10 hover:ring-white/20">
+          <button
+            @click="handleReload"
+            class="shrink-0 rounded px-3 py-1.5 ring-1 ring-white/10 hover:ring-white/20"
+          >
             Reload
           </button>
-        </div>
-
-        <!-- ПРАВО: Locale -->
-        <div class="justify-self-end">
-          <LocalePicker v-model="locale" />
         </div>
       </div>
     </header>
@@ -354,4 +378,7 @@ const labelMap = computed(() => {
 @media (prefers-color-scheme: light) {
   .core-glow { opacity: .7; }
 }
+
+/* глобалка для блокировки скролла подложки при открытых оверлеях/модалках */
+:global(.hidden-scroll) { overflow: hidden !important; }
 </style>
