@@ -141,8 +141,8 @@ export const useWikiCoreStore = defineStore('wikiCore', {
     filteredTotal() {
       return this.sorted.length
     },
-    hasNextPage(state) {
-      return state.page * state.pageSize < this.filteredTotal
+    hasNextPage() {
+      return this.page * this.pageSize < this.filteredTotal
     },
     totalPages() {
       return Math.max(1, Math.ceil(this.sorted.length / this.pageSize))

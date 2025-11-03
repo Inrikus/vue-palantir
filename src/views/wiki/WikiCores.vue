@@ -1,15 +1,20 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+
 import { useWikiCoreStore } from '@/stores/wikiCoreStore'
+import { useWikiLabelStore } from '@/stores/wikiLabelStore'
+
 import CoreCard from '@/components/wiki/CoreCard.vue'
 import WikiCoreFilterPanel from '@/components/wiki/WikiCoreFilterPanel.vue'
-import InfinitePager from '@/components/wiki/InfinitePager.vue'
 import LocalePicker from '@/components/wiki/LocalePicker.vue'
+import ActiveFiltersBar from '@/components/wiki/ActiveFiltersBar.vue'
 
 const route = useRoute()
 const router = useRouter()
-const store  = useWikiCoreStore()
+
+const store       = useWikiCoreStore()
+const labelStore  = useWikiLabelStore()
 
 /* ---------- Locale ---------- */
 const locale = ref(route.query.locale ?? 'en')
@@ -17,7 +22,7 @@ const locale = ref(route.query.locale ?? 'en')
 /* ---------- Поиск ---------- */
 const search = ref(route.query.q ?? '')
 
-/* ---------- Фильтр-панель (универсальная) ---------- */
+/* ---------- Фильтр-панель ---------- */
 const showFilterPanel = ref(false)
 const isMobile = ref(false)
 function updateIsMobile() {
@@ -27,10 +32,18 @@ function updateIsMobile() {
 }
 const handleToggleFilter = () => { showFilterPanel.value = !showFilterPanel.value }
 
-const filters = ref({ rares: [], jobs: [], labels: [], uniq: false })
+// Локальная форма фильтров (массивы + uniq toggle)
+const filters = ref({
+  rares:  [],
+  jobs:   [],
+  labels: [],
+  uniq:   false,
+})
+
+/* Применяем сразу при изменении модели */
 watch(filters, (val) => store.applyFilters(val), { deep: true })
 
-// Счётчик выбранных фильтров (без строки поиска, но с учётом hasBuffId)
+// Счётчик выбранных фильтров (без строки поиска)
 const selectedFiltersCount = computed(() => {
   const f = store.filters || {}
   let c = 0
@@ -45,14 +58,20 @@ const selectedFiltersCount = computed(() => {
 /* ---------- Загрузка / перезагрузка ---------- */
 async function load() {
   await store.load(locale.value)
-  // применяем поиск из query
+  await labelStore.load(locale.value)
+
+  // Поиск из query
   store.setSearch(String(search.value || ''))
-  // синхронизируем локальные фильтры с состоянием стора
+
+  // Синхронизируем локальные фильтры со стором
   filters.value = { ...store.filters }
+
+  // Запускаем прогрессивную догрузку до максимума
+  startProgressiveFill()
 }
 
 function handleReload() {
-  // Reload должен сбрасывать поиск и фильтры — поведение станет очевидным
+  // Reload явно сбрасывает и поиск, и фильтры
   search.value = ''
   store.resetFilters()
   store.setSearch('')
@@ -60,9 +79,11 @@ function handleReload() {
 }
 
 function handleResetFromPanel() {
-  // панель вызывает reset — дополнительно чистим локальный инпут
+  // Reset из панели — дополнительно чистим строку поиска
   search.value = ''
   store.resetFilters()
+  // перезапуск автомата
+  startProgressiveFill()
 }
 
 /* ---------- Навигация / query ---------- */
@@ -74,6 +95,8 @@ watch(locale, (val) => {
 watch(search, (q) => {
   store.setSearch(String(q || ''))
   router.replace({ query: { ...route.query, locale: locale.value, q: q || undefined } })
+  // перезапуск автомата
+  startProgressiveFill()
 })
 
 /* ---------- Mount lifecycle ---------- */
@@ -84,29 +107,70 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateIsMobile)
+  stopProgressiveFill()
 })
 
-/* ---------- Грид / модалка / infinite ---------- */
+/* ---------- Прогрессивная «раскатка» до максимума ---------- */
+/** Идентификатор интервала */
+let fillTimer = null
+
+function stopProgressiveFill() {
+  if (fillTimer) {
+    clearInterval(fillTimer)
+    fillTimer = null
+  }
+}
+
+/** Запускает интервал, который расширяет page до полной выдачи */
+function startProgressiveFill() {
+  stopProgressiveFill()
+  // если уже всё показано — не запускаем
+  if (!store.hasNextPage) return
+
+  // Можно увеличить порцию, чтобы быстрее «раскатать» (опционально):
+  // store.setPageSize(60)
+
+  fillTimer = setInterval(() => {
+    // если уже нечего грузить — стоп
+    if (!store.hasNextPage) {
+      stopProgressiveFill()
+      return
+    }
+    // «догрузить» следующую порцию
+    store.nextPage()
+  }, 500) // 0.5s
+}
+
+// При изменении фильтров — перезапуск автомата
+watch(
+  () => [store.filters.rares, store.filters.jobs, store.filters.labels, store.filters.uniq, store.filteredTotal],
+  () => startProgressiveFill(),
+  { deep: true }
+)
+
+/* ---------- Грид / модалка ---------- */
 const items        = computed(() => store.pageItems)
-const hasNextPage  = computed(() => store.hasNextPage)
-const isLoading    = computed(() => store.loading)
+//const isLoading    = computed(() => store.loading)
 
 function iconSrc(core) { return `/wiki/Cores/${core?.Icon}.png` }
+
+// Найти запись ядра по id + level
 function findByIdLevel(id, lv) {
   return store.items.find(c => c.id === id && c.CoreLv === lv) ||
          store.items.find(c => c.id === id) || null
 }
 
+// Модалка
 const modalOpen    = ref(false)
 const modalLevel   = ref(1)
 const selectedId   = ref(null)
 const selectedCore = ref(null)
 
 function openModal(core) {
-  selectedId.value = core.id
-  modalLevel.value = core.CoreLv || 1
+  selectedId.value  = core.id
+  modalLevel.value  = core.CoreLv || 1
   selectedCore.value = findByIdLevel(core.id, modalLevel.value) || core
-  modalOpen.value = true
+  modalOpen.value   = true
 }
 function closeModal() {
   modalOpen.value = false
@@ -122,7 +186,20 @@ watch(modalLevel, (lv) => {
   }
 })
 
-function loadMore() { store.nextPage() }
+/* ---------- Карта лейблов для чипов ---------- */
+const labelMap = computed(() => {
+  const map = Object.create(null)
+  for (const id of filters.value.labels || []) {
+    const l = labelStore.byId?.[id]
+    if (!l) continue
+    map[id] = {
+      id,
+      text: l.i18n?.[locale.value] || l.Name?.text || String(id),
+      colorHex: l.LabelImageColor || '5E5E5E'
+    }
+  }
+  return map
+})
 </script>
 
 <template>
@@ -131,7 +208,7 @@ function loadMore() { store.nextPage() }
       <h1 class="text-2xl font-semibold">Wiki — Cores</h1>
 
       <div class="sm:ml-auto flex flex-wrap items-center gap-3">
-        <!-- LocalePicker -->
+        <!-- Locale -->
         <LocalePicker v-model="locale" />
 
         <!-- Кнопка фильтров -->
@@ -176,13 +253,19 @@ function loadMore() { store.nextPage() }
       </div>
     </header>
 
-    <p class="text-sm opacity-80">
-      Count (server): <span class="font-medium">{{ store.count }}</span>
-      · Items (store): <span class="font-medium">{{ store.items.length }}</span>
-      · Filtered page: <span class="font-medium">{{ items.length }}</span>
-      · Locale: <span class="font-medium">{{ store.loadedLocale }}</span>
-      · Search: <span class="font-medium">{{ search || '—' }}</span>
-    </p>
+    <!-- Активные фильтры (чипы) + счётчик Items -->
+    <ActiveFiltersBar
+      :locale="locale"
+      :rares="filters.rares"
+      :jobs="filters.jobs"
+      :labels="filters.labels"
+      :uniq="filters.uniq"
+      :label-map="labelMap"
+      @remove:rarity="val => filters.rares = filters.rares.filter(v => v !== val)"
+      @remove:job="val => filters.jobs = filters.jobs.filter(v => v !== val)"
+      @remove:label="val => filters.labels = filters.labels.filter(v => v !== val)"
+      @unset:uniq="filters.uniq = false"
+    />
 
     <!-- ГРИД -->
     <div v-if="store.loading" class="text-sm opacity-80">Loading…</div>
@@ -223,12 +306,6 @@ function loadMore() { store.nextPage() }
           </div>
         </button>
       </div>
-
-      <InfinitePager
-        :is-loading="isLoading"
-        :has-next-page="hasNextPage"
-        @load-more="loadMore"
-      />
     </div>
 
     <!-- МОДАЛКА -->
