@@ -14,11 +14,11 @@ import { useWikiLabelStore } from '@/stores/wikiLabelStore'
  * v-model:
  *  - rares: number[]
  *  - jobs:  number[]
- *  - labels: number[]   // IDs из Tips_Label
+ *  - labels: number[]
  *  - uniq: boolean
  *
  * props:
- *  - locale: string  // для загрузки/локализации label-ов
+ *  - locale: string
  */
 
 const props = defineProps({
@@ -62,19 +62,16 @@ const JOB_OPTIONS = [
 /* -------- dynamic label groups (by CoreFilter) -------- */
 const labelGroups = computed(() => {
   const items = Array.isArray(labelStore.items) ? labelStore.items : []
-  // только непустые CoreFilter
   const groups = new Map()
   for (const l of items) {
     const cf = (l.CoreFilter || '').trim()
     if (!cf) continue
-    const key = cf
-    if (!groups.has(key)) groups.set(key, [])
-    groups.get(key).push(l)
+    if (!groups.has(cf)) groups.set(cf, [])
+    groups.get(cf).push(l)
   }
-  // преобразуем в [{title, options:[{label, value, color}]}]
   const out = []
   for (const [key, arr] of groups.entries()) {
-    const title = key.endsWith('Filter') ? key.slice(0, -6) : key // обрезаем "Filter"
+    const title = key.endsWith('Filter') ? key.slice(0, -6) : key
     const options = arr
       .map(l => ({
         value: l.ID,
@@ -84,7 +81,6 @@ const labelGroups = computed(() => {
       .sort((a, b) => a.label.localeCompare(b.label))
     if (options.length) out.push({ key, title, options })
   }
-  // стабильный порядок заголовков
   out.sort((a, b) => a.title.localeCompare(b.title))
   return out
 })
@@ -117,12 +113,14 @@ const toggleVal = (key, val) => {
   if (key === 'jobs')   emit('update:jobs',   next)
   if (key === 'labels') emit('update:labels', next)
 }
+
 const selectedCount = computed(() =>
   (props.rares?.length || 0) +
   (props.jobs?.length  || 0) +
   (props.labels?.length || 0) +
   (props.uniq ? 1 : 0)
 )
+
 function handleReset() {
   emit('update:rares',  [])
   emit('update:jobs',   [])
@@ -154,16 +152,26 @@ function handleReset() {
         ]"
         role="dialog" aria-modal="true"
       >
+        <!-- TOP BAR: title + (Reset | Close) -->
         <div class="p-4 flex items-center justify-between border-b border-white/10">
           <h3 class="text-lg font-semibold text-[#63B4C8]">
             Filters <span class="opacity-70 text-sm">({{ selectedCount }})</span>
           </h3>
-          <button
-            @click="$emit('close')"
-            class="rounded px-3 py-1 ring-1 ring-white/10 hover:ring-white/20"
-          >
-            Close
-          </button>
+          <div class="flex items-center gap-2">
+            <button
+              @click="handleReset"
+              class="rounded px-3 py-1 ring-1 ring-white/10 hover:ring-white/20"
+              title="Reset all filters"
+            >
+              Reset
+            </button>
+            <button
+              @click="$emit('close')"
+              class="rounded px-3 py-1 ring-1 ring-white/10 hover:ring-white/20"
+            >
+              Close
+            </button>
+          </div>
         </div>
 
         <div class="p-4 space-y-6">
@@ -252,15 +260,6 @@ function handleReset() {
               </label>
             </div>
           </section>
-
-          <div class="flex gap-2">
-            <button
-              @click="handleReset"
-              class="px-3 py-2 rounded-lg ring-1 ring-white/10 hover:ring-white/20"
-            >
-              Reset
-            </button>
-          </div>
         </div>
       </aside>
     </transition>

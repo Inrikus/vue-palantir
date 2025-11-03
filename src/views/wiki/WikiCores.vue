@@ -111,7 +111,6 @@ onBeforeUnmount(() => {
 })
 
 /* ---------- Прогрессивная «раскатка» до максимума ---------- */
-/** Идентификатор интервала */
 let fillTimer = null
 
 function stopProgressiveFill() {
@@ -121,27 +120,21 @@ function stopProgressiveFill() {
   }
 }
 
-/** Запускает интервал, который расширяет page до полной выдачи */
 function startProgressiveFill() {
   stopProgressiveFill()
-  // если уже всё показано — не запускаем
   if (!store.hasNextPage) return
 
-  // Можно увеличить порцию, чтобы быстрее «раскатать» (опционально):
-  // store.setPageSize(60)
+  // store.setPageSize(60) // опционально ускорить «раскатку»
 
   fillTimer = setInterval(() => {
-    // если уже нечего грузить — стоп
     if (!store.hasNextPage) {
       stopProgressiveFill()
       return
     }
-    // «догрузить» следующую порцию
     store.nextPage()
-  }, 500) // 0.5s
+  }, 500)
 }
 
-// При изменении фильтров — перезапуск автомата
 watch(
   () => [store.filters.rares, store.filters.jobs, store.filters.labels, store.filters.uniq, store.filteredTotal],
   () => startProgressiveFill(),
@@ -149,18 +142,15 @@ watch(
 )
 
 /* ---------- Грид / модалка ---------- */
-const items        = computed(() => store.pageItems)
-//const isLoading    = computed(() => store.loading)
+const items = computed(() => store.pageItems)
 
 function iconSrc(core) { return `/wiki/Cores/${core?.Icon}.png` }
 
-// Найти запись ядра по id + level
 function findByIdLevel(id, lv) {
   return store.items.find(c => c.id === id && c.CoreLv === lv) ||
          store.items.find(c => c.id === id) || null
 }
 
-// Модалка
 const modalOpen    = ref(false)
 const modalLevel   = ref(1)
 const selectedId   = ref(null)
@@ -204,52 +194,57 @@ const labelMap = computed(() => {
 
 <template>
   <section class="mx-auto w-full max-w-[98vw] px-2 sm:px-4 lg:px-6 space-y-4">
-    <header class="flex flex-col sm:flex-row sm:items-center gap-3">
+    <!-- Заголовок -->
+    <header class="space-y-3">
       <h1 class="text-2xl font-semibold">Wiki — Cores</h1>
 
-      <div class="sm:ml-auto flex flex-wrap items-center gap-3">
-        <!-- Locale -->
-        <LocalePicker v-model="locale" />
-
-        <!-- Кнопка фильтров -->
-        <div class="flex gap-2 items-center">
+      <!-- Линия управления: слева фильтры, центр — поиск + Reload, справа — язык -->
+      <div class="grid grid-cols-1 sm:grid-cols-[auto,1fr,auto] items-center gap-3">
+        <!-- ЛЕВО: Кнопка фильтров -->
+        <div class="justify-self-start">
           <button
             @click="handleToggleFilter"
-            class="border-2 border-[#63B4C8] text-[#63B4C8] rounded-md px-3 py-1.5 flex gap-2 text-base sm:text-lg font-semibold items-center hover:bg-gray-700 sticky sm:static top-0 left-0 justify-center max-sm:w-full z-30 bg-[#232228]"
+            class="border-2 border-[#63B4C8] text-[#63B4C8] rounded-md px-3 py-1.5 flex gap-2 text-base sm:text-lg font-semibold items-center hover:bg-gray-700 bg-[#232228]"
           >
             <img src="@/assets/filter-1.svg" class="w-5 sm:w-6" alt="filter" />
             Filters ({{ selectedFiltersCount }})
           </button>
         </div>
 
-        <!-- Поиск (стилизованный, с очисткой) -->
-        <div class="relative">
-          <input
-            v-model.trim="search"
-            type="text"
-            inputmode="search"
-            placeholder="Search by name…"
-            class="bg-neutral-900/60 rounded-md pl-9 pr-8 py-2 ring-1 ring-white/10 focus:ring-white/20 min-w-[220px] placeholder:opacity-60"
-          />
-          <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M10 4a6 6 0 104.472 10.028l4.25 4.25 1.414-1.414-4.25-4.25A6 6 0 0010 4zm-4 6a4 4 0 118 0 4 4 0 01-8 0z"/>
-          </svg>
-          <button
-            v-if="search"
-            @click="search = ''"
-            class="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full hover:bg-white/10 grid place-items-center"
-            title="Clear"
-          >
-            <svg class="w-3.5 h-3.5 opacity-80" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M6.225 4.811L4.811 6.225 9.586 11l-4.775 4.775 1.414 1.414L11 12.414l4.775 4.775 1.414-1.414L12.414 11l4.775-4.775-1.414-1.414L11 9.586z"/>
+        <!-- ЦЕНТР: Поиск + Reload -->
+        <div class="justify-self-center w-full flex items-center gap-3 max-w-2xl">
+          <div class="relative flex-1">
+            <input
+              v-model.trim="search"
+              type="text"
+              inputmode="search"
+              placeholder="Search by name…"
+              class="w-full bg-neutral-900/60 rounded-md pl-9 pr-8 py-2 ring-1 ring-white/10 focus:ring-white/20 placeholder:opacity-60"
+            />
+            <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M10 4a6 6 0 104.472 10.028l4.25 4.25 1.414-1.414-4.25-4.25A6 6 0 0010 4zm-4 6a4 4 0 118 0 4 4 0 01-8 0z"/>
             </svg>
+            <button
+              v-if="search"
+              @click="search = ''"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full hover:bg-white/10 grid place-items-center"
+              title="Clear"
+            >
+              <svg class="w-3.5 h-3.5 opacity-80" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6.225 4.811L4.811 6.225 9.586 11l-4.775 4.775 1.414 1.414L11 12.414l4.775 4.775 1.414-1.414L12.414 11l4.775-4.775-1.414-1.414L11 9.586z"/>
+              </svg>
+            </button>
+          </div>
+
+          <button @click="handleReload" class="shrink-0 rounded px-3 py-1.5 ring-1 ring-white/10 hover:ring-white/20">
+            Reload
           </button>
         </div>
 
-        <!-- Reload -->
-        <button @click="handleReload" class="rounded px-3 py-1.5 ring-1 ring-white/10 hover:ring-white/20">
-          Reload
-        </button>
+        <!-- ПРАВО: Locale -->
+        <div class="justify-self-end">
+          <LocalePicker v-model="locale" />
+        </div>
       </div>
     </header>
 
@@ -326,7 +321,13 @@ const labelMap = computed(() => {
             Close
           </button>
         </div>
-        <CoreCard v-if="selectedCore" :core="selectedCore" :locale="locale" />
+        <CoreCard
+          v-if="selectedCore"
+          :core="selectedCore"
+          :locale="locale"
+          @close="closeModal"
+          @level-change="v => modalLevel = v"
+        />
       </div>
     </div>
 
