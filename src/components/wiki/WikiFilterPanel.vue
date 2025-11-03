@@ -1,37 +1,34 @@
 <script setup>
 import { computed, onBeforeUnmount, watch } from 'vue'
 
+/**
+ * Универсальная фильтр-панель для Wiki-разделов
+ * 
+ * Props:
+ *  - open: Boolean — показать/скрыть
+ *  - filtersConfig: [{
+ *       key: string,           // имя фильтра (ключ в объекте filters)
+ *       title: string,         // заголовок секции
+ *       options: [{ label, value }]
+ *    }]
+ *  - filters: Object — объект состояния фильтров { key: Array<any> }
+ */
 const props = defineProps({
   open: { type: Boolean, default: false },
-
-  /** СЛОВАРЬ ФИЛЬТРОВ:
-   * Array<{
-   *   key: 'rares'|'jobs'|'levels',               // имя массива в сторе
-   *   title: string,                              // заголовок в UI
-   *   options: Array<{ label: string, value: any }>
-   * }>
-   */
   filtersConfig: { type: Array, default: () => [] },
-
-  // v-model
-  rares:  { type: Array, default: () => [] },
-  jobs:   { type: Array, default: () => [] },
-  levels: { type: Array, default: () => [] },
+  filters: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits([
-  'close', 'reset',
-  'update:rares', 'update:jobs', 'update:levels'
-])
+const emit = defineEmits(['close', 'reset', 'update:filters'])
 
-// мобильный режим — bottom sheet
+// Мобильный режим — bottom sheet
 const isMobile = computed(() =>
   typeof window !== 'undefined'
     ? window.matchMedia('(max-width: 640px)').matches
     : false
 )
 
-// scroll lock
+// Scroll lock (на мобиле)
 function toggleScrollLock(locked) {
   const html = document.documentElement
   const body = document.body
@@ -41,38 +38,27 @@ function toggleScrollLock(locked) {
 watch(() => props.open, (v) => { if (isMobile.value) toggleScrollLock(v) })
 onBeforeUnmount(() => toggleScrollLock(false))
 
-// доступ к моделям по ключу секции
-const modelByKey = (key) => {
-  if (key === 'rares')  return props.rares
-  if (key === 'jobs')   return props.jobs
-  if (key === 'levels') return props.levels
-  return []
-}
-const updateByKey = (key, arr) => {
-  if (key === 'rares')  emit('update:rares', arr)
-  if (key === 'jobs')   emit('update:jobs', arr)
-  if (key === 'levels') emit('update:levels', arr)
-}
+// --- Работа с фильтрами ---
+const modelFor = (key) => props.filters?.[key] || []
 
-// чекбокс-тоггл
-const toggleVal = (key, val) => {
-  const next = new Set(modelByKey(key))
+function toggleVal(key, val) {
+  const next = new Set(modelFor(key))
   next.has(val) ? next.delete(val) : next.add(val)
-  updateByKey(key, Array.from(next))
+  emit('update:filters', { ...props.filters, [key]: Array.from(next) })
 }
-
-const selectedCount = computed(() =>
-  (props.rares?.length || 0) +
-  (props.jobs?.length || 0) +
-  (props.levels?.length || 0)
-)
 
 function handleReset() {
-  emit('update:rares', [])
-  emit('update:jobs', [])
-  emit('update:levels', [])
+  const empty = {}
+  for (const sec of props.filtersConfig) empty[sec.key] = []
+  emit('update:filters', empty)
   emit('reset')
 }
+
+// Счётчик выбранных значений (всех секций)
+const selectedCount = computed(() => {
+  const f = props.filters || {}
+  return Object.values(f).reduce((acc, arr) => acc + (arr?.length || 0), 0)
+})
 </script>
 
 <template>
@@ -99,6 +85,7 @@ function handleReset() {
         ]"
         role="dialog" aria-modal="true"
       >
+        <!-- Header -->
         <div class="p-4 flex items-center justify-between border-b border-white/10">
           <h3 class="text-lg font-semibold text-[#63B4C8]">
             Filters <span class="opacity-70 text-sm">({{ selectedCount }})</span>
@@ -111,12 +98,9 @@ function handleReset() {
           </button>
         </div>
 
+        <!-- Sections -->
         <div class="p-4 space-y-6">
-          <!-- секции по конфигу -->
-          <section
-            v-for="sec in filtersConfig"
-            :key="sec.key"
-          >
+          <section v-for="sec in filtersConfig" :key="sec.key">
             <h4 class="text-sm uppercase tracking-wide opacity-80 mb-2">{{ sec.title }}</h4>
             <div class="flex flex-wrap gap-2">
               <label
@@ -127,7 +111,7 @@ function handleReset() {
                 <input
                   type="checkbox"
                   class="accent-[#63B4C8]"
-                  :checked="modelByKey(sec.key).includes(opt.value)"
+                  :checked="modelFor(sec.key).includes(opt.value)"
                   @change="toggleVal(sec.key, opt.value)"
                 />
                 <span class="text-sm">{{ opt.label }}</span>
@@ -155,13 +139,23 @@ function handleReset() {
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
 /* desktop/tablet: slide from left */
-.slide-left-enter-active, .slide-left-leave-active { transition: transform 250ms ease, opacity 250ms ease; }
-.slide-left-enter-from, .slide-left-leave-to { transform: translateX(-100%); opacity: 0.8; }
+.slide-left-enter-active, .slide-left-leave-active {
+  transition: transform 250ms ease, opacity 250ms ease;
+}
+.slide-left-enter-from, .slide-left-leave-to {
+  transform: translateX(-100%);
+  opacity: 0.8;
+}
 
 /* mobile: slide from bottom */
 @media (max-width: 640px) {
-  .slide-up-enter-active, .slide-up-leave-active { transition: transform 250ms ease, opacity 250ms ease; }
-  .slide-up-enter-from, .slide-up-leave-to { transform: translateY(100%); opacity: 0.8; }
+  .slide-up-enter-active, .slide-up-leave-active {
+    transition: transform 250ms ease, opacity 250ms ease;
+  }
+  .slide-up-enter-from, .slide-up-leave-to {
+    transform: translateY(100%);
+    opacity: 0.8;
+  }
 }
 
 /* временно — лучше в globals */

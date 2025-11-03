@@ -1,4 +1,3 @@
-// src/stores/wikiCoreStore.js
 import { defineStore } from 'pinia'
 import { fetchWikiCores } from '@/utils/api'
 
@@ -18,85 +17,81 @@ import { fetchWikiCores } from '@/utils/api'
  * @property {number[]} [Upgrade_Value]
  * @property {number} combatPower
  * @property {number} cooldown
- * @property {WikiCoreBuffDisplay[]} [Buff_Display] // <-- НОВОЕ: вместо старого "buffs"
+ * @property {WikiCoreBuffDisplay[]} [Buff_Display]
  * @property {{name:{key:string,[k:string]:string},desc:{key:string,[k:string]:string}}} i18n
  */
 
-const DEFAULT_SORT = { by: 'id', dir: 'asc' } // asc | desc
+const DEFAULT_SORT = { by: 'id', dir: 'asc' }
 
 export const useWikiCoreStore = defineStore('wikiCore', {
   state: () => ({
     // данные
     items /** @type {WikiCoreItem[]} */: [],
     count: 0,
+
     // служебное
     loading: false,
     error: '',
     loadedLocale: 'en',
 
-    // фильтры (клиентские)
+    // клиентские фильтры
     filters: {
-      search: '',              // ПОИСК: строго по englishName (регистронезависимый)
-      rares: /** @type {number[]} */ ([]),     // CoreRare in []
-      jobs:  /** @type {number[]} */ ([]),     // JobLimit in []
-      levels:/** @type {number[]} */ ([]),     // CoreLv in []
-      hasBuffId: /** @type {number|null} */ (null), // конкретный BuffId (по массиву Buff_Display)
+      search: '',                    // текстовый поиск по englishName
+      rares: /** @type {number[]} */ ([]), // CoreRare in []
+      jobs:  /** @type {number[]} */ ([]), // JobLimit in []
+      hasBuffId: /** @type {number|null} */ (null), // конкретный BuffId (по Buff_Display)
     },
 
-    // сортировка (клиентская)
-    sort: { ...DEFAULT_SORT }, // { by: 'id'|'CoreRare'|'CoreLv'|'JobLimit'|'name', dir: 'asc'|'desc' }
+    // сортировка
+    sort: { ...DEFAULT_SORT }, // 'id'|'CoreRare'|'CoreLv'|'JobLimit'|'name'
 
-    // пагинация (клиентская)
+    // пагинация (infinite)
     page: 1,
-    pageSize: 30, // можно менять через setPageSize()
+    pageSize: 30,
 
-    // «сырое» (для отладки/временного вывода)
+    // «сырое» (для отладки)
     rawText: '',
   }),
 
   getters: {
-    // доступные значения для фильтров (фасеты)
+    // фасеты для UI
     facets(state) {
       const rares = new Set()
       const jobs = new Set()
-      const levels = new Set()
       for (const c of state.items) {
         if (c.CoreRare != null) rares.add(c.CoreRare)
         if (c.JobLimit != null) jobs.add(c.JobLimit)
-        if (c.CoreLv != null) levels.add(c.CoreLv)
       }
       return {
-        rares: Array.from(rares).sort((a,b)=>a-b),
-        jobs: Array.from(jobs).sort((a,b)=>a-b),
-        levels: Array.from(levels).sort((a,b)=>a-b),
+        rares: Array.from(rares).sort((a, b) => a - b),
+        jobs: Array.from(jobs).sort((a, b) => a - b),
       }
     },
 
-    // Нормализатор имени/описания под активную локаль (для отображения)
+    // локализаторы
     makeLocalizers: (state) => (locale) => ({
       nameOf: (c) => (c?.i18n?.name?.[locale] ?? c?.englishName ?? ''),
       descOf: (c) => (c?.i18n?.desc?.[locale] ?? ''),
     }),
 
-    // отфильтрованные
+    // отфильтрованные (CoreLv всегда 1)
     filtered(state) {
       const f = state.filters
-      // поиск — ТОЛЬКО по englishName (регистронезависимо)
       const s = (f.search || '').trim().toLowerCase()
       const needRares = new Set(f.rares || [])
-      const needJobs  = new Set(f.jobs || [])
-      const needLvls  = new Set(f.levels || [])
+      const needJobs = new Set(f.jobs || [])
       const buffId = f.hasBuffId
 
-      return state.items.filter(c => {
-        if (needRares.size && !needRares.has(c.CoreRare)) return false
-        if (needJobs.size  && !needJobs.has(c.JobLimit))   return false
-        if (needLvls.size  && !needLvls.has(c.CoreLv))     return false
+      return state.items.filter((c) => {
+        // показываем только уровни 1
+        if (c.CoreLv !== 1) return false
 
-        // Фильтрация по Buff_Display (новая структура)
+        if (needRares.size && !needRares.has(c.CoreRare)) return false
+        if (needJobs.size && !needJobs.has(c.JobLimit)) return false
+
         if (buffId != null) {
           const arr = Array.isArray(c.Buff_Display) ? c.Buff_Display : []
-          const ok = arr.some(b => b?.BuffId === buffId)
+          const ok = arr.some((b) => b?.BuffId === buffId)
           if (!ok) return false
         }
 
@@ -108,7 +103,7 @@ export const useWikiCoreStore = defineStore('wikiCore', {
       })
     },
 
-    // отсортированные
+    // сортированные
     sorted() {
       const arr = [...this.filtered]
       const { by, dir } = this.sort
@@ -118,49 +113,60 @@ export const useWikiCoreStore = defineStore('wikiCore', {
       arr.sort((a, b) => {
         let va, vb
         switch (by) {
-          case 'CoreRare': va = a.CoreRare; vb = b.CoreRare; break
-          case 'CoreLv':   va = a.CoreLv;   vb = b.CoreLv;   break
-          case 'JobLimit': va = a.JobLimit; vb = b.JobLimit; break
-          case 'name':     va = nameOf(a);  vb = nameOf(b);  break
-          default:         va = a.id;       vb = b.id;       break
+          case 'CoreRare':
+            va = a.CoreRare
+            vb = b.CoreRare
+            break
+          case 'CoreLv':
+            va = a.CoreLv
+            vb = b.CoreLv
+            break
+          case 'JobLimit':
+            va = a.JobLimit
+            vb = b.JobLimit
+            break
+          case 'name':
+            va = nameOf(a)
+            vb = nameOf(b)
+            break
+          default:
+            va = a.id
+            vb = b.id
+            break
         }
         if (va == null && vb == null) return 0
         if (va == null) return -1 * mul
-        if (vb == null) return  1 * mul
+        if (vb == null) return 1 * mul
         if (typeof va === 'string' && typeof vb === 'string') {
           return va.localeCompare(vb) * mul
         }
-        return (va === vb ? 0 : (va < vb ? -1 : 1)) * mul
+        return (va === vb ? 0 : va < vb ? -1 : 1) * mul
       })
       return arr
     },
 
-    // === ДЛЯ INFINITE SCROLL ===
-    // накопительный список до page * pageSize
+    // пагинированные результаты
     pageItems() {
       const end = this.page * this.pageSize
       return this.sorted.slice(0, end)
     },
 
-    // общее кол-во после фильтров/сортировки
     filteredTotal() {
       return this.sorted.length
     },
 
-    // есть ли следующая порция
-    hasNextPage(state) {
-      return state.page * state.pageSize < this.filteredTotal
+    hasNextPage() {
+      return this.page * this.pageSize < this.filteredTotal
     },
 
-    // классическая страничность (если понадобится где-то ещё)
     totalPages() {
       return Math.max(1, Math.ceil(this.sorted.length / this.pageSize))
     },
   },
 
   actions: {
+    /** Загрузка всех ядер */
     async load(locale = 'en') {
-      // если локаль поменялась — лёгкий сброс
       if (this.loadedLocale !== locale) {
         this.page = 1
         this.sort = { ...DEFAULT_SORT }
@@ -173,7 +179,6 @@ export const useWikiCoreStore = defineStore('wikiCore', {
 
       try {
         const { data } = await fetchWikiCores(locale)
-        // ожидаем { count, cores: [...] }
         this.items = Array.isArray(data?.cores) ? data.cores : []
         this.count = Number(data?.count || this.items.length || 0)
         this.loadedLocale = locale
@@ -187,33 +192,35 @@ export const useWikiCoreStore = defineStore('wikiCore', {
       }
     },
 
-    // === ДЛЯ INFINITE SCROLL ===
+    /** Следующая страница (для infinite scroll) */
     nextPage() {
       if (this.hasNextPage) this.page += 1
     },
 
+    /** Поиск */
     setSearch(v) {
       this.filters.search = v ?? ''
       this.page = 1
     },
-    setRares(arr) {
-      this.filters.rares = Array.isArray(arr) ? arr : []
+
+    /** Прямое управление фильтрами (универсальный способ) */
+    applyFilters(obj) {
+      this.filters.rares = Array.isArray(obj.rares) ? obj.rares : []
+      this.filters.jobs = Array.isArray(obj.jobs) ? obj.jobs : []
+      // возможные дополнительные фильтры (на будущее)
       this.page = 1
     },
-    setJobs(arr) {
-      this.filters.jobs = Array.isArray(arr) ? arr : []
-      this.page = 1
-    },
-    setLevels(arr) {
-      this.filters.levels = Array.isArray(arr) ? arr : []
-      this.page = 1
-    },
+
     setBuffId(idOrNull) {
-      const v = (idOrNull === null || idOrNull === undefined || idOrNull === '') ? null : Number(idOrNull)
+      const v =
+        idOrNull === null || idOrNull === undefined || idOrNull === ''
+          ? null
+          : Number(idOrNull)
       this.filters.hasBuffId = Number.isFinite(v) ? v : null
       this.page = 1
     },
 
+    /** Сортировка */
     setSort(by, dir) {
       this.sort.by = by || this.sort.by
       this.sort.dir = dir || this.sort.dir
@@ -223,14 +230,16 @@ export const useWikiCoreStore = defineStore('wikiCore', {
     setPage(p) {
       this.page = Math.max(1, Number(p || 1))
     },
+
     setPageSize(ps) {
       this.pageSize = Math.min(200, Math.max(5, Number(ps || 30)))
       this.page = 1
     },
 
+    /** Сброс фильтров */
     resetFilters() {
-      this.filters = { search: '', rares: [], jobs: [], levels: [], hasBuffId: null }
+      this.filters = { search: '', rares: [], jobs: [], hasBuffId: null }
       this.page = 1
-    }
-  }
+    },
+  },
 })

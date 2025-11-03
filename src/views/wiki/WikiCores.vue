@@ -10,11 +10,33 @@ const route = useRoute()
 const router = useRouter()
 const store  = useWikiCoreStore()
 
-// query: locale, q (поиск)
+/* ---------- Locale dropdown (с флажками) ---------- */
+const LOCALES = [
+  { value: 'en', native: 'English',            flag: '/flags/Icon_Flag_English.png'     },
+  { value: 'ru', native: 'Русский',            flag: '/flags/Icon_Flag_Russia.png'      },
+  { value: 'ch', native: '中文',                flag: '/flags/Icon_Flag_Chinese.png'      },
+  { value: 'jp', native: '日本語',              flag: '/flags/Icon_Flag_Japanese.png'     },
+  { value: 'kr', native: '한국어',              flag: '/flags/Icon_Flag_Korean.png'       },
+  { value: 'vn', native: 'Tiếng Việt',         flag: '/flags/Icon_Flag_Vietnamese.png'  },
+  { value: 'id', native: 'Bahasa Indonesia',   flag: '/flags/Icon_Flag_Indonesian.png'  },
+  { value: 'tr', native: 'Türkçe',             flag: '/flags/Icon_Flag_Turkish.png'     },
+]
+
 const locale = ref(route.query.locale ?? 'en')
+const currLocale = computed(() => LOCALES.find(l => l.value === locale.value) || LOCALES[0])
+const localeOpen = ref(false)
+function toggleLocale() { localeOpen.value = !localeOpen.value }
+function chooseLocale(v) { locale.value = v; localeOpen.value = false }
+
+function onClickOutside(e) {
+  const el = document.getElementById('locale-dropdown')
+  if (el && !el.contains(e.target)) localeOpen.value = false
+}
+
+/* ---------- Поиск ---------- */
 const search = ref(route.query.q ?? '')
 
-// фильтр-панель
+/* ---------- Фильтр-панель (универсальная) ---------- */
 const showFilterPanel = ref(false)
 const isMobile = ref(false)
 function updateIsMobile() {
@@ -24,28 +46,26 @@ function updateIsMobile() {
 }
 const handleToggleFilter = () => { showFilterPanel.value = !showFilterPanel.value }
 
-// локальные модели чекбоксов (панель управляет ими через v-model)
-const raresSel  = ref([])
-const jobsSel   = ref([])
-const levelsSel = ref([])
+// Универсальный объект фильтров для панели
+const filters = ref({
+  rares: [],
+  jobs: []
+})
 
-// применяем фильтры сразу при изменении моделей
-watch(raresSel,  (arr) => store.setRares(arr),  { deep: true })
-watch(jobsSel,   (arr) => store.setJobs(arr),   { deep: true })
-watch(levelsSel, (arr) => store.setLevels(arr), { deep: true })
+// Применяем в стор сразу при изменении
+watch(filters, (val) => store.applyFilters(val), { deep: true })
 
-// счётчик выбранных фильтров для кнопки
+// Счётчик выбранных фильтров (без строки поиска, но с учётом hasBuffId)
 const selectedFiltersCount = computed(() => {
-  const f = store.filters
+  const f = store.filters || {}
   let c = 0
-  c += (f.rares?.length || 0)
-  c += (f.jobs?.length || 0)
-  c += (f.levels?.length || 0)
-  if (f.hasBuffId != null) c += 1
+  if (Array.isArray(f.rares)) c += f.rares.length
+  if (Array.isArray(f.jobs))  c += f.jobs.length
+  if (f.hasBuffId != null)    c += 1
   return c
 })
 
-// статичные словари — человекочитаемые лейблы
+// Человеко-читаемые наборы опций
 const RARITY_OPTIONS = [
   { label: 'Common',   value: 1  },
   { label: 'Elite',    value: 2  },
@@ -53,73 +73,73 @@ const RARITY_OPTIONS = [
   { label: 'Legend',   value: 8  },
   { label: 'Mythical', value: 16 }
 ]
-const LEVEL_OPTIONS = Array.from({ length: 10 }, (_, i) => ({ label: `Lv ${i+1}`, value: i+1 }))
 
-// Конфиг секций фильтрации для панели
+// Конфиг секций фильтров для панели
 const filtersConfig = computed(() => {
-  // Jobs берём из стора (могут прийти позже), рендерим «Job N»
   const jobOpts = (store.facets?.jobs || []).map(j => ({ label: `Job ${j}`, value: j }))
   return [
-    { key: 'rares',  title: 'Rarity', options: RARITY_OPTIONS },
-    { key: 'levels', title: 'Levels', options: LEVEL_OPTIONS },
-    { key: 'jobs',   title: 'Jobs',   options: jobOpts }
+    { key: 'rares', title: 'Rarity', options: RARITY_OPTIONS },
+    { key: 'jobs',  title: 'Jobs',   options: jobOpts }
   ]
 })
 
-// первый загрузочный цикл
+/* ---------- Загрузка / перезагрузка ---------- */
 async function load() {
   await store.load(locale.value)
-
-  // по умолчанию — только CoreLv=1 (на странице; в модалке — свой ползунок)
-  store.setLevels([1])
-
-  // первичный поиск из query
+  // применяем поиск из query
   store.setSearch(String(search.value || ''))
-
-  // синхронизация локальных моделей с состоянием стора
-  raresSel.value  = [...(store.filters.rares  || [])]
-  jobsSel.value   = [...(store.filters.jobs   || [])]
-  levelsSel.value = [...(store.filters.levels || [])]
+  // синхронизируем локальные фильтры с состоянием стора
+  filters.value = { ...store.filters }
 }
 
-// при смене locale — перезагрузка и запись в query
+function handleReload() {
+  // Reload должен сбрасывать поиск и фильтры — поведение станет очевидным
+  search.value = ''
+  store.resetFilters()
+  store.setSearch('')         // на всякий случай синхронизируем
+  load()
+}
+
+function handleResetFromPanel() {
+  // панель вызывает reset — дополнительно чистим локальный инпут
+  search.value = ''
+  store.resetFilters()
+}
+
+/* ---------- Навигация / query ---------- */
 watch(locale, (val) => {
   router.replace({ query: { ...route.query, locale: val, q: search.value || undefined } })
   load()
 })
 
-// поиск (регистронезависимый, по englishName — реализовано в сторе)
 watch(search, (q) => {
   store.setSearch(String(q || ''))
   router.replace({ query: { ...route.query, locale: locale.value, q: q || undefined } })
 })
 
+/* ---------- Mount lifecycle ---------- */
 onMounted(() => {
   updateIsMobile()
   window.addEventListener('resize', updateIsMobile, { passive: true })
+  document.addEventListener('click', onClickOutside, { passive: true })
   load()
 })
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateIsMobile)
+  document.removeEventListener('click', onClickOutside)
 })
 
-// список для грида — берём накопительный (infinite scroll)
+/* ---------- Грид / модалка / infinite ---------- */
 const items        = computed(() => store.pageItems)
 const hasNextPage  = computed(() => store.hasNextPage)
 const isLoading    = computed(() => store.loading)
 
-// пути к иконкам
-function iconSrc(core) {
-  return `/wiki/Cores/${core?.Icon}.png`
-}
-
-// найти запись ядра по id + level
+function iconSrc(core) { return `/wiki/Cores/${core?.Icon}.png` }
 function findByIdLevel(id, lv) {
   return store.items.find(c => c.id === id && c.CoreLv === lv) ||
          store.items.find(c => c.id === id) || null
 }
 
-// --- МОДАЛКА (уровень только тут)
 const modalOpen    = ref(false)
 const modalLevel   = ref(1)
 const selectedId   = ref(null)
@@ -136,8 +156,6 @@ function closeModal() {
   selectedId.value = null
   selectedCore.value = null
 }
-
-// смена уровня в модалке
 watch(modalLevel, (lv) => {
   const v = Math.min(10, Math.max(1, Number(lv || 1)))
   if (v !== lv) modalLevel.value = v
@@ -147,10 +165,7 @@ watch(modalLevel, (lv) => {
   }
 })
 
-// infinite: догружаем следующую порцию
-function loadMore() {
-  store.nextPage()
-}
+function loadMore() { store.nextPage() }
 </script>
 
 <template>
@@ -159,44 +174,78 @@ function loadMore() {
       <h1 class="text-2xl font-semibold">Wiki — Cores</h1>
 
       <div class="sm:ml-auto flex flex-wrap items-center gap-3">
-        <!-- Кнопка открытия фильтров -->
-        <div class="flex gap-4 items-center">
+        <!-- Локали (кнопка + выпадающий список) -->
+        <div id="locale-dropdown" class="relative">
+          <button
+            @click="toggleLocale"
+            class="inline-flex items-center gap-2 rounded-md px-2.5 py-1.5 ring-1 ring-white/10 hover:ring-white/20 bg-neutral-900/50"
+            aria-haspopup="listbox"
+            :aria-expanded="localeOpen ? 'true' : 'false'"
+          >
+            <img :src="currLocale.flag" :alt="currLocale.native" class="w-5 h-5 rounded-sm ring-1 ring-white/10 object-contain" />
+            <span class="text-sm font-medium">{{ currLocale.native }}</span>
+            <svg class="w-4 h-4 opacity-70" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd"/></svg>
+          </button>
+
+          <div
+            v-if="localeOpen"
+            class="absolute z-40 mt-2 w-56 rounded-md bg-[#232228] ring-1 ring-white/10 shadow-lg overflow-hidden"
+            role="listbox"
+          >
+            <button
+              v-for="opt in LOCALES"
+              :key="opt.value"
+              class="w-full flex items-center justify-between gap-3 px-3 py-2 text-left hover:bg-white/5"
+              @click="chooseLocale(opt.value)"
+              role="option"
+              :aria-selected="opt.value === locale"
+            >
+              <div class="flex items-center gap-2">
+                <img :src="opt.flag" :alt="opt.native" class="w-5 h-5 rounded-sm ring-1 ring-white/10 object-contain" />
+                <span class="text-sm">{{ opt.native }}</span>
+              </div>
+              <span class="text-xs opacity-70 uppercase">{{ opt.value }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Кнопка фильтров -->
+        <div class="flex gap-2 items-center">
           <button
             @click="handleToggleFilter"
-            class="border-2 border-[#63B4C8] text-[#63B4C8] rounded-md p-2 flex gap-2 text-xl font-semibold items-center hover:bg-gray-700 sticky sm:static top-0 left-0 justify-center max-sm:w-full z-30 bg-[#232228]"
+            class="border-2 border-[#63B4C8] text-[#63B4C8] rounded-md px-3 py-1.5 flex gap-2 text-base sm:text-lg font-semibold items-center hover:bg-gray-700 sticky sm:static top-0 left-0 justify-center max-sm:w-full z-30 bg-[#232228]"
           >
-            <img src="@/assets/filter-1.svg" class="w-6" alt="filter" />
+            <img src="@/assets/filter-1.svg" class="w-5 sm:w-6" alt="filter" />
             Filters ({{ selectedFiltersCount }})
           </button>
         </div>
 
-        <!-- Поиск -->
-        <div class="flex items-center gap-2">
+        <!-- Поиск (стилизованный, с очисткой) -->
+        <div class="relative">
           <input
             v-model.trim="search"
             type="text"
             inputmode="search"
             placeholder="Search by name…"
-            class="bg-neutral-900/50 rounded px-3 py-2 ring-1 ring-white/10 focus:ring-white/20 min-w-[220px]"
+            class="bg-neutral-900/60 rounded-md pl-9 pr-8 py-2 ring-1 ring-white/10 focus:ring-white/20 min-w-[220px] placeholder:opacity-60"
           />
+          <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M10 4a6 6 0 104.472 10.028l4.25 4.25 1.414-1.414-4.25-4.25A6 6 0 0010 4zm-4 6a4 4 0 118 0 4 4 0 01-8 0z"/>
+          </svg>
+          <button
+            v-if="search"
+            @click="search = ''"
+            class="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full hover:bg-white/10 grid place-items-center"
+            title="Clear"
+          >
+            <svg class="w-3.5 h-3.5 opacity-80" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6.225 4.811L4.811 6.225 9.586 11l-4.775 4.775 1.414 1.414L11 12.414l4.775 4.775 1.414-1.414L12.414 11l4.775-4.775-1.414-1.414L11 9.586z"/>
+            </svg>
+          </button>
         </div>
 
-        <!-- Locale -->
-        <div class="flex items-center gap-2">
-          <label class="text-sm opacity-80">locale</label>
-          <select v-model="locale" class="bg-neutral-900/50 rounded px-2 py-1 ring-1 ring-white/10">
-            <option value="en">en</option>
-            <option value="ru">ru</option>
-            <option value="ch">ch</option>
-            <option value="jp">jp</option>
-            <option value="kr">kr</option>
-            <option value="vn">vn</option>
-            <option value="id">id</option>
-            <option value="tr">tr</option>
-          </select>
-        </div>
-
-        <button @click="load" class="rounded px-3 py-1 ring-1 ring-white/10 hover:ring-white/20">
+        <!-- Reload -->
+        <button @click="handleReload" class="rounded px-3 py-1.5 ring-1 ring-white/10 hover:ring-white/20">
           Reload
         </button>
       </div>
@@ -210,7 +259,7 @@ function loadMore() {
       · Search: <span class="font-medium">{{ search || '—' }}</span>
     </p>
 
-    <!-- ГРИД ИКОНКИ + INFINITE -->
+    <!-- ГРИД -->
     <div v-if="store.loading" class="text-sm opacity-80">Loading…</div>
     <div v-else-if="store.error" class="text-sm text-red-400">Error: {{ store.error }}</div>
 
@@ -223,9 +272,8 @@ function loadMore() {
           class="group relative aspect-square rounded-2xl overflow-hidden ring-1 ring-white/10 hover:ring-white/25 bg-neutral-900/40"
           :title="`ID ${core.id} — Lv.${core.CoreLv}`"
         >
-          <!-- СТАЛО -->
+          <!-- иконка + свечение -->
           <div class="absolute inset-0 p-1.5 sm:p-2 relative overflow-hidden">
-            <!-- сама иконка -->
             <img
               class="w-full h-full object-contain relative z-10"
               :src="iconSrc(core)"
@@ -233,7 +281,6 @@ function loadMore() {
               loading="lazy"
               draggable="false"
             />
-            <!-- свечение поверх -->
             <img
               src="/wiki/Cards/Img_CoreBGFX.png"
               alt=""
@@ -242,7 +289,6 @@ function loadMore() {
               draggable="false"
             />
           </div>
-
 
           <div class="absolute bottom-0 left-0 right-0 px-2 py-1 text-[11px] bg-black/40 backdrop-blur-sm">
             <div class="flex items-center justify-between">
@@ -253,7 +299,6 @@ function loadMore() {
         </button>
       </div>
 
-      <!-- sentinel для infinite-scroll -->
       <InfinitePager
         :is-loading="isLoading"
         :has-next-page="hasNextPage"
@@ -283,26 +328,24 @@ function loadMore() {
       </div>
     </div>
 
-    <!-- ПАНЕЛЬ ФИЛЬТРОВ (словарь; рендерится через Teleport) -->
+    <!-- ПАНЕЛЬ ФИЛЬТРОВ -->
     <WikiFilterPanel
       :open="showFilterPanel"
       :filters-config="filtersConfig"
-      v-model:rares="raresSel"
-      v-model:jobs="jobsSel"
-      v-model:levels="levelsSel"
+      v-model:filters="filters"
       @close="handleToggleFilter"
-      @reset="store.resetFilters()"
+      @reset="handleResetFromPanel"
     />
   </section>
 </template>
 
 <style scoped>
 .core-glow {
-  opacity: 0.3;              /* базовая интенсивность */
-  mix-blend-mode: screen;     /* «ёмкий» свет поверх иконки */
+  opacity: 0.3;
+  mix-blend-mode: screen;
   filter: drop-shadow(0 2px 6px rgba(255,255,255,.15));
 }
 @media (prefers-color-scheme: light) {
-  .core-glow { opacity: .7; } /* в светлой теме чуть ярче */
+  .core-glow { opacity: .7; }
 }
 </style>
