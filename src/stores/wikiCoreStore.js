@@ -32,13 +32,13 @@ export const useWikiCoreStore = defineStore('wikiCore', {
     error: '',
     loadedLocale: 'en',
 
-    // клиентские фильтры
     filters: {
       search: '',                    // englishName (case-insensitive)
-      rares: /** @type {number[]} */ ([]), // CoreRare in []
-      jobs:  /** @type {number[]} */ ([]), // массив битов [1,2,4,8,16]
+      rares:  /** @type {number[]} */ ([]),  // CoreRare in []
+      jobs:   /** @type {number[]} */ ([]),  // [1,2,4,8,16]
+      labels: /** @type {number[]} */ ([]),  // Tips_Label IDs
       hasBuffId: /** @type {number|null} */ (null),
-      uniq: false, // режим «только уникальные» (JobLimit = 1|2|4|8|16)
+      uniq: false, // unique-mode for JobLimit (exact mask)
     },
 
     sort: { ...DEFAULT_SORT },
@@ -50,7 +50,7 @@ export const useWikiCoreStore = defineStore('wikiCore', {
 
   getters: {
     facets(state) {
-      // оставляем на будущее (если понадобится), но jobs тут не нужен
+      // оставим только rares как фасет (jobs/labels статичны/из словаря)
       const rares = new Set()
       for (const c of state.items) if (c.CoreRare != null) rares.add(c.CoreRare)
       return { rares: Array.from(rares).sort((a,b)=>a-b) }
@@ -61,47 +61,52 @@ export const useWikiCoreStore = defineStore('wikiCore', {
       descOf: (c) => (c?.i18n?.desc?.[locale] ?? ''),
     }),
 
-    
     filtered(state) {
       const f = state.filters
       const s = (f.search || '').trim().toLowerCase()
-      const needRares = new Set(f.rares || [])
-      const needJobs  = new Set(f.jobs  || [])
-      const buffId    = f.hasBuffId
-    
-      // вычисляем целевую маску из выбранных джобов один раз
+      const needRares  = new Set(f.rares || [])
+      const needJobs   = new Set(f.jobs  || [])
+      const needLabels = new Set(f.labels || [])
+      const buffId     = f.hasBuffId
+
+      // целевая маска для jobs
       const jobMask = Array.from(needJobs).reduce((mask, bit) => (mask | bit), 0)
-    
+
       return state.items.filter((c) => {
-        // показываем только уровни 1 в гриде
+        // показываем только уровни 1 на гриде
         if (c.CoreLv !== 1) return false
-      
+
         if (needRares.size && !needRares.has(c.CoreRare)) return false
-      
+
         if (needJobs.size) {
           if (f.uniq) {
-            // УНИКАЛЬНЫЙ РЕЖИМ: точное равенство суммарной маске выбранных джобов
+            // точное равенство суммарной маске выбранных классов
             if (c.JobLimit !== jobMask) return false
           } else {
-            // ОБЫЧНЫЙ РЕЖИМ: хватит совпадения хотя бы одного флага
-            if ( (c.JobLimit & jobMask) === 0 ) return false
+            // хотя бы один выбранный флаг присутствует в битмаске ядра
+            if ((c.JobLimit & jobMask) === 0) return false
           }
         }
-      
+
+        if (needLabels.size) {
+          const tl = Array.isArray(c.Tips_Label) ? c.Tips_Label : []
+          // требуется пересечение Tips_Label с выбранными
+          const hasAny = tl.some(id => needLabels.has(id))
+          if (!hasAny) return false
+        }
+
         if (buffId != null) {
           const arr = Array.isArray(c.Buff_Display) ? c.Buff_Display : []
           if (!arr.some(b => b?.BuffId === buffId)) return false
         }
-      
+
         if (s) {
           const english = (c.englishName || '').toLowerCase()
           if (!english.includes(s)) return false
         }
-      
         return true
       })
     },
-
 
     sorted() {
       const arr = [...this.filtered]
@@ -170,12 +175,13 @@ export const useWikiCoreStore = defineStore('wikiCore', {
     },
 
     applyFilters(payload = {}) {
-      // ожидаем { rares?: number[], jobs?: number[], uniq?: boolean, search?: string, hasBuffId?: number|null }
-      if ('rares' in payload) this.filters.rares = Array.isArray(payload.rares) ? payload.rares : []
-      if ('jobs'  in payload) this.filters.jobs  = Array.isArray(payload.jobs)  ? payload.jobs  : []
-      if ('uniq'  in payload) this.filters.uniq  = !!payload.uniq
-      if ('search'   in payload)   this.filters.search   = payload.search ?? ''
-      if ('hasBuffId' in payload)  this.filters.hasBuffId = payload.hasBuffId ?? null
+      // ожидаем: { rares?, jobs?, labels?, uniq?, search?, hasBuffId? }
+      if ('rares'  in payload) this.filters.rares  = Array.isArray(payload.rares)  ? payload.rares  : []
+      if ('jobs'   in payload) this.filters.jobs   = Array.isArray(payload.jobs)   ? payload.jobs   : []
+      if ('labels' in payload) this.filters.labels = Array.isArray(payload.labels) ? payload.labels : []
+      if ('uniq'   in payload) this.filters.uniq   = !!payload.uniq
+      if ('search'    in payload) this.filters.search    = payload.search ?? ''
+      if ('hasBuffId' in payload) this.filters.hasBuffId = payload.hasBuffId ?? null
       this.page = 1
     },
 
@@ -184,6 +190,7 @@ export const useWikiCoreStore = defineStore('wikiCore', {
     setSearch(v)   { this.filters.search = v ?? ''; this.page = 1 },
     setRares(arr)  { this.filters.rares  = Array.isArray(arr) ? arr : []; this.page = 1 },
     setJobs(arr)   { this.filters.jobs   = Array.isArray(arr) ? arr : []; this.page = 1 },
+    setLabels(arr) { this.filters.labels = Array.isArray(arr) ? arr : []; this.page = 1 },
     setUniq(v)     { this.filters.uniq   = !!v; this.page = 1 },
     setBuffId(idOrNull) {
       const v = (idOrNull === null || idOrNull === undefined || idOrNull === '') ? null : Number(idOrNull)
@@ -196,7 +203,7 @@ export const useWikiCoreStore = defineStore('wikiCore', {
     setPageSize(ps)  { this.pageSize = Math.min(200, Math.max(5, Number(ps || 30))); this.page = 1 },
 
     resetFilters() {
-      this.filters = { search: '', rares: [], jobs: [], hasBuffId: null, uniq: false }
+      this.filters = { search: '', rares: [], jobs: [], labels: [], hasBuffId: null, uniq: false }
       this.page = 1
     }
   }

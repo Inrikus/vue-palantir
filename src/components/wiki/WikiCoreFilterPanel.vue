@@ -1,15 +1,49 @@
 <script setup>
-import { computed, onBeforeUnmount, watch } from 'vue'
+import { computed, onBeforeUnmount, watch, onMounted } from 'vue'
+import { useWikiLabelStore } from '@/stores/wikiLabelStore'
+
+/**
+ * Специализированная панель фильтров для Cores.
+ * Разделы:
+ *  - Rarity (статично)
+ *  - Jobs + Uniq (битовые флаги)
+ *  - Dynamic label groups — из wikiLabelStore по Tips_Label:
+ *      группируем по CoreFilter (без пустых), заголовок = CoreFilter без "Filter"
+ *      опции = i18n[locale] (или Name.text) + value = ID
+ *
+ * v-model:
+ *  - rares: number[]
+ *  - jobs:  number[]
+ *  - labels: number[]   // IDs из Tips_Label
+ *  - uniq: boolean
+ *
+ * props:
+ *  - locale: string  // для загрузки/локализации label-ов
+ */
 
 const props = defineProps({
-  open:  { type: Boolean, default: false },
-  rares: { type: Array,  default: () => [] },
-  jobs:  { type: Array,  default: () => [] },
-  uniq:  { type: Boolean, default: false } // режим «только уникальные»
-})
-const emit = defineEmits(['close', 'reset', 'update:rares', 'update:jobs', 'update:uniq'])
+  open:   { type: Boolean, default: false },
+  locale: { type: String,  default: 'en' },
 
-// статичные опции
+  // v-model
+  rares:  { type: Array,   default: () => [] },
+  jobs:   { type: Array,   default: () => [] },
+  labels: { type: Array,   default: () => [] },
+  uniq:   { type: Boolean, default: false }
+})
+
+const emit = defineEmits([
+  'close', 'reset',
+  'update:rares', 'update:jobs', 'update:labels', 'update:uniq'
+])
+
+/* -------- labels store -------- */
+const labelStore = useWikiLabelStore()
+const loadLabels = (loc) => labelStore.load(loc)
+onMounted(() => loadLabels(props.locale))
+watch(() => props.locale, (loc) => loadLabels(loc))
+
+/* -------- static options -------- */
 const RARITY_OPTIONS = [
   { label: 'Common',   value: 1  },
   { label: 'Elite',    value: 2  },
@@ -25,14 +59,42 @@ const JOB_OPTIONS = [
   { label: 'Apostle',  value: 16 },
 ]
 
-// мобильный режим — bottom sheet
+/* -------- dynamic label groups (by CoreFilter) -------- */
+const labelGroups = computed(() => {
+  const items = Array.isArray(labelStore.items) ? labelStore.items : []
+  // только непустые CoreFilter
+  const groups = new Map()
+  for (const l of items) {
+    const cf = (l.CoreFilter || '').trim()
+    if (!cf) continue
+    const key = cf
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key).push(l)
+  }
+  // преобразуем в [{title, options:[{label, value, color}]}]
+  const out = []
+  for (const [key, arr] of groups.entries()) {
+    const title = key.endsWith('Filter') ? key.slice(0, -6) : key // обрезаем "Filter"
+    const options = arr
+      .map(l => ({
+        value: l.ID,
+        label: l.i18n?.[props.locale] || l.Name?.text || String(l.ID),
+        color: l.LabelImageColor || '5E5E5E',
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+    if (options.length) out.push({ key, title, options })
+  }
+  // стабильный порядок заголовков
+  out.sort((a, b) => a.title.localeCompare(b.title))
+  return out
+})
+
+/* -------- mobile / scroll lock -------- */
 const isMobile = computed(() =>
   typeof window !== 'undefined'
     ? window.matchMedia('(max-width: 640px)').matches
     : false
 )
-
-// scroll lock
 function toggleScrollLock(locked) {
   const html = document.documentElement
   const body = document.body
@@ -42,21 +104,30 @@ function toggleScrollLock(locked) {
 watch(() => props.open, (v) => { if (isMobile.value) toggleScrollLock(v) })
 onBeforeUnmount(() => toggleScrollLock(false))
 
-// чекбоксы
+/* -------- toggles -------- */
 const toggleVal = (key, val) => {
-  const curr = key === 'rares' ? new Set(props.rares) : new Set(props.jobs)
+  const curr = new Set(
+    key === 'rares'  ? props.rares  :
+    key === 'jobs'   ? props.jobs   :
+    key === 'labels' ? props.labels : []
+  )
   curr.has(val) ? curr.delete(val) : curr.add(val)
   const next = Array.from(curr)
-  if (key === 'rares') emit('update:rares', next)
-  if (key === 'jobs')  emit('update:jobs',  next)
+  if (key === 'rares')  emit('update:rares',  next)
+  if (key === 'jobs')   emit('update:jobs',   next)
+  if (key === 'labels') emit('update:labels', next)
 }
 const selectedCount = computed(() =>
-  (props.rares?.length || 0) + (props.jobs?.length || 0) + (props.uniq ? 1 : 0)
+  (props.rares?.length || 0) +
+  (props.jobs?.length  || 0) +
+  (props.labels?.length || 0) +
+  (props.uniq ? 1 : 0)
 )
 function handleReset() {
-  emit('update:rares', [])
-  emit('update:jobs',  [])
-  emit('update:uniq',  false)
+  emit('update:rares',  [])
+  emit('update:jobs',   [])
+  emit('update:labels', [])
+  emit('update:uniq',   false)
   emit('reset')
 }
 </script>
@@ -120,8 +191,6 @@ function handleReset() {
           <section>
             <div class="flex items-center justify-between mb-2">
               <h4 class="text-sm uppercase tracking-wide opacity-80">Jobs</h4>
-
-              <!-- Uniq toggle -->
               <label class="inline-flex items-center gap-2 cursor-pointer select-none text-xs">
                 <input
                   type="checkbox"
@@ -151,13 +220,37 @@ function handleReset() {
 
             <p class="mt-2 text-xs opacity-70">
               <template v-if="uniq">
-                Shows only cores available to <b>exactly one</b> class.
+                Shows only cores available to <b>exactly one</b> class (JobLimit = 1 / 2 / 4 / 8 / 16),
+                or to the <b>exact sum</b> of selected classes (e.g. Striker+Keystone → JobLimit = 3).
               </template>
               <template v-else>
-                A core matches if it includes <i>any</i> of the selected class flags.
+                A core matches if its JobLimit includes <i>any</i> of the selected class flags.
               </template>
             </p>
+          </section>
 
+          <!-- Dynamic label groups (Tips_Label) -->
+          <section v-for="grp in labelGroups" :key="grp.key">
+            <h4 class="text-sm uppercase tracking-wide opacity-80 mb-2">{{ grp.title }}</h4>
+            <div class="flex flex-wrap gap-2">
+              <label
+                v-for="opt in grp.options"
+                :key="`label-${grp.key}-${opt.value}`"
+                class="inline-flex items-center gap-2 rounded-lg px-3 py-2 ring-1 ring-white/10 hover:ring-white/20 cursor-pointer select-none"
+                :style="{
+                  borderColor: `#${opt.color}33`,
+                  backgroundColor: `#${opt.color}1A`
+                }"
+              >
+                <input
+                  type="checkbox"
+                  class="accent-[#63B4C8]"
+                  :checked="labels.includes(opt.value)"
+                  @change="toggleVal('labels', opt.value)"
+                />
+                <span class="text-sm">{{ opt.label }}</span>
+              </label>
+            </div>
           </section>
 
           <div class="flex gap-2">

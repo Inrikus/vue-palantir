@@ -27,16 +27,18 @@ function updateIsMobile() {
 }
 const handleToggleFilter = () => { showFilterPanel.value = !showFilterPanel.value }
 
-const filters = ref({ rares: [], jobs: [], uniq: false })
-watch(filters, (v) => store.applyFilters(v), { deep: true })
+const filters = ref({ rares: [], jobs: [], labels: [], uniq: false })
+watch(filters, (val) => store.applyFilters(val), { deep: true })
 
 // Счётчик выбранных фильтров (без строки поиска, но с учётом hasBuffId)
 const selectedFiltersCount = computed(() => {
   const f = store.filters || {}
   let c = 0
-  if (Array.isArray(f.rares)) c += f.rares.length
-  if (Array.isArray(f.jobs))  c += f.jobs.length
-  if (f.hasBuffId != null)    c += 1
+  if (Array.isArray(f.rares))  c += f.rares.length
+  if (Array.isArray(f.jobs))   c += f.jobs.length
+  if (Array.isArray(f.labels)) c += f.labels.length
+  if (f.uniq)                  c += 1
+  if (f.hasBuffId != null)     c += 1
   return c
 })
 
@@ -254,8 +256,10 @@ function loadMore() { store.nextPage() }
     <!-- ПАНЕЛЬ ФИЛЬТРОВ -->
     <WikiCoreFilterPanel
       :open="showFilterPanel"
+      :locale="locale"
       v-model:rares="filters.rares"
       v-model:jobs="filters.jobs"
+      v-model:labels="filters.labels"
       v-model:uniq="filters.uniq"
       @close="handleToggleFilter"
       @reset="handleResetFromPanel"
