@@ -163,7 +163,7 @@ function onLevelInput(e) {
             :width="j.size"
             :height="j.size"
             class="object-contain rounded-md bg-black/20 ring-1 ring-white/10 transition-opacity"
-            :class="j.allowed ? 'opacity-100' : 'opacity-25 grayscale'"
+            :class="j.allowed ? 'opacity-100' : 'opacity-10 grayscale'"
             loading="lazy"
           />
         </div>

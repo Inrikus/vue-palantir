@@ -33,12 +33,7 @@ function updateIsMobile () {
 const handleToggleFilter = () => { showFilterPanel.value = !showFilterPanel.value }
 
 // Локальная форма фильтров (массивы + uniq toggle)
-const filters = ref({
-  rares:  [],
-  jobs:   [],
-  labels: [],
-  uniq:   false,
-})
+const filters = ref({ rares: [], jobs: [], labels: [], uniq: false })
 
 /* Применяем сразу при изменении модели */
 watch(filters, (val) => store.applyFilters(val), { deep: true })
@@ -75,19 +70,12 @@ const labelMap = computed(() => {
 async function load () {
   await store.load(locale.value)
   await labelStore.load(locale.value)
-
-  // Поиск из query
   store.setSearch(String(search.value || ''))
-
-  // Синхронизируем локальные фильтры со стором
   filters.value = { ...store.filters }
-
-  // Запускаем прогрессивную догрузку до максимума
   startProgressiveFill()
 }
 
 function handleReload () {
-  // Reload явно сбрасывает и поиск, и фильтры
   search.value = ''
   store.resetFilters()
   store.setSearch('')
@@ -95,10 +83,8 @@ function handleReload () {
 }
 
 function handleResetFromPanel () {
-  // Reset из панели — дополнительно чистим строку поиска
   search.value = ''
   store.resetFilters()
-  // перезапуск автомата
   startProgressiveFill()
 }
 
@@ -111,7 +97,6 @@ watch(locale, (val) => {
 watch(search, (q) => {
   store.setSearch(String(q || ''))
   router.replace({ query: { ...route.query, locale: locale.value, q: q || undefined } })
-  // перезапуск автомата
   startProgressiveFill()
 })
 
@@ -124,30 +109,17 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateIsMobile)
   stopProgressiveFill()
-  toggleScrollLock(false) // на всякий случай
+  toggleScrollLock(false)
 })
 
 /* ---------- Прогрессивная «раскатка» до максимума ---------- */
 let fillTimer = null
-
-function stopProgressiveFill () {
-  if (fillTimer) {
-    clearInterval(fillTimer)
-    fillTimer = null
-  }
-}
-
+function stopProgressiveFill () { if (fillTimer) { clearInterval(fillTimer); fillTimer = null } }
 function startProgressiveFill () {
   stopProgressiveFill()
   if (!store.hasNextPage) return
-
-  // store.setPageSize(60) // опционально ускорить «раскатку»
-
   fillTimer = setInterval(() => {
-    if (!store.hasNextPage) {
-      stopProgressiveFill()
-      return
-    }
+    if (!store.hasNextPage) { stopProgressiveFill(); return }
     store.nextPage()
   }, 500)
 }
@@ -160,9 +132,7 @@ watch(
 
 /* ---------- Грид / модалка ---------- */
 const items = computed(() => store.pageItems)
-
 function iconSrc (core) { return `/wiki/Cores/${core?.Icon}.png` }
-
 function findByIdLevel (id, lv) {
   return store.items.find(c => c.id === id && c.CoreLv === lv) ||
          store.items.find(c => c.id === id) || null
@@ -186,7 +156,6 @@ function closeModal () {
   selectedCore.value = null
 }
 
-// держим уровень в границах и подменяем core
 watch(modalLevel, (lv) => {
   const v = Math.min(10, Math.max(1, Number(lv || 1)))
   if (v !== lv) modalLevel.value = v
@@ -196,9 +165,7 @@ watch(modalLevel, (lv) => {
   }
 })
 
-
-
-/* ---------- ЛОК СКРОЛЛА подложки при открытой модалке ---------- */
+/* ---------- ЛОК СКРОЛЛА фона при модалке ---------- */
 function toggleScrollLock (locked) {
   const html = document.documentElement
   const body = document.body
@@ -206,6 +173,9 @@ function toggleScrollLock (locked) {
   body.classList.toggle('hidden-scroll', !!locked)
 }
 watch(modalOpen, (v) => toggleScrollLock(v))
+
+/* ---------- Items counter (после фильтров) ---------- */
+const totalMatched = computed(() => store.filteredTotal)
 </script>
 
 <template>
@@ -215,13 +185,13 @@ watch(modalOpen, (v) => toggleScrollLock(v))
       <h1 class="text-2xl font-semibold">Wiki — Cores</h1>
 
       <!-- Управляющая полоса: flex-wrap + order -->
-      <!-- Мобилка (default):
-           row 1: [Filters] ............. [Locale]
+      <!-- Мобилка:
+           row 1: [Filters] [Items] .......... [Locale]
            row 2: [Search.....................][Reload]
-           Десктоп (sm:):
-           row 1: [Filters] [Search.............] [Locale] -->
+           Десктоп:
+           row 1: [Filters] [Search.............] [Items] [Locale] -->
       <div class="flex flex-wrap items-center gap-3">
-        <!-- ЛЕВО: кнопка фильтров -->
+        <!-- ЛЕВО: Filters -->
         <div class="order-1 sm:order-1">
           <button
             @click="handleToggleFilter"
@@ -232,13 +202,19 @@ watch(modalOpen, (v) => toggleScrollLock(v))
           </button>
         </div>
 
-        <!-- ПРАВО (мобилка) / ПРАВО (десктоп): Locale -->
-        <div class="order-2 sm:order-3 ml-auto">
+        <!-- СЧЁТЧИК ITEMS -->
+        <div class="order-2 sm:order-3 text-sm opacity-80 flex items-center gap-2">
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Items: <span class="font-medium">{{ totalMatched }}</span></span>
+        </div>
+
+        <!-- ПРАВО: Locale -->
+        <div class="order-3 sm:order-4 ml-auto">
           <LocalePicker v-model="locale" />
         </div>
 
-        <!-- НИЖЕ (мобилка, на всю ширину) / ЦЕНТР (десктоп): Поиск + Reload -->
-        <div class="order-3 sm:order-2 basis-full sm:basis-auto w-full sm:w-auto sm:flex-1 flex items-center gap-3">
+        <!-- НИЖЕ (мобилка) / ЦЕНТР (десктоп): Поиск + Reload -->
+        <div class="order-4 sm:order-2 basis-full sm:basis-auto w-full sm:w-auto sm:flex-1 flex items-center gap-3">
           <div class="relative flex-1 min-w-[260px]">
             <input
               v-model.trim="search"
@@ -272,7 +248,7 @@ watch(modalOpen, (v) => toggleScrollLock(v))
       </div>
     </header>
 
-    <!-- Активные фильтры (чипы) + счётчик Items -->
+    <!-- Активные фильтры (чипы) -->
     <ActiveFiltersBar
       :locale="locale"
       :rares="filters.rares"
@@ -299,24 +275,10 @@ watch(modalOpen, (v) => toggleScrollLock(v))
           class="group relative aspect-square rounded-2xl overflow-hidden ring-1 ring-white/10 hover:ring-white/25 bg-neutral-900/40"
           :title="`ID ${core.id} — Lv.${core.CoreLv}`"
         >
-          <!-- иконка + свечение -->
           <div class="absolute inset-0 p-1.5 sm:p-2 relative overflow-hidden">
-            <img
-              class="w-full h-full object-contain relative z-10"
-              :src="iconSrc(core)"
-              alt=""
-              loading="lazy"
-              draggable="false"
-            />
-            <img
-              src="/wiki/Cards/Img_CoreBGFX.png"
-              alt=""
-              class="absolute inset-0 w-full h-full object-contain pointer-events-none select-none core-glow"
-              aria-hidden="true"
-              draggable="false"
-            />
+            <img class="w-full h-full object-contain relative z-10" :src="iconSrc(core)" alt="" loading="lazy" draggable="false" />
+            <img src="/wiki/Cards/Img_CoreBGFX.png" alt="" class="absolute inset-0 w-full h-full object-contain pointer-events-none select-none core-glow" aria-hidden="true" draggable="false" />
           </div>
-
           <div class="absolute bottom-0 left-0 right-0 px-2 py-1 text-[11px] bg-black/40 backdrop-blur-sm">
             <div class="flex items-center justify-between">
               <span class="opacity-90">ID {{ core.id }}</span>
@@ -328,11 +290,7 @@ watch(modalOpen, (v) => toggleScrollLock(v))
     </div>
 
     <!-- МОДАЛКА -->
-    <div
-      v-if="modalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4"
-      @keydown.esc="closeModal"
-    >
+    <div v-if="modalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" @keydown.esc="closeModal">
       <div class="absolute inset-0 bg-black/70" @click="closeModal" />
       <div class="relative max-w-3xl w-full">
         <div class="flex justify-between items-center mb-3">
@@ -341,9 +299,7 @@ watch(modalOpen, (v) => toggleScrollLock(v))
             <input type="range" min="1" max="10" step="1" v-model.number="modalLevel" class="w-40" />
             <span class="text-sm font-medium w-6 text-center">{{ modalLevel }}</span>
           </div>
-          <button @click="closeModal" class="rounded px-3 py-1 ring-1 ring-white/10 hover:ring-white/20">
-            Close
-          </button>
+          <button @click="closeModal" class="rounded px-3 py-1 ring-1 ring-white/10 hover:ring-white/20">Close</button>
         </div>
         <CoreCard
           v-if="selectedCore"
