@@ -4,32 +4,18 @@ import { useWikiLabelStore } from '@/stores/wikiLabelStore'
 
 /**
  * Специализированная панель фильтров для Cores.
- * Разделы:
- *  - Rarity (статично)
- *  - Jobs + Uniq (битовые флаги)
- *  - Dynamic label groups — из wikiLabelStore по Tips_Label:
- *      группируем по CoreFilter (без пустых), заголовок = CoreFilter без "Filter"
- *      опции = i18n[locale] (или Name.text) + value = ID
- *
- * v-model:
- *  - rares: number[]
- *  - jobs:  number[]
- *  - labels: number[]
- *  - uniq: boolean
- *
- * props:
- *  - locale: string
+ * v-model: rares:number[], jobs:number[], labels:number[], uniq:boolean
+ * props:   locale:string
  */
 
 const props = defineProps({
   open:   { type: Boolean, default: false },
   locale: { type: String,  default: 'en' },
 
-  // v-model
   rares:  { type: Array,   default: () => [] },
   jobs:   { type: Array,   default: () => [] },
   labels: { type: Array,   default: () => [] },
-  uniq:   { type: Boolean, default: false }
+  uniq:   { type: Boolean, default: false },
 })
 
 const emit = defineEmits([
@@ -128,6 +114,9 @@ function handleReset() {
   emit('update:uniq',   false)
   emit('reset')
 }
+
+/* helpers для классов выбранности */
+const isChecked = (arr, v) => Array.isArray(arr) && arr.includes(v)
 </script>
 
 <template>
@@ -147,12 +136,12 @@ function handleReset() {
         v-if="open"
         class="fixed z-[1001] bg-[#232228] ring-1 ring-white/10 shadow-2xl overflow-y-auto m-0"
         :class="[
-          'sm:inset-y-0 sm:left-0 sm:w-80 sm:max-w-[85vw]',
+          'sm:inset-y-0 sm:left-0 sm:w-[720px] sm:max-w-[90vw]',   // шире, чтобы уместились «кирпичи»
           'inset-x-0 bottom-0 top-0 sm:inset-auto'
         ]"
         role="dialog" aria-modal="true"
       >
-        <!-- TOP BAR: title + (Reset | Close) -->
+        <!-- TOP BAR -->
         <div class="p-4 flex items-center justify-between border-b border-white/10">
           <h3 class="text-lg font-semibold text-[#63B4C8]">
             Filters <span class="opacity-70 text-sm">({{ selectedCount }})</span>
@@ -162,43 +151,40 @@ function handleReset() {
               @click="handleReset"
               class="rounded px-3 py-1 ring-1 ring-white/10 hover:ring-white/20"
               title="Reset all filters"
-            >
-              Reset
-            </button>
+            >Reset</button>
             <button
               @click="$emit('close')"
               class="rounded px-3 py-1 ring-1 ring-white/10 hover:ring-white/20"
-            >
-              Close
-            </button>
+            >Close</button>
           </div>
         </div>
 
-        <div class="p-4 space-y-6">
-          <!-- Rarity -->
+        <div class="p-4 space-y-7">
+          <!-- RARITY -->
           <section>
-            <h4 class="text-sm uppercase tracking-wide opacity-80 mb-2">Rarity</h4>
-            <div class="flex flex-wrap gap-2">
+            <h4 class="sec-title">Rarity</h4>
+            <div class="tiles-grid">
               <label
                 v-for="opt in RARITY_OPTIONS"
                 :key="'rares-' + opt.value"
-                class="inline-flex items-center gap-2 rounded-lg px-3 py-2 ring-1 ring-white/10 hover:ring-white/20 cursor-pointer select-none"
+                class="tile"
+                :class="{ 'is-active': isChecked(rares, opt.value) }"
               >
                 <input
                   type="checkbox"
-                  class="accent-[#63B4C8]"
+                  class="sr-only"
                   :checked="rares.includes(opt.value)"
                   @change="toggleVal('rares', opt.value)"
                 />
-                <span class="text-sm">{{ opt.label }}</span>
+                <span class="tile-label">{{ opt.label }}</span>
               </label>
             </div>
           </section>
 
-          <!-- Jobs + Uniq -->
+          <!-- JOBS + UNIQ -->
           <section>
-            <div class="flex items-center justify-between mb-2">
-              <h4 class="text-sm uppercase tracking-wide opacity-80">Jobs</h4>
+            <div class="flex items-center justify-between">
+              <h4 class="sec-title">Jobs</h4>
               <label class="inline-flex items-center gap-2 cursor-pointer select-none text-xs">
                 <input
                   type="checkbox"
@@ -210,53 +196,55 @@ function handleReset() {
               </label>
             </div>
 
-            <div class="flex flex-wrap gap-2">
+            <div class="tiles-grid">
               <label
                 v-for="opt in JOB_OPTIONS"
                 :key="'jobs-' + opt.value"
-                class="inline-flex items-center gap-2 rounded-lg px-3 py-2 ring-1 ring-white/10 hover:ring-white/20 cursor-pointer select-none"
+                class="tile"
+                :class="{ 'is-active': isChecked(jobs, opt.value) }"
               >
                 <input
                   type="checkbox"
-                  class="accent-[#63B4C8]"
+                  class="sr-only"
                   :checked="jobs.includes(opt.value)"
                   @change="toggleVal('jobs', opt.value)"
                 />
-                <span class="text-sm">{{ opt.label }}</span>
+                <span class="tile-label">{{ opt.label }}</span>
               </label>
             </div>
 
-            <p class="mt-2 text-xs opacity-70">
+            <p class="mt-2 text-xs opacity-70 leading-relaxed">
               <template v-if="uniq">
                 Shows only cores available to <b>exactly one</b> class (JobLimit = 1 / 2 / 4 / 8 / 16),
-                or to the <b>exact sum</b> of selected classes (e.g. Striker+Keystone → JobLimit = 3).
+                or to the <b>exact sum</b> of the selected classes (e.g., Striker + Keystone → JobLimit = 3).
               </template>
               <template v-else>
-                A core matches if its JobLimit includes <i>any</i> of the selected class flags.
+                A core matches if its JobLimit contains <i>any</i> of the selected class flags.
               </template>
             </p>
           </section>
 
-          <!-- Dynamic label groups (Tips_Label) -->
+          <!-- DYNAMIC LABEL GROUPS -->
           <section v-for="grp in labelGroups" :key="grp.key">
-            <h4 class="text-sm uppercase tracking-wide opacity-80 mb-2">{{ grp.title }}</h4>
-            <div class="flex flex-wrap gap-2">
+            <h4 class="sec-title">{{ grp.title }}</h4>
+            <div class="tiles-grid">
               <label
                 v-for="opt in grp.options"
                 :key="`label-${grp.key}-${opt.value}`"
-                class="inline-flex items-center gap-2 rounded-lg px-3 py-2 ring-1 ring-white/10 hover:ring-white/20 cursor-pointer select-none"
+                class="tile"
+                :class="{ 'is-active': isChecked(labels, opt.value) }"
                 :style="{
-                  borderColor: `#${opt.color}33`,
-                  backgroundColor: `#${opt.color}1A`
+                  // лёгкий тон в фоне для группы
+                  '--tile-accent': `#${opt.color}`
                 }"
               >
                 <input
                   type="checkbox"
-                  class="accent-[#63B4C8]"
+                  class="sr-only"
                   :checked="labels.includes(opt.value)"
                   @change="toggleVal('labels', opt.value)"
                 />
-                <span class="text-sm">{{ opt.label }}</span>
+                <span class="tile-label">{{ opt.label }}</span>
               </label>
             </div>
           </section>
@@ -267,20 +255,69 @@ function handleReset() {
 </template>
 
 <style scoped>
-/* fade */
+/* Заголовки секций */
+.sec-title {
+  @apply text-sm uppercase tracking-wide opacity-80 mb-2;
+}
+
+/* Сетка «кирпичей» фиксированной ширины */
+.tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+@media (max-width: 640px) {
+  .tiles-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
+
+/* Плитка-опция */
+.tile {
+  --tile-accent: #5E5E5E;
+  display: grid;
+  place-items: center;
+  height: 44px;                /* фиксированная высота */
+  padding: 0 14px;
+  border-radius: 8px;
+  background: rgba(0,0,0,.25);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+  cursor: pointer;
+  user-select: none;
+  transition: box-shadow .15s ease, background-color .15s ease, transform .06s ease;
+}
+.tile:hover {
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.18);
+  background: rgba(255,255,255,.04);
+}
+.tile:active { transform: translateY(1px); }
+
+.tile-label {
+  font-size: 0.875rem; /* = Tailwind text-sm */
+  text-align: center;
+  line-height: 1.1;
+  white-space: nowrap; /* всё в одну строку */
+}
+
+/* Состояние выбора */
+.tile.is-active {
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.22),
+    0 0 0 1px rgba(99,180,200,.35);
+  background:
+    linear-gradient(0deg, rgba(99,180,200,.14), rgba(99,180,200,.14));
+}
+
+/* Анимации появления панели */
 .fade-enter-active, .fade-leave-active { transition: opacity 200ms ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
-/* desktop/tablet: slide from left */
 .slide-left-enter-active, .slide-left-leave-active { transition: transform 250ms ease, opacity 250ms ease; }
 .slide-left-enter-from, .slide-left-leave-to { transform: translateX(-100%); opacity: 0.8; }
 
-/* mobile: slide from bottom */
 @media (max-width: 640px) {
   .slide-up-enter-active, .slide-up-leave-active { transition: transform 250ms ease, opacity 250ms ease; }
   .slide-up-enter-from, .slide-up-leave-to { transform: translateY(100%); opacity: 0.8; }
 }
 
-/* глобалка для лок-боди при открытии */
+/* глобальная блокировка прокрутки под панелью */
 :global(.hidden-scroll) { overflow: hidden !important; }
 </style>
