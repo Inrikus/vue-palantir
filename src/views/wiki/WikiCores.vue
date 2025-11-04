@@ -182,14 +182,18 @@ const totalMatched = computed(() => store.filteredTotal)
   <section class="mx-auto w-full max-w-[98vw] px-2 sm:px-4 lg:px-6 space-y-4">
     <!-- Заголовок -->
     <header class="space-y-3">
-      <h1 class="text-2xl font-semibold">Wiki — Cores</h1>
+      <!-- первая строка: заголовок + локаль -->
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-semibold">Wiki — Cores</h1>
+        <LocalePicker v-model="locale" />
+      </div>
 
       <!-- Управляющая полоса: flex-wrap + order -->
       <!-- Мобилка:
-           row 1: [Filters] [Items] .......... [Locale]
+           row 1: [Filters]                    [Items]
            row 2: [Search.....................][Reload]
            Десктоп:
-           row 1: [Filters] [Search.............] [Items] [Locale] -->
+           row 1: [Filters] [Search.............] [Items] -->
       <div class="flex flex-wrap items-center gap-3">
         <!-- ЛЕВО: Filters -->
         <div class="order-1 sm:order-1">
@@ -203,19 +207,14 @@ const totalMatched = computed(() => store.filteredTotal)
         </div>
 
         <!-- СЧЁТЧИК ITEMS -->
-        <div class="order-2 sm:order-3 text-sm opacity-80 flex items-center gap-2">
+        <div class="order-2 sm:order-3 ml-auto text-sm opacity-80 flex items-center gap-2">
           <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           <span>Items: <span class="font-medium">{{ totalMatched }}</span></span>
         </div>
 
-        <!-- ПРАВО: Locale -->
-        <div class="order-3 sm:order-4 ml-auto">
-          <LocalePicker v-model="locale" />
-        </div>
-
         <!-- НИЖЕ (мобилка) / ЦЕНТР (десктоп): Поиск + Reload -->
         <div class="order-4 sm:order-2 basis-full sm:basis-auto w-full sm:w-auto sm:flex-1 flex items-center gap-3">
-          <div class="relative flex-1 min-w-[260px]">
+          <div class="relative flex-1 min-w-[240px]">
             <input
               v-model.trim="search"
               type="text"
