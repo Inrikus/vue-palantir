@@ -57,37 +57,35 @@ function onRemove(chip) {
         <span class="chip-label">{{ chip.label }}</span>
 
         <!-- крестик появляется по hover/focus -->
-        <span class="chip-x" aria-hidden="true">✕</span>
+        <!-- <span class="chip-x" aria-hidden="true">✕</span> -->
       </button>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* БАЗА: фиксированная высота → идеальное вертикальное центрирование */
+/* ======= CHIP ======= */
 .chip {
-  /* layout */
+  position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;             /* текст строго по центру */
   gap: 8px;
-
-  /* размеры */
-  height: 28px;              /* ровная капсула */
-  padding-inline: 10px;
+  height: 28px;
+  padding-inline: 12px;
   border-radius: 9999px;
 
   /* фон/бордер */
   background: color-mix(in oklab, var(--chip, #5e5e5e) 12%, transparent);
   border: 1px solid color-mix(in oklab, var(--chip, #5e5e5e) 26%, transparent);
-
-  /* эффекты */
   box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 1px 8px rgba(0,0,0,.25);
-  transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
 
-  /* взаимодействия */
+  /* поведение */
   cursor: pointer;
   backdrop-filter: blur(2px);
+  transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
 }
+
 .chip:hover,
 .chip:focus-visible {
   border-color: color-mix(in oklab, var(--chip, #5e5e5e) 46%, transparent);
@@ -96,15 +94,17 @@ function onRemove(chip) {
   outline: none;
 }
 
-/* текст строго по центру по вертикали благодаря фиксированной высоте + leading */
+/* ======= LABEL (по центру) ======= */
 .chip-label {
-  font-size: 12px;           /* ~ Tailwind text-xs */
-  font-weight: 600;          /* лучше читается в капсуле */
-  line-height: 1;            /* ключ к «по центру» */
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
   white-space: nowrap;
+  text-align: center;
+  flex: 0 1 auto;
 }
 
-/* мини-индикатор слева (цвет типа/группы) */
+/* ======= DOT (индикатор типа) ======= */
 .chip-dot {
   width: 6px;
   height: 6px;
@@ -113,24 +113,8 @@ function onRemove(chip) {
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--chip, #5e5e5e) 28%, transparent);
 }
 
-/* крестик выезжает по hover/focus → без «плясок» ширины */
-.chip-x {
-  width: 16px;
-  height: 16px;
-  border-radius: 9999px;
-  display: inline-grid;
-  place-items: center;
-  font-size: 10px;
-  line-height: 1;
-  color: rgba(255,255,255,.9);
-  background: rgba(255,255,255,.12);
-  opacity: 0;
-  transform: translateX(-2px);
-  transition: opacity .15s ease, transform .15s ease;
-}
-.chip:hover .chip-x,
-.chip:focus-visible .chip-x {
-  opacity: 1;
-  transform: translateX(0);
+/* ======= Контейнер ======= */
+.flex-wrap {
+  row-gap: 6px;
 }
 </style>
