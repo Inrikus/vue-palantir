@@ -33,15 +33,15 @@ export const fetchCryptocurrencies = () => {
 };
 
 export const fetchWikiCores = (locale = 'en') => {
-  return api.get(`/wiki/export/cores`, { params: { locale } });
+  return api.get(`/api/wiki/export/cores`, { params: { locale } });
 };
 
 export const fetchWikiLabels = (locale = 'en') => {
-  return api.get(`/wiki/export/labels`, { params: { locale } });
+  return api.get(`/api/wiki/export/labels`, { params: { locale } });
 };
 
 export const fetchWikiBuffs = (locale = 'en') => {
-  return api.get(`/wiki/export/buffs`, { params: { locale } });
+  return api.get(`/api/wiki/export/buffs`, { params: { locale } });
 };
 
 
