@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, watch, computed, ref } from 'vue'
-import CardItem from '@/components/Cards/CardItem.vue'
+import CardItem from '@/components/collections/Cards/CardItem.vue'
 import InfinitePager from './InfinitePager.vue'
 import { useCardStore } from '@/stores/cardStore'
 import { useFilterStore } from '@/stores/filterStore'

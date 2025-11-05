@@ -1,5 +1,5 @@
 <script setup>
-import BannerPanel from '../components/Banner/BannerPanel.vue'
+import BannerPanel from '../components/collections/Banner/BannerPanel.vue'
 </script>
 
 <template> 

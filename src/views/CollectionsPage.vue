@@ -2,10 +2,10 @@
 import { onBeforeUnmount, watch, ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 
-import CardsList from '@/components/Cards/CardsList.vue'
-import FiltersPanel from '@/components/Filters/FiltersPanel.vue'
-import ActivityPanel from '@/components/Activity/ActivityPanel.vue'
-import TabsPanel from '@/components/UI/TabsPanel.vue'
+import CardsList from '@/components/collections/Cards/CardsList.vue'
+import FiltersPanel from '@/components/collections/Filters/FiltersPanel.vue'
+import ActivityPanel from '@/components/collections/Activity/ActivityPanel.vue'
+import TabsPanel from '@/components/collections/UI/TabsPanel.vue'
 
 import { useCardStore } from '@/stores/cardStore'
 import { useFilterStore } from '@/stores/filterStore'

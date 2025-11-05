@@ -1,7 +1,7 @@
 <script setup>
 import { platformIcon, currency } from '@/utils/dictsList.js'
-import BadgeMech from '@/components/Badges/BadgeMech.vue'
-import BadgePlanet from '@/components/Badges/BadgePlanet.vue'
+import BadgeMech from '@/components/collections/Badges/BadgeMech.vue'
+import BadgePlanet from '@/components/collections/Badges/BadgePlanet.vue'
 
 const props = defineProps({
     card: Object

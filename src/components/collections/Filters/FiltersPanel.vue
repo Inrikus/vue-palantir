@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useFilterStore } from '@/stores/filterStore'
 import { collections, platformIcon } from '@/utils/dictsList.js'
-import ArrowIcon from '@/components/UI/ArrowIcon.vue'
+import ArrowIcon from '@/components/collections/UI/ArrowIcon.vue'
 
 const props = defineProps({
   isFilterPanelOpen: { type: Boolean, required: true }
