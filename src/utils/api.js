@@ -44,6 +44,13 @@ export const fetchWikiBuffs = (locale = 'en') => {
   return api.get(`/api/wiki/export/buffs`, { params: { locale } });
 };
 
+export const fetchWikiWeapons = (locale = 'en') => {
+  return api.get(`/api/wiki/export/weapons`, { params: { locale } });
+};
+
+export const fetchWikiSkills = (locale = 'en') => {
+  return api.get(`/api/wiki/export/skills`, { params: { locale } });
+};
 
 
 

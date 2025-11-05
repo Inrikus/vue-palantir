@@ -12,7 +12,7 @@ const ErrorPage = () => import('../views/ErrorPage.vue')
 const WikiHome   = () => import('../views/wiki/WikiHome.vue')
 const WikiCores  = () => import('../views/wiki/WikiCores.vue')
 const WikiBuffs  = () => import('../views/wiki/WikiBuffs.vue')
-const WikiWeps   = () => import('../views/wiki/WikiWeapons.vue')
+const WikiWeapons   = () => import('../views/wiki/WikiWeapons.vue')
 
 // простой плоский роутинг, как у тебя было, только чище
 const routes = [
@@ -32,7 +32,7 @@ const routes = [
   {
     path: '/wiki/weapons',
     name: 'wiki_weapons',
-    component: WikiWeps,
+    component: WikiWeapons,
     meta: { title: 'Wiki — Weapons/Skills' }
   },
   {

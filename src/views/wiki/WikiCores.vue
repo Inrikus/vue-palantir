@@ -20,7 +20,8 @@ const labelStore = useWikiLabelStore()
 const locale = ref(route.query.locale ?? 'en')
 
 /* ---------- Поиск ---------- */
-const search = ref(route.query.q ?? '')
+// Больше не читаем поиск из query и не сохраняем туда
+const search = ref('')
 
 /* ---------- Фильтр-панель ---------- */
 const showFilterPanel = ref(false)
@@ -70,12 +71,19 @@ const labelMap = computed(() => {
 async function load () {
   await store.load(locale.value)
   await labelStore.load(locale.value)
+
+  // Поиск — только локальный стейт/стор, без URL
   store.setSearch(String(search.value || ''))
+
+  // Синхроним локальные фильтры со стором
   filters.value = { ...store.filters }
+
+  // Запускаем прогрессивную догрузку до максимума
   startProgressiveFill()
 }
 
 function handleReload () {
+  // Reload явно сбрасывает и поиск, и фильтры
   search.value = ''
   store.resetFilters()
   store.setSearch('')
@@ -83,20 +91,24 @@ function handleReload () {
 }
 
 function handleResetFromPanel () {
+  // Reset из панели — дополнительно чистим строку поиска
   search.value = ''
   store.resetFilters()
+  // перезапуск автомата
   startProgressiveFill()
 }
 
 /* ---------- Навигация / query ---------- */
+// Локаль остаётся в query, поиск — нет
 watch(locale, (val) => {
-  router.replace({ query: { ...route.query, locale: val, q: search.value || undefined } })
+  router.replace({ query: { ...route.query, locale: val || undefined } })
   load()
 })
 
+// Поиск — только в стор, без router.replace
 watch(search, (q) => {
   store.setSearch(String(q || ''))
-  router.replace({ query: { ...route.query, locale: locale.value, q: q || undefined } })
+  // перезапуск автомата
   startProgressiveFill()
 })
 
@@ -133,6 +145,12 @@ watch(
 /* ---------- Грид / модалка ---------- */
 const items = computed(() => store.pageItems)
 function iconSrc (core) { return `/wiki/Cores/${core?.Icon}.png` }
+
+function coreTitle (core) {
+  const loc = String(locale.value || 'en')
+  return core?.i18n?.name?.[loc] || core?.englishName || `ID ${core?.id}`
+}
+
 function findByIdLevel (id, lv) {
   return store.items.find(c => c.id === id && c.CoreLv === lv) ||
          store.items.find(c => c.id === id) || null
@@ -177,6 +195,7 @@ watch(modalOpen, (v) => toggleScrollLock(v))
 /* ---------- Items counter (после фильтров) ---------- */
 const totalMatched = computed(() => store.filteredTotal)
 </script>
+
 
 <template>
   <section class="mx-auto w-full max-w-[98vw] px-2 sm:px-4 lg:px-6 space-y-4">
@@ -279,9 +298,10 @@ const totalMatched = computed(() => store.filteredTotal)
             <img src="/wiki/Cards/Img_CoreBGFX.png" alt="" class="absolute inset-0 w-full h-full object-contain pointer-events-none select-none core-glow" aria-hidden="true" draggable="false" />
           </div>
           <div class="absolute bottom-0 left-0 right-0 px-2 py-1 text-[11px] bg-black/40 backdrop-blur-sm">
-            <div class="flex items-center justify-between">
-              <span class="opacity-90">ID {{ core.id }}</span>
-              <span class="opacity-90">Lv. {{ core.CoreLv }}</span>
+            <div class="flex items-center justify-center text-center">
+              <span class="opacity-90 text-sm font-medium truncate max-w-[90%]" :title="coreTitle(core)">
+                {{ coreTitle(core) }}
+              </span>
             </div>
           </div>
         </button>

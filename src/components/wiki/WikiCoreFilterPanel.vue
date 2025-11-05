@@ -215,11 +215,10 @@ const isChecked = (arr, v) => Array.isArray(arr) && arr.includes(v)
 
             <p class="mt-2 text-xs opacity-70 leading-relaxed">
               <template v-if="uniq">
-                Shows only cores available to <b>exactly one</b> class (JobLimit = 1 / 2 / 4 / 8 / 16),
-                or to the <b>exact sum</b> of the selected classes (e.g., Striker + Keystone → JobLimit = 3).
+                Shows only cores available to <b>exactly one</b> class or to the <b>combination</b> of the selected classes.
               </template>
               <template v-else>
-                A core matches if its JobLimit contains <i>any</i> of the selected class flags.
+                A core matches if it's available to <i>any</i> of the selected classes.
               </template>
             </p>
           </section>

@@ -33,7 +33,8 @@ export const useWikiCoreStore = defineStore('wikiCore', {
     loadedLocale: 'en',
 
     filters: {
-      search: '',                    // englishName (case-insensitive)
+      // поиск теперь по: englishName + i18n.name[locale] + i18n.desc[locale] (case-insensitive)
+      search: '',
       rares:  /** @type {number[]} */ ([]),  // CoreRare in []
       jobs:   /** @type {number[]} */ ([]),  // [1,2,4,8,16]
       labels: /** @type {number[]} */ ([]),  // Tips_Label IDs
@@ -69,6 +70,9 @@ export const useWikiCoreStore = defineStore('wikiCore', {
       const needLabels = new Set(f.labels || [])
       const buffId     = f.hasBuffId
 
+      // локализаторы для текущей загруженной локали
+      const { nameOf, descOf } = this.makeLocalizers(this.loadedLocale)
+
       // целевая маска для jobs
       const jobMask = Array.from(needJobs).reduce((mask, bit) => (mask | bit), 0)
 
@@ -100,10 +104,18 @@ export const useWikiCoreStore = defineStore('wikiCore', {
           if (!arr.some(b => b?.BuffId === buffId)) return false
         }
 
+        // ПОИСК: englishName + локализованные name/desc
         if (s) {
           const english = (c.englishName || '').toLowerCase()
-          if (!english.includes(s)) return false
+          const n = String(nameOf(c) || '').toLowerCase()
+          const d = String(descOf(c) || '').toLowerCase()
+          if (
+            !english.includes(s) &&
+            !n.includes(s) &&
+            !d.includes(s)
+          ) return false
         }
+
         return true
       })
     },

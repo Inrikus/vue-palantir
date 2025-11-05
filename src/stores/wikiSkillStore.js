@@ -88,6 +88,8 @@ export const useWikiSkillStore = defineStore('wikiSkill', {
       const cdMax    = Number.isFinite(f.cooldownMax) ? Number(f.cooldownMax) : null
       const costMax  = Number.isFinite(f.costMax)     ? Number(f.costMax)     : null
 
+      const { nameOf, descOf } = this.makeLocalizers(state.loadedLocale)
+
       return state.items.filter((it) => {
         if (needLv.size   && !needLv.has(it.Skill_LV)) return false
         if (needDmg.size  && !needDmg.has(it.Damage_Type)) return false
@@ -107,10 +109,14 @@ export const useWikiSkillStore = defineStore('wikiSkill', {
         if (cdMax != null && Number(it.Cooldown ?? 0) > cdMax) return false
         if (costMax != null && Number(it.SkillCost ?? 0) > costMax) return false
 
+        // поиск по имени + локализованному описанию
         if (s) {
-          const english = (it.englishName || '').toLowerCase()
-          if (!english.includes(s)) return false
+          const name = (nameOf(it) || '').toLowerCase()
+          const desc = (descOf(it)  || '').toLowerCase()
+          const eng  = (it.englishName || '').toLowerCase()
+          if (!(name.includes(s) || desc.includes(s) || eng.includes(s))) return false
         }
+
         return true
       })
     },
