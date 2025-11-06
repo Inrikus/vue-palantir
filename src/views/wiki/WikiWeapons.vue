@@ -105,10 +105,10 @@ function weaponIconSrc(w) {
 
 /* ---------- modal ---------- */
 const modalOpen  = ref(false)
-const selected   = ref(null)
+const selectedWeapon   = ref(null)
 
-function openModal(w) { selected.value = w; modalOpen.value = true }
-function closeModal()  { modalOpen.value = false; selected.value = null }
+function openModal(w) { selectedWeapon.value = w; modalOpen.value = true }
+function closeModal()  { modalOpen.value = false; selectedWeapon.value = null }
 
 function toggleScrollLock (locked) {
   const html = document.documentElement
@@ -267,13 +267,29 @@ watch(modalOpen, v => toggleScrollLock(v))
     <!-- MODAL -->
     <div v-if="modalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" @keydown.esc="closeModal">
       <div class="absolute inset-0 bg-black/70" @click="closeModal" />
-      <div class="relative max-w-3xl w-full">
-        <div class="flex justify-end mb-3">
-          <button @click="closeModal" class="rounded px-3 py-1 ring-1 ring-white/10 hover:ring-white/20">Close</button>
+      <!-- Внешний контейнер панели: фон/бордер/скругление, без скролла -->
+      <div class="relative max-w-3xl w-full rounded-xl bg-[#1C1B20] ring-1 ring-white/10 shadow-2xl overflow-hidden">
+        <!-- НЕскроллируемая верхняя панель -->
+        <div class="flex items-center justify-between px-3 py-2 border-b border-white/10">
+          <h3 class="text-sm font-medium opacity-90 truncate">
+            {{ (selectedWeapon?.i18n?.name?.[locale] || selectedWeapon?.englishName) ?? '—' }}
+          </h3>
+          <button @click="closeModal" class="rounded px-3 py-1 ring-1 ring-white/10 hover:ring-white/20">
+            Close
+          </button>
         </div>
-        <WeaponCard v-if="selected" :weapon="selected" :locale="locale" />
+      
+        <!-- Скроллируемая зона содержимого -->
+        <div class="max-h-[calc(85vh-44px)] overflow-y-auto p-4">
+          <WeaponCard
+            v-if="selectedWeapon"
+            :weapon="selectedWeapon"
+            :locale="locale"
+          />
+        </div>
       </div>
     </div>
+
 
     <!-- FILTER PANEL (заглушка) -->
     <WikiWeaponFilterPanel

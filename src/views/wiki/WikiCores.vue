@@ -311,24 +311,33 @@ const totalMatched = computed(() => store.filteredTotal)
     <!-- МОДАЛКА -->
     <div v-if="modalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" @keydown.esc="closeModal">
       <div class="absolute inset-0 bg-black/70" @click="closeModal" />
-      <div class="relative max-w-3xl w-full">
-        <div class="flex justify-between items-center mb-3">
+      <!-- Внешний контейнер панели: фон/бордер/скругление, без скролла -->
+      <div class="relative max-w-3xl w-full rounded-xl bg-[#1C1B20] ring-1 ring-white/10 shadow-2xl overflow-hidden">
+        <!-- НЕскроллируемая верхняя панель -->
+        <div class="flex items-center justify-between px-3 py-2 border-b border-white/10">
           <div class="flex items-center gap-3">
             <span class="text-sm opacity-80">Lv.</span>
             <input type="range" min="1" max="10" step="1" v-model.number="modalLevel" class="w-40" />
             <span class="text-sm font-medium w-6 text-center">{{ modalLevel }}</span>
           </div>
-          <button @click="closeModal" class="rounded px-3 py-1 ring-1 ring-white/10 hover:ring-white/20">Close</button>
+          <button @click="closeModal" class="rounded px-3 py-1 ring-1 ring-white/10 hover:ring-white/20">
+            Close
+          </button>
         </div>
-        <CoreCard
-          v-if="selectedCore"
-          :core="selectedCore"
-          :locale="locale"
-          @close="closeModal"
-          @level-change="v => modalLevel = v"
-        />
+      
+        <!-- Скроллируемая зона содержимого -->
+        <div class="max-h-[calc(85vh-44px)] overflow-y-auto p-4">
+          <CoreCard
+            v-if="selectedCore"
+            :core="selectedCore"
+            :locale="locale"
+            @close="closeModal"
+            @level-change="v => modalLevel = v"
+          />
+        </div>
       </div>
     </div>
+
 
     <!-- ПАНЕЛЬ ФИЛЬТРОВ -->
     <WikiCoreFilterPanel

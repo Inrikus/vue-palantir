@@ -21,16 +21,19 @@ function findBuff(id, lv) {
   return list.find(b => b.id === id && Number(b.Buff_LV) === Number(lv)) || byId || null
 }
 
-const formatter = createRichTextFormatter({ locale: props.locale, findBuff })
+/* ---------- computed ---------- */
+const loc = computed(() => String(props.locale || 'en'))
+
+const formatter = createRichTextFormatter({ locale: loc.value, findBuff })
 
 onMounted(() => {
-  labelStore.load(props.locale)
-  buffStore.load(props.locale)
+  labelStore.load(loc.value)
+  buffStore.load(loc.value)
 })
-watch(() => props.locale, (loc) => {
-  labelStore.load(loc)
-  buffStore.load(loc)
-  formatter.setLocale(loc)
+watch(loc, (v) => {
+  labelStore.load(v)
+  buffStore.load(v)
+  formatter.setLocale(v)
 })
 
 /* ---------- responsive ---------- */
@@ -40,13 +43,12 @@ const isMobile = computed(() =>
     : false)
 )
 
-/* ---------- computed ---------- */
 const nameText = computed(() =>
-  props.core?.i18n?.name?.[props.locale] || props.core?.englishName || ''
+  props.core?.i18n?.name?.[loc.value] || props.core?.englishName || ''
 )
 
 const descHtml = computed(() => {
-  const raw = props.core?.i18n?.desc?.[props.locale] || ''
+  const raw = props.core?.i18n?.desc?.[loc.value] || ''
   return formatter.format(raw, props.core?.Upgrade_Value || [])
 })
 
@@ -73,8 +75,8 @@ const buffs = computed(() => {
     const upVals = (Array.isArray(b?.Upgrade_Value) && b.Upgrade_Value.length)
       ? b.Upgrade_Value
       : (props.core?.Upgrade_Value || [])
-    const nameRaw = b?.i18n?.name?.[props.locale] || b?.englishName || `Buff ${pair?.BuffId}`
-    const descRaw = b?.i18n?.desc?.[props.locale] || ''
+    const nameRaw = b?.i18n?.name?.[loc.value] || b?.englishName || `Buff ${pair?.BuffId}`
+    const descRaw = b?.i18n?.desc?.[loc.value] || ''
 
     return {
       icon: `/wiki/Buffs/${b?.Icon || 'Icon_Buff_Unknown'}.png`,
@@ -92,7 +94,7 @@ const labels = computed(() => {
     .filter(Boolean)
     .map(l => ({
       id: l.ID,
-      text: l.i18n?.[props.locale] || l.Name?.text || String(l.ID),
+      text: l.i18n?.[loc.value] || l.Name?.text || String(l.ID),
       color: (l.LabelImageColor || '5E5E5E')
     }))
 })
