@@ -43,6 +43,8 @@ function selectJob(job) {
   // для “All Weapons” — снимаем фильтр по классам
   if (job === 0) weaponStore.applyFilters({ jobs: [] })
   else weaponStore.applyFilters({ jobs: [job], uniq: false })
+  // перезапускаем «раскатку» как в WikiCores.vue
+  startProgressiveFill()
 }
 
 /* ---------- chips (используем существующий ActiveFiltersBar) ---------- */
@@ -52,7 +54,8 @@ const labelMap = computed(() => ({})) // пока лейблов для оруж
 /* ---------- search (локальный, без query) ---------- */
 watch(search, (q) => {
   weaponStore.applyFilters({ search: q ?? '' })
-  restartProgressiveFill()
+  // перезапуск автомата — как в WikiCores.vue
+  startProgressiveFill()
 })
 
 /* ---------- load ---------- */
@@ -63,24 +66,42 @@ async function loadAll() {
   ])
   // по умолчанию — “All Weapons”
   selectJob(0)
-  restartProgressiveFill()
+  // Запускаем прогрессивную догрузку до максимума
+  startProgressiveFill()
 }
 
-watch(locale, (loc) => {
-  weaponStore.load(loc)
-  skillStore.load(loc)
+watch(locale, async (loc) => {
+  await Promise.all([weaponStore.load(loc), skillStore.load(loc)])
+  // сохраняем выбранный класс и перезапускаем «раскатку»
+  selectJob(selectedJob.value || 0)
+  startProgressiveFill()
 })
 
-/* ---------- progressive fill ---------- */
+/* ---------- Прогрессивная «раскатка» до максимума ---------- */
 let timer = null
-function stopPF() { if (timer) { clearInterval(timer); timer = null } }
-function restartProgressiveFill() {
-  stopPF()
+function stopProgressiveFill () { if (timer) { clearInterval(timer); timer = null } }
+function startProgressiveFill () {
+  stopProgressiveFill()
   if (!weaponStore.hasNextPage) return
   timer = setInterval(() => {
-    if (!weaponStore.hasNextPage) return stopPF()
+    if (!weaponStore.hasNextPage) { stopProgressiveFill(); return }
     weaponStore.nextPage()
   }, 500)
+}
+
+// Лёгкий «подпиныватель», как в WikiCores.vue
+watch(
+  () => [weaponStore.filters.jobs, weaponStore.filters.uniq, weaponStore.filteredTotal],
+  () => startProgressiveFill(),
+  { deep: true }
+)
+
+/* удобный обработчик для Reload */
+function handleReloadClick() {
+  search.value = ''
+  weaponStore.resetFilters()
+  selectJob(0)
+  startProgressiveFill()
 }
 
 onMounted(() => {
@@ -90,7 +111,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateIsMobile)
-  stopPF()
+  stopProgressiveFill()
   toggleScrollLock(false)
 })
 
@@ -201,7 +222,7 @@ watch(modalOpen, v => toggleScrollLock(v))
           </div>
 
           <button
-            @click="() => { search = ''; weaponStore.resetFilters(); selectJob(0); }"
+            @click="handleReloadClick"
             class="shrink-0 rounded px-3 py-1.5 ring-1 ring-white/10 hover:ring-white/20"
           >
             Reload
@@ -298,10 +319,12 @@ watch(modalOpen, v => toggleScrollLock(v))
       :jobs="filters.jobs"
       :uniq="filters.uniq"
       @close="handleToggleFilter"
-      @update:jobs="val => weaponStore.applyFilters({ jobs: val })"
-      @update:uniq="val => weaponStore.applyFilters({ uniq: val })"
-      @reset="() => { weaponStore.resetFilters(); selectJob(0) }"
+      @update:jobs="val => { weaponStore.applyFilters({ jobs: val }); startProgressiveFill() }"
+      @update:uniq="val => { weaponStore.applyFilters({ uniq: val }); startProgressiveFill() }"
+      @reset="() => { weaponStore.resetFilters(); selectJob(0); startProgressiveFill() }"
     />
+
+    
   </section>
 </template>
 
