@@ -1,19 +1,59 @@
-<!-- src/components/wiki/WikiWeapons.vue -->
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import LocalePicker from '@/components/wiki/LocalePicker.vue'
+import ActiveFiltersBar from '@/components/wiki/ActiveFiltersBar.vue'
+import WikiWeaponFilterPanel from '@/components/wiki/WikiWeaponFilterPanel.vue'
+import WeaponCard from '@/components/wiki/WeaponCard.vue'
 
 import { useWikiWeaponStore } from '@/stores/wikiWeaponStore'
-import { useWikiSkillStore }  from '@/stores/wikiSkillStore'
-import { JOB_NAME } from '@/components/wiki/filters/dicts'
-
-/* ---------- locale / route ---------- */
-const route  = useRoute()
-const locale = ref(route.query.locale ?? 'en')
+import { useWikiSkillStore } from '@/stores/wikiSkillStore'
 
 /* ---------- stores ---------- */
 const weaponStore = useWikiWeaponStore()
 const skillStore  = useWikiSkillStore()
+
+/* ---------- locale ---------- */
+const locale = ref('en')
+
+/* ---------- ui state ---------- */
+const isMobile = ref(false)
+const showFilterPanel = ref(false)
+const search = ref('')
+
+function updateIsMobile () {
+  isMobile.value = typeof window !== 'undefined'
+    ? window.matchMedia('(max-width: 640px)').matches
+    : false
+}
+const handleToggleFilter = () => { showFilterPanel.value = !showFilterPanel.value }
+
+/* ---------- top “class” switcher ---------- */
+const JOBS = [
+  { id: 0,  img: '/wiki/Mechs/Img_Pic_0.png',  label: 'All Weapons' },
+  { id: 1,  img: '/wiki/Mechs/Img_Pic_1.png',  label: 'Striker'  },
+  { id: 2,  img: '/wiki/Mechs/Img_Pic_2.png',  label: 'Keystone' },
+  { id: 4,  img: '/wiki/Mechs/Img_Pic_4.png',  label: 'Buster'   },
+  { id: 8,  img: '/wiki/Mechs/Img_Pic_8.png',  label: 'Bullseye' },
+  { id: 16, img: '/wiki/Mechs/Img_Pic_16.png', label: 'Apostle'  },
+]
+const selectedJob = ref(0) // 0 = All Weapons
+
+function selectJob(job) {
+  selectedJob.value = job
+  // для “All Weapons” — снимаем фильтр по классам
+  if (job === 0) weaponStore.applyFilters({ jobs: [] })
+  else weaponStore.applyFilters({ jobs: [job], uniq: false })
+}
+
+/* ---------- chips (используем существующий ActiveFiltersBar) ---------- */
+const filters = computed(() => weaponStore.filters)
+const labelMap = computed(() => ({})) // пока лейблов для оружия нет
+
+/* ---------- search (локальный, без query) ---------- */
+watch(search, (q) => {
+  weaponStore.applyFilters({ search: q ?? '' })
+  restartProgressiveFill()
+})
 
 /* ---------- load ---------- */
 async function loadAll() {
@@ -21,167 +61,235 @@ async function loadAll() {
     weaponStore.load(locale.value),
     skillStore.load(locale.value),
   ])
-}
-onMounted(loadAll)
-watch(locale, loadAll)
-
-/* ---------- job selector ---------- */
-const JOBS = [1, 2, 4, 8, 16]
-
-const selectedJob = ref(null) // null = All Weapons
-function selectJob(jobOrNull) { selectedJob.value = jobOrNull }
-
-/* ---------- helpers / paths ---------- */
-function weaponIconSrc(w) {
-  // Иконки оружия
-  return `/wiki/Weapons/${w?.Icon}.png`
-}
-function jobImage(job) {
-  // Картинка-баннер класса (1440x600)
-  return `/wiki/Mechs/Img_Pic_${job}.png`
-}
-function bigScreenBg() {
-  return `/wiki/Mechs/Img_BigScreenBG.png`
-}
-function skillIconById(id) {
-  const s = skillStore.byId?.[id]
-  const icon = s?.Icon || 'Icon_Skill_10001'
-  return `/wiki/Skills/${icon}.png`
-}
-function weaponTitle(w) {
-  return w?.i18n?.name?.[locale.value] || w?.englishName || `ID ${w?.id}`
+  // по умолчанию — “All Weapons”
+  selectJob(0)
+  restartProgressiveFill()
 }
 
-/* ---------- filtering ---------- */
-const filteredWeapons = computed(() => {
-  const list = Array.isArray(weaponStore.items) ? weaponStore.items : []
-  const job = selectedJob.value
-  if (!job) return list
-  return list.filter(w => (Number(w.JobLimit || 0) & Number(job)) !== 0)
+watch(locale, (loc) => {
+  weaponStore.load(loc)
+  skillStore.load(loc)
 })
+
+/* ---------- progressive fill ---------- */
+let timer = null
+function stopPF() { if (timer) { clearInterval(timer); timer = null } }
+function restartProgressiveFill() {
+  stopPF()
+  if (!weaponStore.hasNextPage) return
+  timer = setInterval(() => {
+    if (!weaponStore.hasNextPage) return stopPF()
+    weaponStore.nextPage()
+  }, 500)
+}
+
+onMounted(() => {
+  updateIsMobile()
+  window.addEventListener('resize', updateIsMobile, { passive: true })
+  loadAll()
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateIsMobile)
+  stopPF()
+  toggleScrollLock(false)
+})
+
+/* ---------- items / helpers ---------- */
+const items = computed(() => weaponStore.pageItems)
+const totalMatched = computed(() => weaponStore.filteredTotal)
+
+function weaponIconSrc(w) {
+  const icon = w?.Icon || 'weapon_unknown'
+  return `/wiki/Weapons/${icon}.png`
+}
+
+/* ---------- modal ---------- */
+const modalOpen  = ref(false)
+const selected   = ref(null)
+
+function openModal(w) { selected.value = w; modalOpen.value = true }
+function closeModal()  { modalOpen.value = false; selected.value = null }
+
+function toggleScrollLock (locked) {
+  const html = document.documentElement
+  const body = document.body
+  html.classList.toggle('hidden-scroll', !!locked)
+  body.classList.toggle('hidden-scroll', !!locked)
+}
+watch(modalOpen, v => toggleScrollLock(v))
 </script>
 
 <template>
-  <section class="mx-auto w-full max-w-[98vw] px-2 sm:px-4 lg:px-6 space-y-6">
-    <!-- Заголовок -->
-    <header class="flex items-center justify-between">
-      <h1 class="text-2xl font-semibold">Wiki — Weapons</h1>
-      <!-- простой селектор локали как слот/компонент можно подменить позже -->
-      <div class="opacity-70 text-sm">Locale: <b>{{ locale }}</b></div>
+  <section class="mx-auto w-full max-w-[98vw] px-2 sm:px-4 lg:px-6 space-y-4">
+    <!-- строка 1: заголовок + локаль -->
+    <header class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-semibold">Wiki — Weapons</h1>
+        <LocalePicker v-model="locale" />
+      </div>
+
+      <!-- переключатель классов (6 картинок) -->
+      <div
+        class="grid gap-3"
+        :class="isMobile ? 'grid-cols-3' : 'grid-cols-6'"
+      >
+        <button
+          v-for="m in JOBS"
+          :key="m.id"
+          class="relative rounded-xl overflow-hidden ring-1 ring-white/10 hover:ring-white/20 bg-[#0d0f14] group"
+          :class="isMobile ? 'h-24' : 'h-28'"
+          @click="selectJob(m.id)"
+          :title="m.label"
+        >
+          <img :src="m.img" class="absolute inset-0 w-full h-full object-cover opacity-70" alt="" />
+          <div class="absolute inset-0"
+               style="background-image:url('/wiki/Mechs/Img_BigScreenBG.png'); background-size:cover; mix-blend:screen; opacity:.25" />
+          <div class="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors" />
+          <div class="absolute inset-x-2 bottom-2 text-center text-sm font-semibold">
+            <span :class="selectedJob === m.id ? 'text-[#63B4C8]' : 'opacity-90'">{{ m.label }}</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- Управляющая полоса как в cores -->
+      <!-- Мобилка:
+           row 1: [Filters]                    [Items]
+           row 2: [Search.....................][Reload]
+           Десктоп:
+           row 1: [Filters] [Search.............] [Items] -->
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- Filters -->
+        <div class="order-1 sm:order-1">
+          <button
+            @click="handleToggleFilter"
+            class="border-2 border-[#63B4C8] text-[#63B4C8] rounded-md px-3 py-1.5 flex gap-2 text-base sm:text-lg font-semibold items-center hover:bg-gray-700 bg-[#232228]"
+          >
+            <img src="@/assets/filter-1.svg" class="w-5 sm:w-6" alt="filter" />
+            Filters
+          </button>
+        </div>
+
+        <!-- Items counter -->
+        <div class="order-2 sm:order-3 ml-auto text-sm opacity-80 flex items-center gap-2">
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Items: <span class="font-medium">{{ totalMatched }}</span></span>
+        </div>
+
+        <!-- Search + Reload -->
+        <div class="order-4 sm:order-2 basis-full sm:basis-auto w-full sm:w-auto sm:flex-1 flex items-center gap-3">
+          <div class="relative flex-1 min-w-[240px]">
+            <input
+              v-model.trim="search"
+              type="text"
+              inputmode="search"
+              placeholder="Search by name or description…"
+              class="w-full bg-neutral-900/60 rounded-md pl-9 pr-8 py-2 ring-1 ring-white/10 focus:ring-white/20 placeholder:opacity-60"
+            />
+            <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M10 4a6 6 0 104.472 10.028l4.25 4.25 1.414-1.414-4.25-4.25A6 6 0 0010 4zm-4 6a4 4 0 118 0 4 4 0 01-8 0z"/>
+            </svg>
+            <button
+              v-if="search"
+              @click="search = ''"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full hover:bg-white/10 grid place-items-center"
+              title="Clear"
+            >
+              <svg class="w-3.5 h-3.5 opacity-80" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6.225 4.811L4.811 6.225 9.586 11l-4.775 4.775 1.414 1.414L11 12.414l4.775 4.775 1.414-1.414L12.414 11l4.775-4.775-1.414-1.414L11 9.586z"/>
+              </svg>
+            </button>
+          </div>
+
+          <button
+            @click="() => { search = ''; weaponStore.resetFilters(); selectJob(0); }"
+            class="shrink-0 rounded px-3 py-1.5 ring-1 ring-white/10 hover:ring-white/20"
+          >
+            Reload
+          </button>
+        </div>
+      </div>
     </header>
 
-    <!-- СТАРТОВОЕ МЕНЮ ВЫБОРА КЛАССА -->
-    <section class="space-y-3">
-      <div class="flex flex-wrap items-center gap-2">
-        <button
-          class="rounded-md px-3 py-1.5 ring-1 ring-white/10 hover:ring-white/20"
-          :class="selectedJob === null ? 'bg-white/10' : ''"
-          @click="selectJob(null)"
-          title="Show every weapon"
-        >
-          All Weapons
-        </button>
-        <button
-          v-for="job in JOBS"
-          :key="job"
-          class="relative rounded overflow-hidden ring-1 ring-white/10 hover:ring-[#63B4C8] transition"
-          @click="selectJob(job)"
-          :title="JOB_NAME[job] || job"
-        >
-          <img
-            :src="jobImage(job)"
-            class="h-20 w-[340px] object-cover sm:h-24"
-            :alt="JOB_NAME[job] || `Job ${job}`"
-            draggable="false"
-          />
-          <div class="absolute inset-0 bg-black/30" />
-          <div class="absolute inset-x-0 bottom-0 p-2 text-center font-semibold">
-            {{ JOB_NAME[job] || job }}
-          </div>
-          <div
-            v-if="selectedJob === job"
-            class="absolute inset-0 ring-2 ring-[#63B4C8] rounded pointer-events-none"
-          />
-        </button>
-      </div>
-      <p class="text-sm opacity-70">
-        {{ selectedJob ? `Class: ${JOB_NAME[selectedJob] || selectedJob}` : 'Showing all classes' }}
-      </p>
-    </section>
+    <!-- Chips -->
+    <ActiveFiltersBar
+      :locale="locale"
+      :rares="filters.rares"       
+      :jobs="filters.jobs"
+      :labels="filters.labels"
+      :uniq="filters.uniq"
+      :label-map="labelMap"
+      @remove:job="val => weaponStore.applyFilters({ jobs: (filters.jobs || []).filter(v => v !== val) })"
+      @remove:rarity="() => {}"
+      @remove:label="() => {}"
+      @unset:uniq="weaponStore.applyFilters({ uniq:false })"
+    />
 
-    <!-- Список Weapon → Skills -->
-    <section>
-      <div v-if="weaponStore.loading || skillStore.loading" class="text-sm opacity-80">Loading…</div>
-      <div v-else-if="weaponStore.error || skillStore.error" class="text-sm text-red-400">
-        {{ weaponStore.error || skillStore.error }}
-      </div>
+    <!-- GRID: только карточки оружия -->
+    <div v-if="weaponStore.loading" class="text-sm opacity-80">Loading…</div>
+    <div v-else-if="weaponStore.error" class="text-sm text-red-400">Error: {{ weaponStore.error }}</div>
 
-      <div v-else class="space-y-6">
-        <article
-          v-for="w in filteredWeapons"
+    <div v-else>
+      <div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
+        <button
+          v-for="w in items"
           :key="w.id"
-          class="rounded-2xl ring-1 ring-white/10 bg-[#1C1B20] p-3 md:p-4"
+          @click="openModal(w)"
+          class="group relative aspect-square rounded-2xl overflow-hidden ring-1 ring-white/10 hover:ring-white/25 bg-neutral-900/40"
+          :title="w.i18n?.name?.[locale] || w.englishName || `ID ${w.id}`"
         >
-          <!-- Заголовок оружия -->
-          <div class="mb-3 flex items-center justify-between gap-3">
-            <h3 class="text-lg font-semibold truncate" :title="weaponTitle(w)">
-              {{ weaponTitle(w) }}
-            </h3>
-            <span class="text-xs opacity-70 whitespace-nowrap">ID {{ w.id }}</span>
+          <div class="absolute inset-0">
+            <img
+              :src="weaponIconSrc(w)"
+              class="absolute inset-0 w-full h-full object-contain z-10"
+              alt=""
+              draggable="false"
+              loading="lazy"
+            />
+            <img
+              src="/wiki/Mechs/Img_BigScreenBG.png"
+              alt=""
+              class="absolute inset-0 w-full h-full object-cover opacity-20"
+              draggable="false"
+            />
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-[360px,1fr] gap-4">
-            <!-- WEAPON ICON on BigScreenBG -->
-            <div
-              class="relative rounded-xl overflow-hidden ring-1 ring-white/10 bg-black/30 h-[180px] md:h-[220px]"
-              :style="{ backgroundImage: `url(${bigScreenBg()})`, backgroundSize: 'cover', backgroundPosition: 'center' }"
-            >
-              <img
-                :src="weaponIconSrc(w)"
-                class="absolute inset-0 m-auto max-w-[85%] max-h-[85%] object-contain drop-shadow-[0_4px_20px_rgba(0,0,0,.5)]"
-                :alt="weaponTitle(w)"
-                loading="lazy"
-                draggable="false"
-                @error="($event.target.style.opacity='0.25')"
-              />
-            </div>
-
-            <!-- SKILL ICONS LIST -->
-            <div class="flex flex-wrap items-center content-start gap-3">
-              <template v-if="Array.isArray(w.skills) && w.skills.length">
-                <div
-                  v-for="sid in w.skills"
-                  :key="sid"
-                  class="flex flex-col items-center gap-1"
-                  :title="skillStore.byId?.[sid]?.i18n?.name?.[locale] || skillStore.byId?.[sid]?.englishName || `Skill ${sid}`"
-                >
-                  <div class="relative w-16 h-16 rounded-xl ring-1 ring-white/10 bg-neutral-900/50">
-                    <img
-                      :src="skillIconById(sid)"
-                      class="absolute inset-0 m-auto w-14 h-14 object-contain"
-                      alt=""
-                      loading="lazy"
-                      draggable="false"
-                      @error="($event.target.style.opacity='0.15')"
-                    />
-                  </div>
-                  <span class="text-[11px] opacity-80 max-w-28 text-center truncate">
-                    {{ skillStore.byId?.[sid]?.i18n?.name?.[locale] || skillStore.byId?.[sid]?.englishName || `Skill ${sid}` }}
-                  </span>
-                </div>
-              </template>
-              <p v-else class="text-sm opacity-70">No skills linked.</p>
+          <div class="absolute bottom-0 left-0 right-0 px-2 py-1 text-[11px] bg-black/40 backdrop-blur-sm">
+            <div class="flex items-center justify-center text-center">
+              <span class="opacity-90 text-sm font-medium truncate max-w-[90%]">
+                {{ w.i18n?.name?.[locale] || w.englishName || `ID ${w.id}` }}
+              </span>
             </div>
           </div>
-        </article>
-
-        <p v-if="!filteredWeapons.length" class="text-sm opacity-70">No weapons for current filter.</p>
+        </button>
       </div>
-    </section>
+    </div>
+
+    <!-- MODAL -->
+    <div v-if="modalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" @keydown.esc="closeModal">
+      <div class="absolute inset-0 bg-black/70" @click="closeModal" />
+      <div class="relative max-w-3xl w-full">
+        <div class="flex justify-end mb-3">
+          <button @click="closeModal" class="rounded px-3 py-1 ring-1 ring-white/10 hover:ring-white/20">Close</button>
+        </div>
+        <WeaponCard v-if="selected" :weapon="selected" :locale="locale" />
+      </div>
+    </div>
+
+    <!-- FILTER PANEL (заглушка) -->
+    <WikiWeaponFilterPanel
+      :open="showFilterPanel"
+      :locale="locale"
+      :jobs="filters.jobs"
+      :uniq="filters.uniq"
+      @close="handleToggleFilter"
+      @update:jobs="val => weaponStore.applyFilters({ jobs: val })"
+      @update:uniq="val => weaponStore.applyFilters({ uniq: val })"
+      @reset="() => { weaponStore.resetFilters(); selectJob(0) }"
+    />
   </section>
 </template>
 
 <style scoped>
-/* лёгкая подсветка при наведении на строку */
-article:hover { box-shadow: 0 8px 40px rgba(0,0,0,.25) inset; }
+/* глобалка для блокировки скролла подложки при открытых оверлеях/модалках */
+:global(.hidden-scroll) { overflow: hidden !important; }
 </style>
