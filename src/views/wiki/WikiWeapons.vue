@@ -7,10 +7,12 @@ import WeaponCard from '@/components/wiki/WeaponCard.vue'
 
 import { useWikiWeaponStore } from '@/stores/wikiWeaponStore'
 import { useWikiSkillStore } from '@/stores/wikiSkillStore'
+import { useWikiLabelStore } from '@/stores/wikiLabelStore'
 
 /* ---------- stores ---------- */
 const weaponStore = useWikiWeaponStore()
 const skillStore  = useWikiSkillStore()
+const labelStore  = useWikiLabelStore()
 
 /* ---------- locale ---------- */
 const locale = ref('en')
@@ -27,7 +29,7 @@ function updateIsMobile () {
 }
 const handleToggleFilter = () => { showFilterPanel.value = !showFilterPanel.value }
 
-/* ---------- top “class” switcher ---------- */
+/* ---------- Top class switcher ---------- */
 const JOBS = [
   { id: 0,  img: '/wiki/Mechs/Img_Pic_0.png',  label: 'All Weapons' },
   { id: 1,  img: '/wiki/Mechs/Img_Pic_1.png',  label: 'Striker'  },
@@ -40,22 +42,66 @@ const selectedJob = ref(0) // 0 = All Weapons
 
 function selectJob(job) {
   selectedJob.value = job
-  // для “All Weapons” — снимаем фильтр по классам
-  if (job === 0) weaponStore.applyFilters({ jobs: [] })
-  else weaponStore.applyFilters({ jobs: [job], uniq: false })
-  // перезапускаем «раскатку» как в WikiCores.vue
-  startProgressiveFill()
-  filters.value = { ...weaponStore.filters }
+  const next = {
+    ...filters.value,
+    jobs: job === 0 ? [] : [job],
+    uniq: false,
+  }
+  filters.value = next
 }
 
-/* ---------- chips (используем существующий ActiveFiltersBar) ---------- */
-const filters = ref({ jobs: [], labels: [], positions: [], positionsUniq: false, uniq: false })
-const labelMap = computed(() => ({})) // пока лейблов для оружия нет
+/* ---------- Local filters (ActiveFiltersBar) ---------- */
+const filters = ref({ rares: [], jobs: [], labels: [], uniq: false })
 
-/* ---------- search (локальный, без query) ---------- */
+function buildFilterState(source = {}) {
+  return {
+    rares: [],
+    jobs: Array.isArray(source.jobs) ? [...source.jobs] : [],
+    labels: Array.isArray(source.labels) ? [...source.labels] : [],
+    positions: Array.isArray(source.positions) ? [...source.positions] : [],
+    positionsUniq: !!source.positionsUniq,
+    uniq: !!source.uniq,
+  }
+}
+
+filters.value = buildFilterState()
+
+let syncingFilters = false
+function syncFiltersFromStore() {
+  syncingFilters = true
+  filters.value = buildFilterState(weaponStore.filters || {})
+  syncingFilters = false
+  const jobList = Array.isArray(filters.value.jobs) ? filters.value.jobs : []
+  selectedJob.value = jobList.length === 1 ? jobList[0] : 0
+}
+syncFiltersFromStore()
+
+
+const labelMap = computed(() => {
+  const map = Object.create(null)
+  const ids = filters.value.labels || []
+  const loc = locale.value
+  for (const id of ids) {
+    const l = labelStore.byId?.[id]
+    if (!l) continue
+    map[id] = {
+      id,
+      text: l.i18n?.[loc] || l.Name?.text || String(id),
+      colorHex: l.LabelImageColor || '5E5E5E',
+    }
+  }
+  return map
+})
+
+/* ---------- Search (local, no query params) ---------- */
+
+watch(() => filters.value.jobs, (jobs) => {
+  const arr = Array.isArray(jobs) ? jobs : []
+  selectedJob.value = arr.length === 1 ? arr[0] : 0
+})
 watch(search, (q) => {
   weaponStore.applyFilters({ search: q ?? '' })
-  // перезапуск автомата — как в WikiCores.vue
+  // Restart progressive fill like WikiCores.vue
   startProgressiveFill()
 })
 
@@ -64,23 +110,23 @@ async function loadAll() {
   await Promise.all([
     weaponStore.load(locale.value),
     skillStore.load(locale.value),
+    labelStore.load(locale.value),
   ])
-  filters.value = { ...weaponStore.filters }
-  // по умолчанию — “All Weapons”
-  selectJob(0)
-  // Запускаем прогрессивную догрузку до максимума
+  syncFiltersFromStore()
   startProgressiveFill()
 }
 
 watch(locale, async (loc) => {
-  await Promise.all([weaponStore.load(loc), skillStore.load(loc)])
-  filters.value = { ...weaponStore.filters }
-  // сохраняем выбранный класс и перезапускаем «раскатку»
-  selectJob(selectedJob.value || 0)
+  await Promise.all([
+    weaponStore.load(loc),
+    skillStore.load(loc),
+    labelStore.load(loc),
+  ])
+  syncFiltersFromStore()
   startProgressiveFill()
 })
 
-/* ---------- Прогрессивная «раскатка» до максимума ---------- */
+/* ---------- Progressive fill helpers ---------- */
 let timer = null
 function stopProgressiveFill () { if (timer) { clearInterval(timer); timer = null } }
 function startProgressiveFill () {
@@ -92,19 +138,25 @@ function startProgressiveFill () {
   }, 500)
 }
 
-// Лёгкий «подпиныватель», как в WikiCores.vue
+  // Restart progressive fill like WikiCores.vue
 watch(
   () => [weaponStore.filters.jobs, weaponStore.filters.labels, weaponStore.filters.positions, weaponStore.filters.positionsUniq, weaponStore.filters.uniq, weaponStore.filteredTotal],
   () => startProgressiveFill(),
   { deep: true }
 )
 
-/* удобный обработчик для Reload */
+/* ---------- Reload helper ---------- */
 function handleReloadClick() {
   search.value = ''
   weaponStore.resetFilters()
-  filters.value = { ...weaponStore.filters }
-  selectJob(0)
+  syncFiltersFromStore()
+  startProgressiveFill()
+}
+
+function handleResetFromPanel() {
+  search.value = ''
+  weaponStore.resetFilters()
+  syncFiltersFromStore()
   startProgressiveFill()
 }
 
@@ -144,19 +196,27 @@ function toggleScrollLock (locked) {
 watch(modalOpen, v => toggleScrollLock(v))
 
 // apply local filter changes to the store
-watch(filters, (val) => weaponStore.applyFilters(val), { deep: true })
+watch(filters, (val) => {
+  if (syncingFilters) return
+  weaponStore.applyFilters({
+    jobs: Array.isArray(val.jobs) ? [...val.jobs] : [],
+    labels: Array.isArray(val.labels) ? [...val.labels] : [],
+    positions: Array.isArray(val.positions) ? [...val.positions] : [],
+    positionsUniq: !!val.positionsUniq,
+    uniq: !!val.uniq,
+  })
+  startProgressiveFill()
+}, { deep: true })
 </script>
 
 <template>
   <section class="mx-auto w-full max-w-[98vw] px-2 sm:px-4 lg:px-6 space-y-4">
-    <!-- строка 1: заголовок + локаль -->
     <header class="space-y-3">
       <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-semibold">Wiki — Weapons</h1>
+        <h1 class="text-2xl font-semibold">Wiki - Weapons</h1>
         <LocalePicker v-model="locale" />
       </div>
 
-      <!-- переключатель классов (6 картинок) -->
       <div
         class="grid gap-3"
         :class="isMobile ? 'grid-cols-3' : 'grid-cols-6'"
@@ -179,14 +239,7 @@ watch(filters, (val) => weaponStore.applyFilters(val), { deep: true })
         </button>
       </div>
 
-      <!-- Управляющая полоса как в cores -->
-      <!-- Мобилка:
-           row 1: [Filters]                    [Items]
-           row 2: [Search.....................][Reload]
-           Десктоп:
-           row 1: [Filters] [Search.............] [Items] -->
       <div class="flex flex-wrap items-center gap-3">
-        <!-- Filters -->
         <div class="order-1 sm:order-1">
           <button
             @click="handleToggleFilter"
@@ -197,20 +250,18 @@ watch(filters, (val) => weaponStore.applyFilters(val), { deep: true })
           </button>
         </div>
 
-        <!-- Items counter -->
         <div class="order-2 sm:order-3 ml-auto text-sm opacity-80 flex items-center gap-2">
           <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           <span>Items: <span class="font-medium">{{ totalMatched }}</span></span>
         </div>
 
-        <!-- Search + Reload -->
         <div class="order-4 sm:order-2 basis-full sm:basis-auto w-full sm:w-auto sm:flex-1 flex items-center gap-3">
           <div class="relative flex-1 min-w-[240px]">
             <input
               v-model.trim="search"
               type="text"
               inputmode="search"
-              placeholder="Search by name or description…"
+              placeholder="Search by name or description..."
               class="w-full bg-neutral-900/60 rounded-md pl-9 pr-8 py-2 ring-1 ring-white/10 focus:ring-white/20 placeholder:opacity-60"
             />
             <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70" viewBox="0 0 24 24" fill="currentColor">
@@ -238,22 +289,24 @@ watch(filters, (val) => weaponStore.applyFilters(val), { deep: true })
       </div>
     </header>
 
-    <!-- Chips -->
     <ActiveFiltersBar
       :locale="locale"
-      :rares="[]"
+      :rares="filters.rares"
       :jobs="filters.jobs"
       :labels="filters.labels"
+      :positions="filters.positions"
+      :positions-uniq="filters.positionsUniq"
       :uniq="filters.uniq"
       :label-map="labelMap"
-      @remove:job="val => weaponStore.applyFilters({ jobs: (filters.jobs || []).filter(v => v !== val) })"
-      @remove:rarity="() => {}"
-      @remove:label="() => {}"
-      @unset:uniq="weaponStore.applyFilters({ uniq:false })"
+      @remove:rarity="val => filters.rares = filters.rares.filter(v => v !== val)"
+      @remove:job="val => filters.jobs = filters.jobs.filter(v => v !== val)"
+      @remove:label="val => filters.labels = filters.labels.filter(v => v !== val)"
+      @remove:position="val => filters.positions = filters.positions.filter(v => v !== val)"
+      @unset:positions-uniq="filters.positionsUniq = false"
+      @unset:uniq="filters.uniq = false"
     />
 
-    <!-- GRID: только карточки оружия -->
-    <div v-if="weaponStore.loading" class="text-sm opacity-80">Loading…</div>
+    <div v-if="weaponStore.loading" class="text-sm opacity-80">Loading...</div>
     <div v-else-if="weaponStore.error" class="text-sm text-red-400">Error: {{ weaponStore.error }}</div>
 
     <div v-else>
@@ -292,22 +345,18 @@ watch(filters, (val) => weaponStore.applyFilters(val), { deep: true })
       </div>
     </div>
 
-    <!-- MODAL -->
     <div v-if="modalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" @keydown.esc="closeModal">
       <div class="absolute inset-0 bg-black/70" @click="closeModal" />
-      <!-- Внешний контейнер панели: фон/бордер/скругление, без скролла -->
       <div class="relative max-w-3xl w-full rounded-xl bg-[#1C1B20] ring-1 ring-white/10 shadow-2xl overflow-hidden">
-        <!-- НЕскроллируемая верхняя панель -->
         <div class="flex items-center justify-between px-3 py-2 border-b border-white/10">
           <h3 class="text-sm font-medium opacity-90 truncate">
-            {{ (selectedWeapon?.i18n?.name?.[locale] || selectedWeapon?.englishName) ?? '—' }}
+            {{ (selectedWeapon?.i18n?.name?.[locale] || selectedWeapon?.englishName) ?? '-' }}
           </h3>
           <button @click="closeModal" class="rounded px-3 py-1 ring-1 ring-white/10 hover:ring-white/20">
             Close
           </button>
         </div>
-      
-        <!-- Скроллируемая зона содержимого -->
+
         <div class="max-h-[calc(85vh-44px)] overflow-y-auto p-4">
           <WeaponCard
             v-if="selectedWeapon"
@@ -319,7 +368,6 @@ watch(filters, (val) => weaponStore.applyFilters(val), { deep: true })
     </div>
 
 
-    <!-- FILTER PANEL (заглушка) -->
     <WikiWeaponFilterPanel
       :open="showFilterPanel"
       :locale="locale"
@@ -329,14 +377,12 @@ watch(filters, (val) => weaponStore.applyFilters(val), { deep: true })
       v-model:positions-uniq="filters.positionsUniq"
       v-model:uniq="filters.uniq"
       @close="handleToggleFilter"
-      @reset="() => { weaponStore.resetFilters(); selectJob(0); startProgressiveFill() }"
+      @reset="handleResetFromPanel"
     />
 
 
   </section>
 </template>
-
 <style scoped>
-/* глобалка для блокировки скролла подложки при открытых оверлеях/модалках */
 :global(.hidden-scroll) { overflow: hidden !important; }
 </style>

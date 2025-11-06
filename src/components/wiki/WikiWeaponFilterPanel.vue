@@ -46,13 +46,13 @@ const JOB_OPTIONS = [
 // ]
 
 const WEAPON_OPTIONS = [
-  { label: 'Body_T', value: 64  },
-  { label: 'Bag_L',   value: 128  },
-  { label: 'Bag_R', value: 256  },
-  { label: 'Arm_L',  value: 512 },  
-  { label: 'Arm_R',  value: 1024  },
-  { label: 'Shoulder_L', value: 2048  },
-  { label: 'Shoulder_R',   value: 4096  },
+  { label: 'Body', value: 64  },
+  { label: 'Bag L',   value: 128  },
+  { label: 'Bag R', value: 256  },
+  { label: 'Arm L',  value: 512 },  
+  { label: 'Arm R',  value: 1024  },
+  { label: 'Shoulder L', value: 2048  },
+  { label: 'Shoulder R',   value: 4096  },
 ]
 
 

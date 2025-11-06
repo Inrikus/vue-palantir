@@ -1,17 +1,26 @@
 <script setup>
 import { computed } from 'vue'
-import { RARITY_NAME, JOB_NAME, CHIP_COLORS } from '@/components/wiki/filters/dicts'
+import { RARITY_NAME, JOB_NAME, POSITION_NAME, CHIP_COLORS } from '@/components/wiki/filters/dicts'
 
 const props = defineProps({
   locale:   { type: String, default: 'en' },
   rares:    { type: Array,  default: () => [] },
   jobs:     { type: Array,  default: () => [] },
   labels:   { type: Array,  default: () => [] },
+  positions:{ type: Array,  default: () => [] },
+  positionsUniq: { type: Boolean, default: false },
   uniq:     { type: Boolean, default: false },
   labelMap: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['remove:rarity','remove:job','remove:label','unset:uniq'])
+const emit = defineEmits([
+  'remove:rarity',
+  'remove:job',
+  'remove:label',
+  'remove:position',
+  'unset:uniq',
+  'unset:positions-uniq'
+])
 
 const chips = computed(() => {
   const list = []
@@ -25,6 +34,13 @@ const chips = computed(() => {
   if (props.uniq) {
     list.push({ kind:'uniq', value:true, label:'Unique only', color: CHIP_COLORS.uniq })
   }
+  for (const pos of props.positions) {
+    const label = POSITION_NAME[pos] || `Slot ${pos}`
+    list.push({ kind:'position', value:pos, label, color: CHIP_COLORS.position })
+  }
+  if (props.positionsUniq) {
+    list.push({ kind:'positions-uniq', value:true, label:'Exact slots', color: CHIP_COLORS.position })
+  }
   for (const id of props.labels) {
     const l = props.labelMap[id]
     if (l) list.push({ kind:'label', value:id, label:l.text, color: `#${l.colorHex || '5E5E5E'}` })
@@ -37,6 +53,8 @@ function onRemove(chip) {
   else if (chip.kind === 'job') emit('remove:job', chip.value)
   else if (chip.kind === 'label') emit('remove:label', chip.value)
   else if (chip.kind === 'uniq') emit('unset:uniq')
+  else if (chip.kind === 'position') emit('remove:position', chip.value)
+  else if (chip.kind === 'positions-uniq') emit('unset:positions-uniq')
 }
 </script>
 
