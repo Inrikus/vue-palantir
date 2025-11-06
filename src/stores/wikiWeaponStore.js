@@ -73,6 +73,7 @@ export const useWikiWeaponStore = defineStore('wikiWeapon', {
 
       const needTypes = new Set(f.types || [])
       const needPosFlags = new Set(f.positions || [])
+      const needLabels = new Set(f.labels || [])
       const skillId = f.hasSkillId
 
       const { nameOf, descOf } = this.makeLocalizers(state.loadedLocale)
@@ -95,9 +96,21 @@ export const useWikiWeaponStore = defineStore('wikiWeapon', {
           const posMask = Number(w.PositionLimit || 0)
           const anyMatch = Array.from(needPosFlags).some(flag => (posMask & flag) !== 0)
           if (!anyMatch) return false
+          // If uniq mode for positions is enabled, require exact mask match
+          if (f.positionsUniq) {
+            const reqMask = Array.from(needPosFlags).reduce((m, bit) => (m | bit), 0)
+            if (posMask !== reqMask) return false
+          }
         }
 
         // наличие навыка
+        // Tips_Label filter
+        if (needLabels.size) {
+          const arr = Array.isArray(w.Tips_Label) ? w.Tips_Label : []
+          const any = arr.some(id => needLabels.has(Number(id)))
+          if (!any) return false
+        }
+
         if (skillId != null) {
           const list = Array.isArray(w.skills) ? w.skills : []
           const common = Array.isArray(w.CommonSkill) ? w.CommonSkill : []
@@ -186,6 +199,8 @@ export const useWikiWeaponStore = defineStore('wikiWeapon', {
       if ('uniq'      in payload) this.filters.uniq      = !!payload.uniq
       if ('types'     in payload) this.filters.types     = Array.isArray(payload.types)     ? payload.types     : []
       if ('positions' in payload) this.filters.positions = Array.isArray(payload.positions) ? payload.positions : []
+      if ('positionsUniq' in payload) this.filters.positionsUniq = !!payload.positionsUniq
+      if ('labels'    in payload) this.filters.labels    = Array.isArray(payload.labels)    ? payload.labels    : []
       if ('search'    in payload) this.filters.search    = payload.search ?? ''
       if ('hasSkillId' in payload) {
         const v = payload.hasSkillId
@@ -201,7 +216,9 @@ export const useWikiWeaponStore = defineStore('wikiWeapon', {
     setJobs(arr)       { this.filters.jobs      = Array.isArray(arr) ? arr : []; this.page = 1 },
     setUniq(v)         { this.filters.uniq      = !!v; this.page = 1 },
     setTypes(arr)      { this.filters.types     = Array.isArray(arr) ? arr : []; this.page = 1 },
+    setLabels(arr)     { this.filters.labels    = Array.isArray(arr) ? arr : []; this.page = 1 },
     setPositions(arr)  { this.filters.positions = Array.isArray(arr) ? arr : []; this.page = 1 },
+    setPositionsUniq(v){ this.filters.positionsUniq = !!v; this.page = 1 },
     setSkillId(id) {
       const v = (id === null || id === undefined || id === '') ? null : Number(id)
       this.filters.hasSkillId = Number.isFinite(v) ? v : null
@@ -213,7 +230,7 @@ export const useWikiWeaponStore = defineStore('wikiWeapon', {
     setPageSize(ps)  { this.pageSize = Math.min(200, Math.max(5, Number(ps || 30))); this.page = 1 },
 
     resetFilters() {
-      this.filters = { search: '', jobs: [], uniq: false, types: [], positions: [], hasSkillId: null }
+      this.filters = { search: '', jobs: [], uniq: false, types: [], positions: [], positionsUniq: false, labels: [], hasSkillId: null }
       this.page = 1
     }
   }

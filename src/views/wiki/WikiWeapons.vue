@@ -45,10 +45,11 @@ function selectJob(job) {
   else weaponStore.applyFilters({ jobs: [job], uniq: false })
   // перезапускаем «раскатку» как в WikiCores.vue
   startProgressiveFill()
+  filters.value = { ...weaponStore.filters }
 }
 
 /* ---------- chips (используем существующий ActiveFiltersBar) ---------- */
-const filters = computed(() => weaponStore.filters)
+const filters = ref({ jobs: [], labels: [], positions: [], positionsUniq: false, uniq: false })
 const labelMap = computed(() => ({})) // пока лейблов для оружия нет
 
 /* ---------- search (локальный, без query) ---------- */
@@ -64,6 +65,7 @@ async function loadAll() {
     weaponStore.load(locale.value),
     skillStore.load(locale.value),
   ])
+  filters.value = { ...weaponStore.filters }
   // по умолчанию — “All Weapons”
   selectJob(0)
   // Запускаем прогрессивную догрузку до максимума
@@ -72,6 +74,7 @@ async function loadAll() {
 
 watch(locale, async (loc) => {
   await Promise.all([weaponStore.load(loc), skillStore.load(loc)])
+  filters.value = { ...weaponStore.filters }
   // сохраняем выбранный класс и перезапускаем «раскатку»
   selectJob(selectedJob.value || 0)
   startProgressiveFill()
@@ -91,7 +94,7 @@ function startProgressiveFill () {
 
 // Лёгкий «подпиныватель», как в WikiCores.vue
 watch(
-  () => [weaponStore.filters.jobs, weaponStore.filters.uniq, weaponStore.filteredTotal],
+  () => [weaponStore.filters.jobs, weaponStore.filters.labels, weaponStore.filters.positions, weaponStore.filters.positionsUniq, weaponStore.filters.uniq, weaponStore.filteredTotal],
   () => startProgressiveFill(),
   { deep: true }
 )
@@ -100,6 +103,7 @@ watch(
 function handleReloadClick() {
   search.value = ''
   weaponStore.resetFilters()
+  filters.value = { ...weaponStore.filters }
   selectJob(0)
   startProgressiveFill()
 }
@@ -138,6 +142,9 @@ function toggleScrollLock (locked) {
   body.classList.toggle('hidden-scroll', !!locked)
 }
 watch(modalOpen, v => toggleScrollLock(v))
+
+// apply local filter changes to the store
+watch(filters, (val) => weaponStore.applyFilters(val), { deep: true })
 </script>
 
 <template>
@@ -234,7 +241,7 @@ watch(modalOpen, v => toggleScrollLock(v))
     <!-- Chips -->
     <ActiveFiltersBar
       :locale="locale"
-      :rares="filters.rares"       
+      :rares="[]"
       :jobs="filters.jobs"
       :labels="filters.labels"
       :uniq="filters.uniq"
@@ -316,15 +323,16 @@ watch(modalOpen, v => toggleScrollLock(v))
     <WikiWeaponFilterPanel
       :open="showFilterPanel"
       :locale="locale"
-      :jobs="filters.jobs"
-      :uniq="filters.uniq"
+      v-model:jobs="filters.jobs"
+      v-model:labels="filters.labels"
+      v-model:positions="filters.positions"
+      v-model:positions-uniq="filters.positionsUniq"
+      v-model:uniq="filters.uniq"
       @close="handleToggleFilter"
-      @update:jobs="val => { weaponStore.applyFilters({ jobs: val }); startProgressiveFill() }"
-      @update:uniq="val => { weaponStore.applyFilters({ uniq: val }); startProgressiveFill() }"
       @reset="() => { weaponStore.resetFilters(); selectJob(0); startProgressiveFill() }"
     />
 
-    
+
   </section>
 </template>
 
