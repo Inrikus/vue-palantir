@@ -1,126 +1,208 @@
 <script setup>
+import { computed } from 'vue'
 import { platformIcon, currency } from '@/utils/dictsList.js'
 import BadgeMech from '@/components/collections/Badges/BadgeMech.vue'
 import BadgePlanet from '@/components/collections/Badges/BadgePlanet.vue'
 
 const props = defineProps({
-    card: Object
+  card: { type: Object, required: true }
 })
 
-const isMechBadge = ['bi_mech', 'quartan_primes'].includes(props.card.collection_name) && props.card.status === 'Normal'
-const isPlanetBadge = props.card.collection_name === 'fusionist_planet'
+const isMechBadge = computed(() =>
+  ['bi_mech', 'quartan_primes'].includes(props.card.collection_name) && props.card.status === 'Normal'
+)
+const isPlanetBadge = computed(() => props.card.collection_name === 'fusionist_planet')
 
+const platformIconSrc = computed(() => {
+  const key = props.card?.link?.source
+  return platformIcon[key] || platformIcon.Element || '/social-icons/website.svg'
+})
+
+const imageSrc = computed(() => {
+  const src = props.card?.nft_image || ''
+  if (!src) return '/placeholder.png'
+  if (/^https?:\/\//i.test(src)) return src
+  return src.startsWith('/') ? src : `/${src}`
+})
+
+const currencyKey = computed(() => {
+  const val = (props.card.price_native?.currency || 'Unknown').toUpperCase()
+  return currency[val] ? val : 'Unknown'
+})
+
+const currencyIcon = computed(() => `/currency/${currency[currencyKey.value]}`)
+const nativePrice = computed(() => props.card.price_native?.value ?? '—')
+const usdPrice = computed(() => props.card.price ? `${props.card.price} USD` : 'Not listed')
 </script>
 
 <template>
-    <a class="card-wrapper" :href="card.link.value">
-        <div class="relative">
-            <img :src="card.nft_image" alt="" class="card-image" />
-            <img :src="platformIcon[card.link.source]" alt="" class="platform-icon" />
+  <a
+    class="collection-card"
+    :href="card.link?.value || '#'"
+    target="_blank"
+    rel="noopener"
+  >
+    <div class="media">
+      <img
+        :src="imageSrc"
+        alt=""
+        class="card-bg"
+        loading="lazy"
+        decoding="async"
+      />
+      <div class="card-overlay"></div>
+      <img :src="platformIconSrc" alt="marketplace" class="market-chip" />
 
-            <BadgeMech v-if="isMechBadge" :card="card" />
-            <BadgePlanet v-else-if="isPlanetBadge" :card="card" />
-        </div>
+      <div v-if="isPlanetBadge" class="badge-layer badge-layer--planet">
+        <BadgePlanet :card="card" />
+      </div>
+      <div v-else-if="isMechBadge" class="badge-layer badge-layer--mech">
+        <BadgeMech :card="card" />
+      </div>
+    </div>
 
-        <div class="card-info">
-            <p class="card-title" :title="card.nft_name">{{ card.nft_name }}</p>
-            <div class="card-price">
-                <img :src="'/currency/' + (Object.keys(currency).includes(card.price_native.currency) ? currency[card.price_native.currency] : 'unknown.svg')"
-                    class="price-icon" />
-                <span class="price-value">{{ card.price_native.value }}</span>
-            </div>
-            <p class="usd-price">{{ card.price ? card.price + ' USD' : 'Not Listed' }}</p>
+    <div class="card-info">
+      <p class="card-name" :title="card.nft_name">{{ card.nft_name || 'Unknown NFT' }}</p>
+      <div class="price-row">
+        <div class="primary">
+          <img :src="currencyIcon" alt="currency" class="currency-icon" />
+          <span class="value">{{ nativePrice }}</span>
+          <span class="code">{{ card.price_native?.currency || '--' }}</span>
         </div>
-    </a>
+        <div class="secondary">
+          {{ usdPrice }}
+        </div>
+      </div>
+    </div>
+  </a>
 </template>
 
 <style scoped>
-.card-wrapper {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    justify-content: space-around;
-    background-color: #1F1F1F;
-    border-radius: 1rem;
-    overflow: hidden;
-    padding-bottom: 8px;
-    color: #63b4c8;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
+
+.collection-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(99,180,200,.08);
+  background: #0b0d13;
+  transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
 }
 
-.card-wrapper:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+.collection-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(99,180,200,.4);
+  box-shadow: 0 20px 45px rgba(7,14,26,.4);
 }
 
-.card-image {
-    width: 100%;
-    height: 260px;
-    object-fit: cover;
-    border-top-left-radius: 1rem;
-    border-top-right-radius: 1rem;
-    /* image-rendering: smooth; */
+.media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
 }
 
-.platform-icon {
-    width: 1.5rem;
-    height: 1.5rem;
-    position: absolute;
-    top: 0.25rem;
-    left: 0.25rem;
+.card-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #05060c;
+  z-index: 0;
+}
+
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(200deg, rgba(5,6,12,0) 40%, rgba(5,6,12,.95) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.market-chip {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.6rem;
+  background: rgba(5,6,12,.4);
+  padding: 0.35rem;
+  z-index: 2;
 }
 
 .card-info {
-    margin-left: 8px;
-    margin-top: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  padding: 0.85rem 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
 }
 
-.card-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #63b4c8;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.card-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.card-price {
-    display: flex;
-    align-items: center;
-    /* <-- идеальное вертикальное выравнивание */
-    gap: 6px;
-    margin-top: 4px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #63b4c8;
-    line-height: 1;
+.price-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.price-icon {
-    width: 1em;
-    height: 1em;
-    object-fit: contain;
+.primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
-.price-value {
-    display: inline-block;
+.currency-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  object-fit: contain;
 }
 
-.usd-price {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.75);
+.code {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  opacity: 0.7;
 }
 
-@media (max-width: 600px) {
-    .card-image {
-        height: 160px;
-        /* десктоп/планшет */
-    }
+.secondary {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,.75);
 }
 
+.badge-layer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+.badge-layer--planet {
+  bottom: 0;
+}
+.badge-layer--planet :deep(.planet-badge) {
+  width: 100%;
+  border-radius: 0;
+  border-top: 1px solid rgba(255,255,255,.15);
+  background: rgba(5,6,12,.85);
+}
+.badge-layer--mech {
+  bottom: 0.5rem;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+.badge-layer--mech :deep(.mech-badge) {
+  max-width: 320px;
+  width: 100%;
+}
 </style>

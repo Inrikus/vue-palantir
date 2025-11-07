@@ -125,128 +125,145 @@ const isChecked = (arr, v) => Array.isArray(arr) && arr.includes(v)
     <transition name="fade">
       <div
         v-if="open"
-        class="fixed inset-0 z-[1000] bg-black/60"
+        class="fixed inset-0 z-[1000] bg-black/70 backdrop-blur-sm"
         @click="$emit('close')"
       />
     </transition>
 
     <!-- panel -->
-    <transition :name="isMobile ? 'slide-up' : 'slide-left'">
+    <transition :name="isMobile ? 'slide-up' : 'slide-down'">
       <aside
         v-if="open"
-        class="fixed z-[1001] bg-[#232228] ring-1 ring-white/10 shadow-2xl overflow-y-auto m-0"
+        class="fixed z-[1001] overflow-hidden rounded-t-3xl border border-white/10 bg-[#05060c]/95 text-white shadow-2xl backdrop-blur-2xl sm:rounded-none"
         :class="[
-          'sm:inset-y-0 sm:left-0 sm:w-[720px] sm:max-w-[90vw]',   // шире, чтобы уместились «кирпичи»
+          'sm:inset-y-0 sm:left-0 sm:w-[740px] sm:max-w-[92vw]',
           'inset-x-0 bottom-0 top-0 sm:inset-auto'
         ]"
         role="dialog" aria-modal="true"
+        aria-labelledby="core-filter-title"
       >
         <!-- TOP BAR -->
-        <div class="p-4 flex items-center justify-between border-b border-white/10">
-          <h3 class="text-lg font-semibold text-[#63B4C8]">
-            Filters <span class="opacity-70 text-sm">({{ selectedCount }})</span>
-          </h3>
-          <div class="flex items-center gap-2">
-            <button
-              @click="handleReset"
-              class="rounded px-3 py-1 ring-1 ring-white/10 hover:ring-white/20"
-              title="Reset all filters"
-            >Reset</button>
-            <button
-              @click="$emit('close')"
-              class="rounded px-3 py-1 ring-1 ring-white/10 hover:ring-white/20"
-            >Close</button>
+        <header class="sticky top-0 z-10 border-b border-white/10 bg-[#05060c]/95 px-6 py-4">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="text-xs uppercase tracking-[0.4em] text-white/60">Filters</p>
+              <h3 id="core-filter-title" class="text-2xl font-semibold text-white">
+                Core tuning <span class="text-sm text-white/60">({{ selectedCount }})</span>
+              </h3>
+            </div>
+            <div class="flex items-center gap-3">
+              <button
+                @click="handleReset"
+                class="ghost-btn"
+                title="Reset all filters"
+              >Reset</button>
+              <button
+                @click="$emit('close')"
+                class="ghost-btn"
+              >Close</button>
+            </div>
           </div>
-        </div>
+        </header>
 
-        <div class="p-4 space-y-7">
-          <!-- RARITY -->
-          <section>
-            <h4 class="sec-title">Rarity</h4>
-            <div class="tiles-grid">
-              <label
-                v-for="opt in RARITY_OPTIONS"
-                :key="'rares-' + opt.value"
-                class="tile"
-                :class="{ 'is-active': isChecked(rares, opt.value) }"
-              >
-                <input
-                  type="checkbox"
-                  class="sr-only"
-                  :checked="rares.includes(opt.value)"
-                  @change="toggleVal('rares', opt.value)"
-                />
-                <span class="tile-label">{{ opt.label }}</span>
-              </label>
-            </div>
-          </section>
+        <div class="flex-1 overflow-y-auto px-6 py-6">
+          <div class="space-y-7 pb-8">
+            <!-- RARITY -->
+            <section class="filter-card">
+              <div class="flex items-center justify-between gap-4">
+                <h4 class="sec-title">Rarity</h4>
+                <span class="text-xs text-white/50">{{ RARITY_OPTIONS.length }} tiers</span>
+              </div>
+              <div class="tiles-grid">
+                <label
+                  v-for="opt in RARITY_OPTIONS"
+                  :key="'rares-' + opt.value"
+                  class="tile"
+                  :class="{ 'is-active': isChecked(rares, opt.value) }"
+                >
+                  <input
+                    type="checkbox"
+                    class="sr-only"
+                    :checked="rares.includes(opt.value)"
+                    @change="toggleVal('rares', opt.value)"
+                  />
+                  <span class="tile-label">{{ opt.label }}</span>
+                </label>
+              </div>
+            </section>
 
-          <!-- JOBS + UNIQ -->
-          <section>
-            <div class="flex items-center justify-between">
-              <h4 class="sec-title">Jobs</h4>
-              <label class="inline-flex items-center gap-2 cursor-pointer select-none text-xs">
-                <input
-                  type="checkbox"
-                  class="accent-[#63B4C8]"
-                  :checked="uniq"
-                  @change="$emit('update:uniq', $event.target.checked)"
-                />
-                <span class="opacity-80">Unique only</span>
-              </label>
-            </div>
+            <!-- JOBS + UNIQ -->
+            <section class="filter-card">
+              <div class="flex items-center justify-between gap-4">
+                <h4 class="sec-title">Jobs</h4>
+                <label class="inline-flex items-center gap-2 cursor-pointer select-none text-xs">
+                  <input
+                    type="checkbox"
+                    class="accent-[#63B4C8]"
+                    :checked="uniq"
+                    @change="$emit('update:uniq', $event.target.checked)"
+                  />
+                  <span class="opacity-80">Unique only</span>
+                </label>
+              </div>
 
-            <div class="tiles-grid">
-              <label
-                v-for="opt in JOB_OPTIONS"
-                :key="'jobs-' + opt.value"
-                class="tile"
-                :class="{ 'is-active': isChecked(jobs, opt.value) }"
-              >
-                <input
-                  type="checkbox"
-                  class="sr-only"
-                  :checked="jobs.includes(opt.value)"
-                  @change="toggleVal('jobs', opt.value)"
-                />
-                <span class="tile-label">{{ opt.label }}</span>
-              </label>
-            </div>
+              <div class="tiles-grid">
+                <label
+                  v-for="opt in JOB_OPTIONS"
+                  :key="'jobs-' + opt.value"
+                  class="tile"
+                  :class="{ 'is-active': isChecked(jobs, opt.value) }"
+                >
+                  <input
+                    type="checkbox"
+                    class="sr-only"
+                    :checked="jobs.includes(opt.value)"
+                    @change="toggleVal('jobs', opt.value)"
+                  />
+                  <span class="tile-label">{{ opt.label }}</span>
+                </label>
+              </div>
 
-            <p class="mt-2 text-xs opacity-70 leading-relaxed">
-              <template v-if="uniq">
-                Shows only cores available to <b>exactly one</b> class or to the <b>combination</b> of the selected classes.
-              </template>
-              <template v-else>
-                A core matches if it's available to <i>any</i> of the selected classes.
-              </template>
-            </p>
-          </section>
+              <p class="mt-3 text-xs leading-relaxed text-white/70">
+                <template v-if="uniq">
+                  Shows only cores available to <b>exactly one</b> class or to the <b>combination</b> of the selected classes.
+                </template>
+                <template v-else>
+                  A core matches if it's available to <i>any</i> of the selected classes.
+                </template>
+              </p>
+            </section>
 
-          <!-- DYNAMIC LABEL GROUPS -->
-          <section v-for="grp in labelGroups" :key="grp.key">
-            <h4 class="sec-title">{{ grp.title }}</h4>
-            <div class="tiles-grid">
-              <label
-                v-for="opt in grp.options"
-                :key="`label-${grp.key}-${opt.value}`"
-                class="tile"
-                :class="{ 'is-active': isChecked(labels, opt.value) }"
-                :style="{
-                  // лёгкий тон в фоне для группы
-                  '--tile-accent': `#${opt.color}`
-                }"
-              >
-                <input
-                  type="checkbox"
-                  class="sr-only"
-                  :checked="labels.includes(opt.value)"
-                  @change="toggleVal('labels', opt.value)"
-                />
-                <span class="tile-label">{{ opt.label }}</span>
-              </label>
-            </div>
-          </section>
+            <!-- DYNAMIC LABEL GROUPS -->
+            <section
+              v-for="grp in labelGroups"
+              :key="grp.key"
+              class="filter-card"
+            >
+              <div class="flex items-center justify-between gap-4">
+                <h4 class="sec-title">{{ grp.title }}</h4>
+                <span class="text-xs text-white/50">{{ grp.options.length }} labels</span>
+              </div>
+              <div class="tiles-grid">
+                <label
+                  v-for="opt in grp.options"
+                  :key="`label-${grp.key}-${opt.value}`"
+                  class="tile"
+                  :class="{ 'is-active': isChecked(labels, opt.value) }"
+                  :style="{
+                    '--tile-accent': `#${opt.color}`
+                  }"
+                >
+                  <input
+                    type="checkbox"
+                    class="sr-only"
+                    :checked="labels.includes(opt.value)"
+                    @change="toggleVal('labels', opt.value)"
+                  />
+                  <span class="tile-label">{{ opt.label }}</span>
+                </label>
+              </div>
+            </section>
+          </div>
         </div>
       </aside>
     </transition>
@@ -256,7 +273,11 @@ const isChecked = (arr, v) => Array.isArray(arr) && arr.includes(v)
 <style scoped>
 /* Заголовки секций */
 .sec-title {
-  @apply text-sm uppercase tracking-wide opacity-80 mb-2;
+  @apply mb-2 text-sm uppercase tracking-wide text-white/70;
+}
+
+.filter-card {
+  @apply rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur;
 }
 
 /* Сетка «кирпичей» фиксированной ширины */
@@ -274,18 +295,18 @@ const isChecked = (arr, v) => Array.isArray(arr) && arr.includes(v)
   --tile-accent: #5E5E5E;
   display: grid;
   place-items: center;
-  height: 44px;                /* фиксированная высота */
+  min-height: 48px;                /* фиксированная высота */
   padding: 0 14px;
   border-radius: 8px;
-  background: rgba(0,0,0,.25);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.08);
   cursor: pointer;
   user-select: none;
-  transition: box-shadow .15s ease, background-color .15s ease, transform .06s ease;
+  transition: box-shadow .2s ease, background-color .2s ease, transform .06s ease;
 }
 .tile:hover {
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.18);
-  background: rgba(255,255,255,.04);
+  box-shadow: 0 10px 25px rgba(5,6,12,0.4);
+  background: rgba(255,255,255,0.06);
 }
 .tile:active { transform: translateY(1px); }
 
@@ -298,11 +319,9 @@ const isChecked = (arr, v) => Array.isArray(arr) && arr.includes(v)
 
 /* Состояние выбора */
 .tile.is-active {
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.22),
-    0 0 0 1px rgba(99,180,200,.35);
-  background:
-    linear-gradient(0deg, rgba(99,180,200,.14), rgba(99,180,200,.14));
+  border-color: rgba(99,180,200,0.7);
+  background: linear-gradient(120deg, rgba(99,180,200,0.2), rgba(5,6,12,0.8));
+  box-shadow: 0 12px 30px rgba(7,14,26,0.6);
 }
 
 /* Анимации появления панели */
@@ -312,6 +331,9 @@ const isChecked = (arr, v) => Array.isArray(arr) && arr.includes(v)
 .slide-left-enter-active, .slide-left-leave-active { transition: transform 250ms ease, opacity 250ms ease; }
 .slide-left-enter-from, .slide-left-leave-to { transform: translateX(-100%); opacity: 0.8; }
 
+.slide-down-enter-active, .slide-down-leave-active { transition: transform 280ms ease, opacity 280ms ease; }
+.slide-down-enter-from, .slide-down-leave-to { transform: translateY(-100%); opacity: 0.7; }
+
 @media (max-width: 640px) {
   .slide-up-enter-active, .slide-up-leave-active { transition: transform 250ms ease, opacity 250ms ease; }
   .slide-up-enter-from, .slide-up-leave-to { transform: translateY(100%); opacity: 0.8; }
@@ -319,4 +341,8 @@ const isChecked = (arr, v) => Array.isArray(arr) && arr.includes(v)
 
 /* глобальная блокировка прокрутки под панелью */
 :global(.hidden-scroll) { overflow: hidden !important; }
+
+.ghost-btn {
+  @apply rounded-full border border-white/20 px-4 py-1.5 text-sm font-semibold text-white/80 transition hover:border-white/40 hover:text-white;
+}
 </style>

@@ -82,7 +82,7 @@ watch(
 </script>
 
 <template>
-  <div class="w-full grid auto-fill-grid gap-4 gap-y-5 justify-between content-start justify-items-top pb-5" v-auto-animate>
+  <div class="card-grid" v-auto-animate>
     <!-- Пусто -->
     <div v-if="!cardStore.isLoading && !cardStore.cards.length" class="col-span-full text-center text-[#63B4C8]/80">
       No items found
@@ -105,7 +105,12 @@ watch(
 </template>
 
 <style scoped>
-.auto-fill-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-@media (max-width: 767px) { .auto-fill-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); } }
-@media (max-width: 480px) { .auto-fill-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } }
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+@media (max-width: 900px) {
+  .card-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+}
 </style>

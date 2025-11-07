@@ -6,15 +6,15 @@ defineEmits(['update:modelValue'])
 </script>
 
 <template>
-  <div class="flex justify-start gap-4 text-2xl text-[#63B4C8] my-6 font-semibold">
+  <div class="tabs">
     <button
-      :class="['panel', modelValue === 'Cards' ? 'panel-active' : '']"
+      :class="['tab', modelValue === 'Cards' && 'active']"
       @click="$emit('update:modelValue', 'Cards')"
     >
       NFTs
     </button>
     <button
-      :class="['panel', modelValue === 'Activity' ? 'panel-active' : '']"
+      :class="['tab', modelValue === 'Activity' && 'active']"
       @click="$emit('update:modelValue', 'Activity')"
     >
       Activity
@@ -23,18 +23,30 @@ defineEmits(['update:modelValue'])
 </template>
 
 <style scoped>
-.panel {
-  transition: opacity 0.2s;
+.tabs {
+  display: inline-flex;
+  gap: 0.5rem;
+  padding: 0.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(5,6,12,.6);
+  margin: 2rem 0;
 }
-.panel:hover {
-  opacity: 0.5;
+.tab {
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.6rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.6);
+  background: transparent;
+  transition: color .2s, background .2s;
 }
-
-.panel-active {
-  color: #ffffff;
-  cursor: default;
-}
-.panel-active:hover {
-  opacity: 1;
+.tab:hover { color: white; }
+.tab.active {
+  background: linear-gradient(120deg, rgba(99,180,200,.3), rgba(80,125,255,.3));
+  color: white;
 }
 </style>

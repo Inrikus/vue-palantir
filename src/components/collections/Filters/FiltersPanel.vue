@@ -56,7 +56,7 @@ const handleResetFilter = () => {
     <transition name="fade" appear>
       <div
         v-show="props.isFilterPanelOpen"
-        class="fixed inset-0 z-[9998] bg-black/50"
+        class="fixed inset-0 z-[9998] bg-black/70 backdrop-blur-sm"
         role="presentation"
         @click.self="handleToggleFilter"
       />
@@ -67,16 +67,19 @@ const handleResetFilter = () => {
       <aside
         v-show="props.isFilterPanelOpen"
         id="filter-inner-panel"
-        class="fixed top-0 left-0 h-full w-full sm:w-[420px] z-[9999] bg-[#1A1A1A] text-[#63B4C8] shadow-xl flex flex-col border-l border-white/10"
+        class="fixed top-0 left-0 z-[9999] flex h-full w-full flex-col overflow-hidden rounded-t-3xl border border-white/10 bg-[#05060c]/95 text-white shadow-2xl backdrop-blur-2xl sm:w-[440px] sm:rounded-none"
         role="dialog"
         aria-modal="true"
         aria-labelledby="filters-title"
       >
         <!-- Header -->
-        <div class="flex items-center justify-between p-5 border-b border-white/10">
-          <h2 id="filters-title" class="text-2xl font-semibold">Filters</h2>
+        <div class="flex items-center justify-between border-b border-white/10 px-6 py-5">
+          <div>
+            <p class="text-xs uppercase tracking-[0.4em] text-white/60">Filters</p>
+            <h2 id="filters-title" class="text-2xl font-semibold">Collection control</h2>
+          </div>
           <button
-            class="w-9 h-9 grid place-items-center rounded-full hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-sky-400"
+            class="grid h-9 w-9 place-items-center rounded-full border border-white/15 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-sky-400"
             @click="handleToggleFilter"
             aria-label="Close filters"
           >
@@ -85,11 +88,14 @@ const handleResetFilter = () => {
         </div>
 
         <!-- Content -->
-        <div class="flex-1 overflow-y-auto p-6 space-y-8">
+        <div class="flex-1 overflow-y-auto px-6 py-6 space-y-6">
           <!-- Status -->
           <section class="section-container">
             <div class="section-header" @click="handleToggleShow('Status')">
-              <h4 class="text-xl font-bold">Status</h4>
+              <div>
+                <h4 class="text-base font-semibold uppercase tracking-[0.3em] text-white/70">Status</h4>
+                <p class="text-xs text-white/50">Listing availability</p>
+              </div>
               <ArrowIcon :is-open="openSections.Status" />
             </div>
             <div :class="['section-content', { open: openSections.Status }]">
@@ -102,7 +108,7 @@ const handleResetFilter = () => {
                   :checked="isTradeTypeChecked()"
                   @click="handleTradeTypeClick"
                 />
-                <span class="text-lg font-medium">Only Buy Now</span>
+                <span class="text-sm font-semibold uppercase tracking-[0.2em]">Only Buy Now</span>
               </label>
 
               <label class="checkbox-label">
@@ -114,7 +120,7 @@ const handleResetFilter = () => {
                   :checked="isStatusChecked('Normal')"
                   @click="handleStatusClick"
                 />
-                <span class="text-lg font-medium">Normal</span>
+                <span class="text-sm font-semibold uppercase tracking-[0.2em]">Normal</span>
               </label>
 
               <label class="checkbox-label" v-if="['quartan_primes', 'primeace'].includes(route.name)">
@@ -126,7 +132,7 @@ const handleResetFilter = () => {
                   :checked="isStatusChecked('Uncreated')"
                   @click="handleStatusClick"
                 />
-                <span class="text-lg font-medium">Uncreated</span>
+                <span class="text-sm font-semibold uppercase tracking-[0.2em]">Uncreated</span>
               </label>
             </div>
           </section>
@@ -138,7 +144,10 @@ const handleResetFilter = () => {
             class="section-container"
           >
             <div class="section-header" @click="handleToggleShow(filter)">
-              <h4 class="text-xl font-bold">{{ filter }}</h4>
+              <div>
+                <h4 class="text-base font-semibold uppercase tracking-[0.3em] text-white/70">{{ filter }}</h4>
+                <p class="text-xs text-white/50">Traits & rolls</p>
+              </div>
               <ArrowIcon :is-open="openSections[filter]" />
             </div>
             <div :class="['section-content', { open: openSections[filter] }]">
@@ -155,7 +164,7 @@ const handleResetFilter = () => {
                   :checked="isTraitChecked(filter, option)"
                   @click="handleClick"
                 />
-                <span class="text-lg font-medium">{{ option }}</span>
+                <span class="text-sm font-semibold uppercase tracking-[0.2em]">{{ option }}</span>
               </label>
             </div>
           </section>
@@ -163,7 +172,10 @@ const handleResetFilter = () => {
           <!-- Sources -->
           <section class="section-container">
             <div class="section-header" @click="handleToggleShow('Sources')">
-              <h4 class="text-xl font-bold">Sources</h4>
+              <div>
+                <h4 class="text-base font-semibold uppercase tracking-[0.3em] text-white/70">Sources</h4>
+                <p class="text-xs text-white/50">Marketplaces</p>
+              </div>
               <ArrowIcon :is-open="openSections.Sources" />
             </div>
             <div :class="['section-content', { open: openSections.Sources }]">
@@ -181,16 +193,16 @@ const handleResetFilter = () => {
                   @click="handleSourcesClick"
                 />
                 <img :src="platformIcon[option]" class="w-5 h-5 ms-2 mr-2" />
-                <span class="text-lg font-medium">{{ option }}</span>
+                <span class="text-sm font-semibold uppercase tracking-[0.2em]">{{ option }}</span>
               </label>
             </div>
           </section>
         </div>
 
         <!-- Footer -->
-        <div class="p-5 border-t border-white/10 flex items-center justify-between gap-2">
-          <button class="action-button" @click="handleResetFilter">Reset</button>
-          <button class="action-button" @click="handleApplyFilter">Apply</button>
+        <div class="flex items-center justify-between gap-3 border-t border-white/10 px-6 py-5">
+          <button class="action-button ghost" @click="handleResetFilter">Reset</button>
+          <button class="action-button solid" @click="handleApplyFilter">Apply</button>
         </div>
       </aside>
     </transition>
@@ -210,14 +222,46 @@ const handleResetFilter = () => {
 .slide-up-enter-from, .slide-up-leave-to { transform: translateY(100%); }
 
 /* Layout */
-.section-container { max-width: 24rem; margin-left: auto; margin-right: auto; }
-.section-header { display: flex; justify-content: flex-start; align-items: center; gap: 0.75rem; cursor: pointer; }
-.section-content { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; padding: 0 0.5rem; max-height: 0; overflow: hidden; transition: max-height 400ms ease-in; }
+.section-container {
+  max-width: 24rem;
+  margin-left: auto;
+  margin-right: auto;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  background: rgba(255,255,255,0.02);
+  backdrop-filter: blur(12px);
+}
+.section-header { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; cursor: pointer; }
+.section-content { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; padding: 0.2rem 0.5rem 0; max-height: 0; overflow: hidden; transition: max-height 400ms ease-in; }
 .open { max-height: 1000px; }
 
 .checkbox-label { display: inline-flex; align-items: center; width: 100%; cursor: pointer; gap: 0.75rem; }
-.custom-checkbox { width: 1.5rem; height: 1.5rem; border-radius: 0.25rem; }
+.custom-checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.35rem;
+  border: 1px solid rgba(255,255,255,0.35);
+  background-color: rgba(255,255,255,0.05);
+}
 
-.action-button { font-size: 1.125rem; font-weight: 600; border: 2px solid #63B4C8; padding: 0.75rem; border-radius: 0.75rem; width: 100%; }
-.action-button:hover { background-color: #4b5563; }
+.action-button {
+  width: 100%;
+  border-radius: 999px;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+.action-button.ghost {
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+}
+.action-button.solid {
+  border: none;
+  background: linear-gradient(120deg, rgba(99,180,200,0.7), rgba(80,125,255,0.7));
+  color: white;
+  box-shadow: 0 12px 30px rgba(7,14,26,0.6);
+}
 </style>

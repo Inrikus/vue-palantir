@@ -6,6 +6,7 @@ import { useCardStore } from '@/stores/cardStore'
 // ленивые импорты
 const HomePage = () => import('../views/HomePage.vue')
 const CollectionsPage = () => import('../views/CollectionsPage.vue')
+const CollectionsOverview = () => import('../views/CollectionsOverview.vue')
 const ContactsPage = () => import('../views/ContactsPage.vue')
 const ErrorPage = () => import('../views/ErrorPage.vue')
 
@@ -49,40 +50,46 @@ const routes = [
     alias: ['/home'],
     meta: { title: 'Home' }
   },
+  {
+    path: '/collections',
+    name: 'collections_overview',
+    component: CollectionsOverview,
+    meta: { title: 'Collections' }
+  },
 
   // Коллекции: один компонент, разные статические пути + props для бэкенда
   {
-    path: '/fusionist_planet',
+    path: '/collections/fusionist_planet',
     name: 'fusionist_planet',
     component: CollectionsPage,
     meta: { title: 'Fusionist Planet' }
   },
   {
-    path: '/bi_mech',
+    path: '/collections/bi_mech',
     name: 'bi_mech',
     component: CollectionsPage,
     meta: { title: 'Bi-Mech' }
   },
   {
-    path: '/quartan_primes',
+    path: '/collections/quartan_primes',
     name: 'quartan_primes',
     component: CollectionsPage,
     meta: { title: 'Quartan Primes' }
   },
   {
-    path: '/alpha_prestige',
+    path: '/collections/alpha_prestige',
     name: 'alpha_prestige',
     component: CollectionsPage,
     meta: { title: 'Alpha Prestige' }
   },
   {
-    path: '/primeace',
+    path: '/collections/primeace',
     name: 'primeace',
     component: CollectionsPage,
     meta: { title: 'PrimeACE' }
   },
   {
-    path: '/pioneer_of_fusionist',
+    path: '/collections/pioneer_of_fusionist',
     name: 'pioneer_of_fusionist',
     component: CollectionsPage,
     meta: { title: 'Pioneer of Fusionist' }

@@ -218,18 +218,17 @@ watch(filters, (val) => {
         <button
           v-for="m in JOBS"
           :key="m.id"
-          class="relative rounded-xl overflow-hidden ring-1 ring-white/10 hover:ring-white/20 bg-[#0d0f14] group"
-          :class="isMobile ? 'h-24' : 'h-28'"
+          class="job-card group"
+          :class="[isMobile ? 'h-24' : 'h-28', selectedJob === m.id ? 'is-active' : '']"
           @click="selectJob(m.id)"
           :title="m.label"
         >
-          <img :src="m.img" class="absolute inset-0 w-full h-full object-cover opacity-70" alt="" />
-          <div class="absolute inset-0"
-               style="background-image:url('/wiki/Mechs/Img_BigScreenBG.png'); background-size:cover; mix-blend:screen; opacity:.25" />
-          <div class="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors" />
-          <div class="absolute inset-x-2 bottom-2 text-center text-sm font-semibold">
-            <span :class="selectedJob === m.id ? 'text-[#63B4C8]' : 'opacity-90'">{{ m.label }}</span>
-          </div>
+          <img :src="m.img" class="absolute inset-0 h-full w-full object-cover opacity-70" alt="" />
+          <div class="absolute inset-0" style="background-image:url('/wiki/Mechs/Img_BigScreenBG.png'); background-size:cover; mix-blend:screen; opacity:.25" />
+          <div class="absolute inset-0 bg-gradient-to-br from-black/70 via-black/40 to-transparent transition-opacity group-hover:opacity-60" />
+          <span class="relative z-10 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
+            {{ m.label }}
+          </span>
         </button>
       </div>
 
@@ -237,7 +236,7 @@ watch(filters, (val) => {
         <div class="order-1 sm:order-1">
           <button
             @click="handleToggleFilter"
-            class="border-2 border-[#63B4C8] text-[#63B4C8] rounded-md px-3 py-1.5 flex gap-2 text-base sm:text-lg font-semibold items-center hover:bg-gray-700 bg-[#232228]"
+            class="filter-toggle"
           >
             <img src="@/assets/filter-1.svg" class="w-5 sm:w-6" alt="filter" />
             Filters
@@ -256,7 +255,7 @@ watch(filters, (val) => {
               type="text"
               inputmode="search"
               placeholder="Search by name or description..."
-              class="w-full bg-neutral-900/60 rounded-md pl-9 pr-8 py-2 ring-1 ring-white/10 focus:ring-white/20 placeholder:opacity-60"
+              class="search-input"
             />
             <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70" viewBox="0 0 24 24" fill="currentColor">
               <path d="M10 4a6 6 0 104.472 10.028l4.25 4.25 1.414-1.414-4.25-4.25A6 6 0 0010 4zm-4 6a4 4 0 118 0 4 4 0 01-8 0z"/>
@@ -264,7 +263,7 @@ watch(filters, (val) => {
             <button
               v-if="search"
               @click="search = ''"
-              class="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full hover:bg-white/10 grid place-items-center"
+              class="absolute right-2.5 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full bg-white/5 text-white/70 transition hover:bg-white/15"
               title="Clear"
             >
               <svg class="w-3.5 h-3.5 opacity-80" viewBox="0 0 24 24" fill="currentColor">
@@ -275,7 +274,7 @@ watch(filters, (val) => {
 
           <button
             @click="handleReloadClick"
-            class="shrink-0 rounded px-3 py-1.5 ring-1 ring-white/10 hover:ring-white/20"
+            class="ghost-btn shrink-0"
           >
             Reload
           </button>
@@ -309,7 +308,7 @@ watch(filters, (val) => {
           v-for="w in items"
           :key="w.id"
           @click="openModal(w)"
-          class="group relative aspect-square rounded-2xl overflow-hidden ring-1 ring-white/10 hover:ring-white/25 bg-neutral-900/40"
+          class="wiki-card group"
           :title="w.i18n?.name?.[locale] || w.englishName || `ID ${w.id}`"
         >
           <div class="absolute inset-0">
@@ -339,27 +338,42 @@ watch(filters, (val) => {
       </div>
     </div>
 
-    <div v-if="modalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" @keydown.esc="closeModal">
-      <div class="absolute inset-0 bg-black/70" @click="closeModal" />
-      <div class="relative max-w-3xl w-full rounded-xl bg-[#1C1B20] ring-1 ring-white/10 shadow-2xl overflow-hidden">
-        <div class="flex items-center justify-between px-3 py-2 border-b border-white/10">
-          <h3 class="text-sm font-medium opacity-90 truncate">
-            {{ (selectedWeapon?.i18n?.name?.[locale] || selectedWeapon?.englishName) ?? '-' }}
-          </h3>
-          <button @click="closeModal" class="rounded px-3 py-1 ring-1 ring-white/10 hover:ring-white/20">
-            Close
-          </button>
-        </div>
+    <Teleport to="body">
+      <transition name="modal-fade">
+        <div
+          v-if="modalOpen"
+          class="fixed inset-0 z-50 flex items-center justify-center p-4"
+          @keydown.esc="closeModal"
+        >
+          <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="closeModal" />
+          <transition name="modal-scale" appear>
+            <div
+              class="relative w-full max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-[#05060c]/95 text-white shadow-2xl backdrop-blur"
+            >
+              <div class="flex flex-col gap-2 border-b border-white/10 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p class="text-[11px] uppercase tracking-[0.4em] text-white/60">Weapon</p>
+                  <h3 class="text-xl font-semibold">
+                    {{ (selectedWeapon?.i18n?.name?.[locale] || selectedWeapon?.englishName) ?? '-' }}
+                  </h3>
+                </div>
+                <button @click="closeModal" class="ghost-btn shrink-0">
+                  Close
+                </button>
+              </div>
 
-        <div class="max-h-[calc(85vh-44px)] overflow-y-auto p-4">
-          <WeaponCard
-            v-if="selectedWeapon"
-            :weapon="selectedWeapon"
-            :locale="locale"
-          />
+              <div class="max-h-[calc(90vh-96px)] overflow-y-auto p-6">
+                <WeaponCard
+                  v-if="selectedWeapon"
+                  :weapon="selectedWeapon"
+                  :locale="locale"
+                />
+              </div>
+            </div>
+          </transition>
         </div>
-      </div>
-    </div>
+      </transition>
+    </Teleport>
 
 
     <WikiWeaponFilterPanel
@@ -379,4 +393,37 @@ watch(filters, (val) => {
 </template>
 <style scoped>
 :global(.hidden-scroll) { overflow: hidden !important; }
+
+.filter-toggle {
+  @apply inline-flex items-center gap-2 rounded-2xl border border-sky-400/40 bg-white/5 px-4 py-2 text-sm font-semibold text-sky-200 shadow-lg shadow-sky-900/30 transition hover:border-sky-300 hover:text-white;
+}
+
+.search-input {
+  @apply w-full rounded-2xl border border-white/10 bg-white/5 py-2 pl-9 pr-8 text-sm text-white placeholder:text-white/40 focus:border-white/30 focus:outline-none;
+}
+
+.ghost-btn {
+  @apply rounded-full border border-white/20 px-4 py-1.5 text-sm font-semibold text-white/80 transition hover:border-white/40 hover:text-white;
+}
+
+.job-card {
+  @apply relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 text-white shadow-lg shadow-slate-900/40 transition duration-300;
+}
+.job-card.is-active {
+  @apply border-sky-400/60 shadow-sky-900/60;
+}
+
+.wiki-card {
+  @apply relative aspect-square overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-[#05060c] via-[#0f1016] to-[#05060c] text-left shadow-xl shadow-black/40 transition hover:border-white/30 hover:shadow-sky-900/40;
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active { transition: opacity 0.2s ease; }
+.modal-fade-enter-from,
+.modal-fade-leave-to { opacity: 0; }
+
+.modal-scale-enter-active,
+.modal-scale-leave-active { transition: transform 0.25s ease, opacity 0.25s ease; }
+.modal-scale-enter-from,
+.modal-scale-leave-to { transform: scale(0.9); opacity: 0; }
 </style>

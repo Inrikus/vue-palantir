@@ -18,7 +18,7 @@ const filterStore = useFilterStore()
 const showFilterPanel = ref(false)
 
 const currentPanel = ref('Cards')
-const isMobile = computed(() => window.innerWidth <= 768)
+const isMobile = computed(() => (typeof window !== 'undefined') && window.innerWidth <= 768)
 
 const sortOrder = computed({
   get: () => filterStore.order,
@@ -28,8 +28,13 @@ const sortOrder = computed({
 const endPoint = computed(() => collections[route.name].queryName)
 
 const selectedFiltersCount = computed(() => {
-  return filterStore.traits.length; // Считаем только элементы в filterStore.traits
-});
+  const traits = filterStore.traits?.length || 0
+  const statuses = filterStore.status?.length || 0
+  const sources = filterStore.sources?.length || 0
+  const buys = filterStore.tradeType ? 1 : 0
+  const price = filterStore.priceRangeMax ? 1 : 0
+  return traits + statuses + sources + buys + price
+})
 
 const handleToggleFilter = () => {
   showFilterPanel.value = !showFilterPanel.value
@@ -44,50 +49,61 @@ watch(route, () => {
 </script>
 
 <template>
-  <div class="min-h-screen">
-    <!-- Заголовок -->
-    <div class="flex gap-2">
-      <img :src="collections[route.name]?.page.image" class="w-10 h-10 rounded-full" alt="icon" />
-      <h2 class="text-3xl font-bold tracking-[4px] text-[#63B4C8]">
-        {{ collections[route.name]?.page.name }}
-      </h2>
-    </div>
+  <div class="min-h-screen space-y-4">
+    <header class="collections-header">
+      <div class="head-left">
+        <img :src="collections[route.name]?.page.image" class="logo" alt="collection logo" />
+        <div>
+          <p class="eyebrow">Fusionist collection</p>
+          <h2 class="title">{{ collections[route.name]?.page.name }}</h2>
+        </div>
+      </div>
+      <TabsPanel v-model="currentPanel" />
+    </header>
 
-    <!-- TabsPanel -->
-    <TabsPanel v-model="currentPanel" />
-
-    <!-- Контент: либо Cards, либо Activity -->
     <div v-if="currentPanel === 'Cards'">
-      <div class="mt-4 flex justify-between flex-col sm:flex-row gap-2 sticky sm:static top-0 left-0 z-20 bg-[#1a1a1a] py-2">
-        <div class="flex gap-4 items-center">
+      <div class="filters-bar">
+        <div class="left-controls">
           <button
             @click="handleToggleFilter"
-            class="border-2 border-[#63B4C8] text-[#63B4C8] rounded-md p-2 flex gap-2 text-xl font-semibold items-center hover:bg-gray-700 sticky sm:static top-0 left-0 justify-center max-sm:w-full z-30 bg-[#232228]"
+            class="filter-toggle"
           >
-            <img src="../assets/filter-1.svg" class="w-6" alt="filter" />
-            Filters ({{ selectedFiltersCount }})
+            <img src="@/assets/filter-1.svg" class="w-5 sm:w-6" alt="filter" />
+            Filters
+            <span v-if="selectedFiltersCount" class="count">({{ selectedFiltersCount }})</span>
           </button>
+
+          <div class="indicator">
+            <span class="dot"></span>
+            <span>Items: <span class="font-medium">{{ cardStore.maxCards }}</span></span>
+          </div>
         </div>
 
-        <div class="relative flex justify-between">
-          <div :class="'text-lg font-bold tracking-[4px] text-[#63B4C8] ' + (cardStore.maxCards ? 'circle circle-active' : 'circle')">
-            {{ cardStore.maxCards }} results
+        <div class="right-controls">
+          <div class="sort-area">
+            <label for="sort-select">Sort by</label>
+            <div class="select-wrapper">
+              <select
+                id="sort-select"
+                v-model="sortOrder"
+                class="sort-select"
+              >
+                <option value="priceDesc">Price: High to low</option>
+                <option value="priceAsc">Price: Low to high</option>
+                <option value="rarityDesc">Rarity: High to low</option>
+                <option value="rarityAsc">Rarity: Low to high</option>
+                <option value="tokenIdDesc">Token id: High to low</option>
+                <option value="tokenIdAsc">Token id: Low to high</option>
+              </select>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </div>
           </div>
-          <select
-            v-model="sortOrder"
-            class="w-full font-semibold text-center text-xl bg-transparent border-2 border-[#63B4C8] text-[#63B4C8] rounded-md appearance-none focus:outline-none focus:ring-0 focus:bg-gray-700 hover:bg-gray-700 cursor-pointer p-2"
-          >
-            <option value="priceDesc" class="bg-[#232228]">Price: High to low</option>
-            <option value="priceAsc" class="bg-[#232228]">Price: Low to high</option>
-            <option value="rarityDesc" class="bg-[#232228]">Rarity: High to low</option>
-            <option value="rarityAsc" class="bg-[#232228]">Rarity: Low to high</option>
-            <option value="tokenIdDesc" class="bg-[#232228]">Token id: High to low</option>
-            <option value="tokenIdAsc" class="bg-[#232228]">Token id: Low to high</option>
-          </select>
         </div>
       </div>
 
-      <div class="mt-10 relative h-full">
+      <div class="mt-8 relative h-full">
         <FiltersPanel :is-filter-panel-open="showFilterPanel" @toggle="handleToggleFilter" />
         <CardsList :endpoint="endPoint" :key="endPoint" />
       </div>
@@ -100,30 +116,135 @@ watch(route, () => {
 </template>
 
 <style scoped>
-.circle::before {
-  content: '';
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: gray;
-  display: inline-block;
-  margin-right: 14px;
-  vertical-align: middle;
+.collections-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.head-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 1rem;
+  object-fit: cover;
+}
+.eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.6);
+}
+.title {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: #63B4C8;
 }
 
-.circle-active::before {
-  background: #63B4C8;
-  vertical-align: middle;
-  animation: shadow-anim 1s infinite alternate;
+.filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+.left-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.right-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-left: auto;
+}
+@media (max-width: 640px) {
+  .right-controls { width: 100%; justify-content: space-between; }
 }
 
-@keyframes shadow-anim {
-  from {
-    box-shadow: 0px 0px 5px 0px rgba(99, 180, 200, 0.6);
-  }
-  to {
-    box-shadow: 0px 0px 5px 10px rgba(99, 180, 200, 0.6);
-  }
+.filter-toggle {
+  @apply inline-flex items-center gap-2 rounded-2xl border border-sky-400/40 bg-white/5 px-4 py-2 text-sm font-semibold text-sky-200 shadow-lg shadow-sky-900/30 transition hover:border-sky-300 hover:text-white;
+}
+.filter-toggle .count {
+  font-size: 0.85em;
+  opacity: 0.8;
 }
 
+.indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,.7);
+}
+.indicator .dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: #34d399;
+  animation: pulse 1.2s infinite;
+}
+@keyframes pulse {
+  0% { opacity: 0.3; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0.3; transform: scale(0.9); }
+}
+
+.sort-area {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 220px;
+  text-align: center;
+}
+@media (max-width: 640px) {
+  .sort-area { flex: 1; }
+}
+.sort-area label {
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.6);
+}
+.select-wrapper {
+  position: relative;
+  text-align: center;
+}
+.sort-select {
+  width: 100%;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.15);
+  background: rgba(5,6,12,.65);
+  padding: 0.65rem 2.5rem 0.65rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  appearance: none;
+  color: white;
+  text-align: center;
+}
+.sort-select:focus {
+  outline: none;
+  border-color: rgba(99,180,200,.8);
+  box-shadow: 0 0 0 2px rgba(99,180,200,.25);
+  background: rgba(5,6,12,.85);
+}
+.sort-select:focus {
+  outline: none;
+  border-color: rgba(255,255,255,.5);
+}
+.chevron {
+  position: absolute;
+  right: 0.9rem;
+  top: 50%;
+  width: 1rem;
+  height: 1rem;
+  pointer-events: none;
+  transform: translateY(-50%);
+  color: rgba(255,255,255,.7);
+}
 </style>

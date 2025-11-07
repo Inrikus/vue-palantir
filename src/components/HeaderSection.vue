@@ -8,12 +8,18 @@ const isOpen = ref(false)
 const panelRef = ref(null)
 
 const navItems = [
-  { to: '/fusionist_planet', label: 'Fusionist Planet' },
-  { to: '/bi_mech', label: 'Bi-Mech' },
-  { to: '/quartan_primes', label: 'Quartan Primes' },
-  { to: '/alpha_prestige', label: 'Alpha Prestige' },
-  { to: '/pioneer_of_fusionist', label: 'Pioneer of Fusionist' },
-  { to: '/primeace', label: 'PrimeACE' },
+  { to: '/collections/fusionist_planet', label: 'Fusionist Planet' },
+  { to: '/collections/bi_mech', label: 'Bi-Mech' },
+  { to: '/collections/quartan_primes', label: 'Quartan Primes' },
+  { to: '/collections/alpha_prestige', label: 'Alpha Prestige' },
+  { to: '/collections/pioneer_of_fusionist', label: 'Pioneer of Fusionist' },
+  { to: '/collections/primeace', label: 'PrimeACE' },
+]
+const wikiNavItems = [
+  { to: '/wiki', label: 'Wiki Hub', detail: 'Overview & entry point' },
+  { to: '/wiki/cores', label: 'Cores', detail: 'Stats, rarities, passives' },
+  { to: '/wiki/weapons', label: 'Weapons', detail: 'Jobs, slots, labels' },
+  { to: '/wiki/buffs', label: 'Buffs', detail: 'Coming soon', soon: true },
 ]
 
 const open = () => { isOpen.value = true }
@@ -59,51 +65,86 @@ const cryptos = computed(() => {
 
 <template>
   <!-- Хедер -->
-  <header
-    class="silver-grad shadow
-           flex flex-col items-center gap-4
-           sm:flex-row sm:justify-between sm:items-center
-           px-5 sm:px-20 py-6 header-grad"
-  >
-    <!-- Лого -->
-    <router-link to="/" class="flex items-center justify-center sm:justify-start w-full sm:w-auto">
-      <img src="/logo_cropped.png" alt="PALANTIR logo" class="w-10 h-10" />
-      <h1 class="ml-2 text-3xl font-bold tracking-[8px] logo-grad">PALANTIR</h1>
-    </router-link>
-
-    <!-- Навигация -->
-    <nav
-      class="text-[#63b4c8] font-semibold text-xl flex gap-4 justify-center w-full sm:w-auto sm:justify-end"
-    >
-      <button
-        class="hover:opacity-50 focus:outline-none focus:ring-2 focus:ring-sky-400 rounded"
-        @click="toggle"
-        :aria-expanded="isOpen ? 'true' : 'false'"
-        aria-controls="collections-drawer"
+  <header class="relative z-40 border-b border-white/5 bg-[#05060c]/70 backdrop-blur-2xl shadow-[0_10px_40px_rgba(5,6,12,0.6)]">
+    <div class="pointer-events-none absolute inset-0 opacity-60 mix-blend-screen gradient-noise" aria-hidden="true" />
+    <div class="relative mx-auto flex w-full max-w-screen-2xl flex-col gap-4 px-5 py-6 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
+      <!-- Лого -->
+      <router-link
+        to="/"
+        class="group flex items-center gap-4 rounded-2xl border border-white/5 bg-white/5 px-4 py-2 backdrop-blur"
       >
-        Collections
-      </button>
-      <router-link to="/contacts" class="hover:opacity-50">Contacts</router-link>
-    </nav>
+        <div class="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-sky-400/70 to-blue-500/70 text-white shadow-lg shadow-sky-900/50 transition duration-300 group-hover:scale-105">
+          <img src="/logo_cropped.png" alt="PALANTIR logo" class="h-8 w-8" />
+        </div>
+        <div>
+          <p class="text-[10px] uppercase tracking-[0.5em] text-white/70">Fusionist</p>
+          <p class="text-2xl font-semibold tracking-[0.3em] text-white drop-shadow logo-grad">Palantir</p>
+        </div>
+      </router-link>
+
+      <!-- Навигация -->
+      <nav class="flex flex-col gap-3 text-sm font-semibold text-white/80 sm:flex-row sm:items-center sm:gap-4">
+        <div class="flex items-center gap-2">
+          <button
+            class="nav-chip"
+            @click="toggle"
+            :aria-expanded="isOpen ? 'true' : 'false'"
+            aria-controls="collections-drawer"
+          >
+            <span class="inline-flex h-2 w-2 animate-pulse rounded-full bg-emerald-400" aria-hidden="true" />
+            Collections
+          </button>
+
+          <router-link to="/wiki" class="nav-chip relative">
+            Wiki Hub
+            <span class="badge">NEW</span>
+          </router-link>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <router-link to="/contacts" class="nav-chip">Contacts</router-link>
+        </div>
+
+        <router-link
+          to="/wiki/weapons"
+          class="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-400/80 to-indigo-500/80 px-5 py-2 text-base font-semibold text-white shadow-lg shadow-sky-900/40 transition hover:shadow-sky-900/60"
+        >
+          Explore Weapons
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14" />
+            <path d="M13 5l7 7-7 7" />
+          </svg>
+        </router-link>
+        <router-link
+          to="/wiki/cores"
+          class="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-400/80 to-teal-500/80 px-5 py-2 text-base font-semibold text-white shadow-lg shadow-emerald-900/40 transition hover:shadow-emerald-900/60"
+        >
+          Explore Cores
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14" />
+            <path d="M13 5l7 7-7 7" />
+          </svg>
+        </router-link>
+      </nav>
+    </div>
   </header>
 
   <!-- Криптобар -->
-  <section v-if="cryptos.length" class="w-full bg-[#121212] border-y border-white/10">
+  <section v-if="cryptos.length" class="relative isolate border-b border-white/5 bg-[#05060c]/60 py-2 backdrop-blur-xl">
+    <div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-sky-500/10 via-transparent to-indigo-500/10" aria-hidden="true" />
     <div
-      class="mx-auto max-w-screen-xl px-5 text-[#63b4c8] font-semibold leading-10"
+      class="relative mx-auto max-w-screen-2xl px-5 text-white/80"
       aria-label="Crypto prices"
     >
-      <ul class="flex items-center justify-center flex-wrap text-[13px] sm:text-[15px] gap-x-3 sm:gap-x-4">
+      <ul class="flex flex-wrap items-center justify-center gap-4 text-xs sm:text-sm">
         <li
           v-for="c in cryptos"
           :key="c.symbol"
-          class="flex items-center gap-2
-                 sm:before:content-['|'] sm:before:mx-2 sm:before:opacity-50 sm:first:before:content-none"
+          class="glass-chip flex items-center gap-2 rounded-full px-4 py-1.5"
         >
-          <img :src="iconFor(c.symbol)" :alt="c.symbol" class="w-4 h-4" />
-          <span class="uppercase">{{ c.symbol }}</span>
-          <span class="opacity-70">:</span>
-          <span class="tabular-nums">{{ fmt(c.value) }}</span>
+          <img :src="iconFor(c.symbol)" :alt="c.symbol" class="h-4 w-4" />
+          <span class="text-[11px] uppercase tracking-[0.25em] text-white/60">{{ c.symbol }}</span>
+          <span class="tabular-nums text-white">{{ fmt(c.value) }}</span>
         </li>
       </ul>
     </div>
@@ -116,7 +157,7 @@ const cryptos = computed(() => {
     <transition name="fade" appear>
       <div
         v-show="isOpen"
-        class="fixed inset-0 z-[9998] bg-black/50"
+        class="fixed inset-0 z-[9998] bg-black/70 backdrop-blur"
         role="presentation"
         @click.self="close"
       />
@@ -127,18 +168,21 @@ const cryptos = computed(() => {
         v-show="isOpen"
         id="collections-drawer"
         ref="panelRef"
-        class="fixed right-0 top-0 h-full w-full sm:w-[420px] z-[9999] bg-[#1a1a1a] text-[#63b4c8] shadow-xl flex flex-col"
+        class="fixed right-0 top-0 z-[9999] flex h-full w-full flex-col bg-[#05060c]/95 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-2xl sm:w-[460px]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="collections-title"
         @click.stop
       >
-        <div class="flex items-center justify-between p-5 border-b border-white/10">
-          <h2 id="collections-title" class="text-2xl font-semibold">
-            Collections
-          </h2>
+        <div class="flex items-center justify-between border-b border-white/10 p-5">
+          <div>
+            <p class="text-xs uppercase tracking-[0.4em] text-white/60">Navigator</p>
+            <h2 id="collections-title" class="text-2xl font-semibold text-white">
+              Collections & Wiki
+            </h2>
+          </div>
           <button
-            class="w-9 h-9 grid place-items-center rounded-full hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-sky-400"
+            class="grid h-9 w-9 place-items-center rounded-full border border-white/10 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-sky-400"
             @click="close"
             aria-label="Close collections"
           >
@@ -146,26 +190,67 @@ const cryptos = computed(() => {
           </button>
         </div>
 
-        <nav class="p-6 flex-1 overflow-y-auto">
-          <ul class="space-y-3">
-            <li v-for="item in navItems" :key="item.to">
-              <router-link
-                :to="item.to"
-                class="block rounded-xl px-4 py-3 hover:bg-white/5"
-                @click="close"
-              >
-                {{ item.label }}
-              </router-link>
-            </li>
-          </ul>
-        </nav>
+        <div class="flex-1 overflow-y-auto p-6 space-y-8">
+          <section>
+            <p class="mb-3 text-[11px] uppercase tracking-[0.4em] text-white/50">Collections</p>
+            <nav>
+              <ul class="space-y-2">
+                <li v-for="item in navItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="glass-row"
+                    @click="close"
+                  >
+                    <div>
+                      <p class="font-semibold text-white">{{ item.label }}</p>
+                      <p class="text-xs text-white/60">NFT analytics & drop overview</p>
+                    </div>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+                  </router-link>
+                </li>
+              </ul>
+            </nav>
+          </section>
+
+          <section class="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+            <div class="mb-4 flex items-center justify-between">
+              <div>
+                <p class="text-[11px] uppercase tracking-[0.3em] text-white/60">Wiki</p>
+                <p class="text-lg font-semibold text-white">Game Encyclopedia</p>
+              </div>
+              <span class="badge">Updated</span>
+            </div>
+            <ul class="space-y-2">
+              <li v-for="wiki in wikiNavItems" :key="wiki.to">
+                <router-link
+                  :to="wiki.to"
+                  class="glass-row text-sm"
+                  :class="{ 'opacity-70': wiki.soon }"
+                  @click="close"
+                >
+                  <div>
+                    <p class="font-semibold text-white">{{ wiki.label }}</p>
+                    <p class="text-xs text-white/60">{{ wiki.detail }}</p>
+                  </div>
+                  <span v-if="wiki.soon" class="badge">Soon</span>
+                  <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M8 12h8" />
+                    <path d="M12 8l4 4-4 4" />
+                  </svg>
+                </router-link>
+              </li>
+            </ul>
+          </section>
+        </div>
 
         <div
-          class="p-6 border-t border-white/10 flex items-center justify-between gap-4 text-sm text-white/70"
+          class="flex items-center justify-between gap-4 border-t border-white/10 px-6 py-4 text-xs uppercase tracking-[0.3em] text-white/60"
         >
-          <span>© {{ new Date().getFullYear() }} Palantir </span>
-          <router-link to="/" class="hover:opacity-50" @click="close">
-            <span class="text-[#63b4c8] font-semibold">Home</span>
+          <span>© {{ new Date().getFullYear() }} Palantir</span>
+          <router-link to="/" class="text-[#63b4c8] hover:text-white" @click="close">
+            Home
           </router-link>
         </div>
       </aside>
@@ -187,13 +272,37 @@ const cryptos = computed(() => {
 
 .logo-grad {
   background: linear-gradient(182deg, rgba(249,249,249,1) 0%, rgba(169,229,242,1) 35%, rgba(52,152,219,1) 100%);
-  background-clip: text;              /* стандартное свойство */
+  background-clip: text;
   color: transparent;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-.header-grad { background: linear-gradient(to bottom, rgba(19, 19, 19, 1) 10%, rgba(26, 26, 26, 1) 100%); }
 
 /* Ровные цифры для цен */
 .tabular-nums { font-variant-numeric: tabular-nums; }
+
+.nav-chip {
+  @apply inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-white/80 transition hover:border-white/30 hover:text-white;
+}
+
+.badge {
+  @apply ml-2 inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white;
+}
+
+.glass-chip {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+}
+
+.glass-row {
+  @apply flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/90 transition hover:border-white/30 hover:bg-white/10;
+}
+
+.gradient-noise {
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(99,180,200,0.25), transparent 35%),
+    radial-gradient(circle at 90% 30%, rgba(80,125,255,0.2), transparent 40%),
+    linear-gradient(120deg, rgba(255,255,255,0.05), transparent);
+}
 </style>

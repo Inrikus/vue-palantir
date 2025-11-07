@@ -8,38 +8,61 @@ defineProps({
 </script>
 
 <template>
-  <div class="relative transition-transform hover:-translate-y-2">
-    <router-link
-      :to='collections[bannerName].banner.link_to'
-      class="bg-[#1F1F1F] w-full shadow-xl hover:shadow-2xl rounded-2xl p-6 flex flex-col xl:flex-row items-center gap-6 transition-all duration-300"
-    >
-      <!-- Текстовая часть -->
-      <div class="flex-1 flex flex-col gap-4 text-center xl:text-left items-center xl:items-start">
-        <h3 class="text-[#63b4c8] text-3xl sm:text-4xl xl:text-6xl font-bold leading-tight">
-          {{ collections[bannerName].banner.name }}
-        </h3>
-
-        <div class="flex flex-col sm:flex-row sm:justify-between gap-6 w-full text-[#ffffffcc] text-sm sm:text-base">
-          <div class="flex flex-col items-center xl:items-start">
-            <span class="opacity-70">Floor Price</span>
-            <span class="mt-1 text-white font-medium text-lg">{{ bannerData.min_price }} USD</span>
-          </div>
-          <div class="flex flex-col items-center xl:items-end">
-            <span class="opacity-70">Listed NFTs</span>
-            <span class="mt-1 text-white font-medium text-lg">{{ bannerData.count_on_sale }}</span>
-          </div>
+  <router-link
+    :to="collections[bannerName].banner.link_to"
+    class="banner-card"
+  >
+    <div class="content">
+      <p class="eyebrow">Collection Insight</p>
+      <h3 class="name">{{ collections[bannerName].banner.name }}</h3>
+      <div class="metrics">
+        <div class="metric">
+          <span class="label">Floor price</span>
+          <span class="value">{{ bannerData.min_price ?? '—' }} USD</span>
+        </div>
+        <div class="metric">
+          <span class="label">Listed items</span>
+          <span class="value">{{ bannerData.count_on_sale ?? 0 }}</span>
         </div>
       </div>
-
-      <!-- Картинка -->
-      <div class="flex-shrink-0">
-        <img
-          :src="collections[bannerName].banner.image"
-          class="rounded-xl object-cover w-[260px] h-[200px]"
-          alt="Banner Image"
-        />
-      </div>
-      
-    </router-link>
-  </div>
+    </div>
+    <div class="art">
+      <img :src="collections[bannerName].banner.image" :alt="collections[bannerName].banner.name" />
+    </div>
+  </router-link>
 </template>
+
+<style scoped>
+.banner-card {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 1.75rem;
+  border: 1px solid rgba(255,255,255,.08);
+  background: radial-gradient(circle at top right, rgba(99,180,200,.2), transparent 45%), rgba(15,16,22,.95);
+  text-decoration: none;
+  color: inherit;
+  transition: transform .25s, border-color .25s, box-shadow .25s;
+}
+.banner-card:hover { transform: translateY(-6px); border-color: rgba(99,180,200,.6); box-shadow: 0 25px 60px rgba(0,0,0,.35); }
+.content { display: flex; flex-direction: column; gap: 0.75rem; }
+.eyebrow { font-size: 0.7rem; letter-spacing: 0.4em; text-transform: uppercase; color: rgba(255,255,255,.6); }
+.name { font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 700; line-height: 1.1; }
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+}
+.metric { display: flex; flex-direction: column; gap: 0.2rem; }
+.metric .label { font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,.6); }
+.metric .value { font-size: 1.4rem; font-weight: 600; }
+.art { position: relative; }
+.art img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 1.4rem;
+  object-fit: cover;
+  box-shadow: 0 20px 45px rgba(0,0,0,.4);
+}
+</style>
