@@ -8,6 +8,7 @@ import WeaponCard from '@/components/wiki/WeaponCard.vue'
 import { useWikiWeaponStore } from '@/stores/wikiWeaponStore'
 import { useWikiSkillStore } from '@/stores/wikiSkillStore'
 import { useWikiLabelStore } from '@/stores/wikiLabelStore'
+import { buildJobCardList } from '@/components/wiki/filters/dicts'
 
 /* ---------- stores ---------- */
 const weaponStore = useWikiWeaponStore()
@@ -30,14 +31,7 @@ function updateIsMobile () {
 const handleToggleFilter = () => { showFilterPanel.value = !showFilterPanel.value }
 
 /* ---------- Top class switcher ---------- */
-const JOBS = [
-  { id: 0,  img: '/wiki/Mechs/Img_Pic_0.png',  label: 'All Weapons' },
-  { id: 1,  img: '/wiki/Mechs/Img_Pic_1.png',  label: 'Striker'  },
-  { id: 2,  img: '/wiki/Mechs/Img_Pic_2.png',  label: 'Keystone' },
-  { id: 4,  img: '/wiki/Mechs/Img_Pic_4.png',  label: 'Buster'   },
-  { id: 8,  img: '/wiki/Mechs/Img_Pic_8.png',  label: 'Bullseye' },
-  { id: 16, img: '/wiki/Mechs/Img_Pic_16.png', label: 'Apostle'  },
-]
+const JOBS = buildJobCardList('All Weapons')
 const selectedJob = ref(0) // 0 = All Weapons
 
 function selectJob(job) {

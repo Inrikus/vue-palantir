@@ -135,6 +135,13 @@ function onLevelInput(e) {
         <!-- Крупная иконка на всю ширину -->
         <div class="relative w-full aspect-square rounded-xl bg-black/20 ring-1 ring-white/10 overflow-hidden">
           <img
+            src="/wiki/Mechs/Img_BigScreenBG.png"
+            alt=""
+            class="absolute inset-0 w-full h-full object-cover opacity-35 pointer-events-none select-none"
+            aria-hidden="true"
+            draggable="false"
+          />
+          <img
             :src="coreIconSrc"
             :alt="nameText"
             class="absolute inset-0 w-full h-full object-contain z-10"
@@ -216,7 +223,14 @@ function onLevelInput(e) {
   <article v-else class="w-full rounded-2xl bg-[#1C1B20] ring-1 ring-white/10 p-4 md:p-6 space-y-6">
     <!-- Header -->
     <div class="flex flex-row items-start gap-4">
-      <div class="relative w-64 h-64 rounded-xl bg-black/20 ring-1 ring-white/10 mx-0 shrink-0">
+      <div class="relative w-64 h-64 rounded-xl bg-black/20 ring-1 ring-white/10 mx-0 shrink-0 overflow-hidden">
+        <img
+          src="/wiki/Mechs/Img_BigScreenBG.png"
+          alt=""
+          class="absolute inset-0 w-full h-full object-cover opacity-35 pointer-events-none select-none"
+          aria-hidden="true"
+          draggable="false"
+        />
         <img
           :src="coreIconSrc"
           :alt="nameText"

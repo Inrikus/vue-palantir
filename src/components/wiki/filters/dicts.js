@@ -20,3 +20,20 @@ export const CHIP_COLORS = {
   uniq:     '#eab308', // amber tone
   label:    '#5E5E5E', // fallback when label doesn't provide its own color
 }
+
+const JOB_CARD_BASE = [
+  { id: 1,  img: '/wiki/Mechs/Img_Pic_1.png',  label: 'Striker'  },
+  { id: 2,  img: '/wiki/Mechs/Img_Pic_2.png',  label: 'Keystone' },
+  { id: 4,  img: '/wiki/Mechs/Img_Pic_4.png',  label: 'Buster'   },
+  { id: 8,  img: '/wiki/Mechs/Img_Pic_8.png',  label: 'Bullseye' },
+  { id: 16, img: '/wiki/Mechs/Img_Pic_16.png', label: 'Apostle'  },
+]
+
+/**
+ * Returns the job selector cards shared across wiki pages.
+ * @param {string} allLabel - Label for the “all items” card (id=0).
+ */
+export function buildJobCardList(allLabel = 'All') {
+  const head = { id: 0, img: '/wiki/Mechs/Img_Pic_0.png', label: allLabel }
+  return [head, ...JOB_CARD_BASE.map(item => ({ ...item }))]
+}

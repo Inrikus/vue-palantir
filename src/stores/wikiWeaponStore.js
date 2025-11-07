@@ -17,6 +17,7 @@ import { fetchWikiWeapons } from '@/utils/api'
  * @property {number} [Job_MainWeapon]      // основной класс для оружия (если есть)
  * @property {[number, number]|number[]} [CommonSkill] // [skillId, level] или просто [skillId]
  * @property {number[]} [skills]            // дополнительные/встроенные навыки
+ * @property {number[]} [Tips_Label]        // Tips-based label IDs
  * @property {{name:{key:string,[k:string]:string}, location?:{key:string,[k:string]:string}, desc?:{key:string,[k:string]:string}}} i18n
  */
 
@@ -38,6 +39,8 @@ export const useWikiWeaponStore = defineStore('wikiWeapon', {
       uniq: false,                    // exact-маска JobLimit
       types:  /** @type {number[]} */ ([]),   // WeaponType in []
       positions: /** @type {number[]} */ ([]),// PositionLimit — битовые флаги; матч по (mask & any) != 0
+      positionsUniq: false,           // exact match for slot mask
+      labels: /** @type {number[]} */ ([]),   // Tips_Label IDs
       hasSkillId: /** @type {number|null} */ (null), // искать по skills/CommonSkill
     },
 
@@ -52,8 +55,19 @@ export const useWikiWeaponStore = defineStore('wikiWeapon', {
     /** Фасеты (например, список типов) */
     facets(state) {
       const types = new Set()
-      for (const w of state.items) if (w.WeaponType != null) types.add(w.WeaponType)
-      return { types: Array.from(types).sort((a,b)=>a-b) }
+      const labelIds = new Set()
+      for (const w of state.items) {
+        if (w?.WeaponType != null) types.add(w.WeaponType)
+        const tips = Array.isArray(w?.Tips_Label) ? w.Tips_Label : []
+        for (const id of tips) {
+          const n = Number(id)
+          if (Number.isFinite(n)) labelIds.add(n)
+        }
+      }
+      return {
+        types: Array.from(types).sort((a,b)=>a-b),
+        labels: Array.from(labelIds).sort((a,b)=>a-b),
+      }
     },
 
     /** Функции локализации для текущей локали */

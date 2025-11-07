@@ -9,12 +9,16 @@ import CoreCard from '@/components/wiki/CoreCard.vue'
 import WikiCoreFilterPanel from '@/components/wiki/WikiCoreFilterPanel.vue'
 import LocalePicker from '@/components/wiki/LocalePicker.vue'
 import ActiveFiltersBar from '@/components/wiki/ActiveFiltersBar.vue'
+import { buildJobCardList } from '@/components/wiki/filters/dicts'
 
 const route = useRoute()
 const router = useRouter()
 
 const store      = useWikiCoreStore()
 const labelStore = useWikiLabelStore()
+
+const JOBS = buildJobCardList('All Cores')
+const selectedJob = ref(0)
 
 /* ---------- Locale ---------- */
 const locale = ref(route.query.locale ?? 'en')
@@ -34,10 +38,31 @@ function updateIsMobile () {
 const handleToggleFilter = () => { showFilterPanel.value = !showFilterPanel.value }
 
 // Локальная форма фильтров (массивы + uniq toggle)
-const filters = ref({ rares: [], jobs: [], labels: [], uniq: false })
+function buildFilterState (source = {}) {
+  return {
+    rares: Array.isArray(source.rares) ? [...source.rares] : [],
+    jobs: Array.isArray(source.jobs) ? [...source.jobs] : [],
+    labels: Array.isArray(source.labels) ? [...source.labels] : [],
+    uniq: !!source.uniq,
+  }
+}
+const filters = ref(buildFilterState())
+let syncingFilters = false
+function syncFiltersFromStore () {
+  syncingFilters = true
+  filters.value = buildFilterState(store.filters || {})
+  syncingFilters = false
+}
 
 /* Применяем сразу при изменении модели */
-watch(filters, (val) => store.applyFilters(val), { deep: true })
+watch(filters, (val) => {
+  if (syncingFilters) return
+  store.applyFilters(val)
+}, { deep: true })
+watch(() => filters.value.jobs, (jobs) => {
+  const arr = Array.isArray(jobs) ? jobs : []
+  selectedJob.value = arr.length === 1 ? arr[0] : 0
+})
 
 // Счётчик выбранных фильтров (без строки поиска)
 const selectedFiltersCount = computed(() => {
@@ -76,16 +101,22 @@ async function load () {
   store.setSearch(String(search.value || ''))
 
   // Синхроним локальные фильтры со стором
-  filters.value = { ...store.filters }
+  syncFiltersFromStore()
 
   // Запускаем прогрессивную догрузку до максимума
   startProgressiveFill()
+}
+
+function selectJob (job) {
+  selectedJob.value = job
+  filters.value.jobs = job === 0 ? [] : [job]
 }
 
 function handleReload () {
   // Reload явно сбрасывает и поиск, и фильтры
   search.value = ''
   store.resetFilters()
+  syncFiltersFromStore()
   store.setSearch('')
   load()
 }
@@ -94,6 +125,7 @@ function handleResetFromPanel () {
   // Reset из панели — дополнительно чистим строку поиска
   search.value = ''
   store.resetFilters()
+  syncFiltersFromStore()
   // перезапуск автомата
   startProgressiveFill()
 }
@@ -199,46 +231,59 @@ const totalMatched = computed(() => store.filteredTotal)
 
 <template>
   <section class="mx-auto w-full max-w-[98vw] px-2 sm:px-4 lg:px-6 space-y-4">
-    <!-- Заголовок -->
+    <!-- HEADER -->
     <header class="space-y-3">
-      <!-- первая строка: заголовок + локаль -->
       <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-semibold">Wiki — Cores</h1>
+        <h1 class="text-2xl font-semibold">Wiki - Cores</h1>
         <LocalePicker v-model="locale" />
       </div>
 
-      <!-- Управляющая полоса: flex-wrap + order -->
-      <!-- Мобилка:
-           row 1: [Filters]                    [Items]
-           row 2: [Search.....................][Reload]
-           Десктоп:
-           row 1: [Filters] [Search.............] [Items] -->
+      <div
+        class="grid gap-3"
+        :class="isMobile ? 'grid-cols-3' : 'grid-cols-6'"
+      >
+        <button
+          v-for="m in JOBS"
+          :key="m.id"
+          class="relative rounded-xl overflow-hidden ring-1 ring-white/10 hover:ring-white/20 bg-[#0d0f14] group"
+          :class="isMobile ? 'h-24' : 'h-28'"
+          @click="selectJob(m.id)"
+          :title="m.label"
+        >
+          <img :src="m.img" class="absolute inset-0 w-full h-full object-cover opacity-70" alt="" />
+          <div class="absolute inset-0"
+               style="background-image:url('/wiki/Mechs/Img_BigScreenBG.png'); background-size:cover; mix-blend:screen; opacity:.25" />
+          <div class="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors" />
+          <div class="absolute inset-x-2 bottom-2 text-center text-sm font-semibold">
+            <span :class="selectedJob === m.id ? 'text-[#63B4C8]' : 'opacity-90'">{{ m.label }}</span>
+          </div>
+        </button>
+      </div>
+
       <div class="flex flex-wrap items-center gap-3">
-        <!-- ЛЕВО: Filters -->
         <div class="order-1 sm:order-1">
           <button
             @click="handleToggleFilter"
             class="border-2 border-[#63B4C8] text-[#63B4C8] rounded-md px-3 py-1.5 flex gap-2 text-base sm:text-lg font-semibold items-center hover:bg-gray-700 bg-[#232228]"
           >
             <img src="@/assets/filter-1.svg" class="w-5 sm:w-6" alt="filter" />
-            Filters ({{ selectedFiltersCount }})
+            Filters
+            <span v-if="selectedFiltersCount" class="text-xs sm:text-sm opacity-70">({{ selectedFiltersCount }})</span>
           </button>
         </div>
 
-        <!-- СЧЁТЧИК ITEMS -->
         <div class="order-2 sm:order-3 ml-auto text-sm opacity-80 flex items-center gap-2">
           <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           <span>Items: <span class="font-medium">{{ totalMatched }}</span></span>
         </div>
 
-        <!-- НИЖЕ (мобилка) / ЦЕНТР (десктоп): Поиск + Reload -->
         <div class="order-4 sm:order-2 basis-full sm:basis-auto w-full sm:w-auto sm:flex-1 flex items-center gap-3">
           <div class="relative flex-1 min-w-[240px]">
             <input
               v-model.trim="search"
               type="text"
               inputmode="search"
-              placeholder="Search by name…"
+              placeholder="Search by name or description..."
               class="w-full bg-neutral-900/60 rounded-md pl-9 pr-8 py-2 ring-1 ring-white/10 focus:ring-white/20 placeholder:opacity-60"
             />
             <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 opacity-70" viewBox="0 0 24 24" fill="currentColor">
@@ -266,7 +311,7 @@ const totalMatched = computed(() => store.filteredTotal)
       </div>
     </header>
 
-    <!-- Активные фильтры (чипы) -->
+    <!-- ACTIVE FILTERS -->
     <ActiveFiltersBar
       :locale="locale"
       :rares="filters.rares"
@@ -281,21 +326,34 @@ const totalMatched = computed(() => store.filteredTotal)
     />
 
     <!-- ГРИД -->
-    <div v-if="store.loading" class="text-sm opacity-80">Loading…</div>
+    <div v-if="store.loading" class="text-sm opacity-80">Loading...</div>
     <div v-else-if="store.error" class="text-sm text-red-400">Error: {{ store.error }}</div>
 
+
     <div v-else>
-      <div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
+      <div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
         <button
           v-for="core in items"
           :key="`${core.id}-${core.CoreLv}`"
           @click="openModal(core)"
           class="group relative aspect-square rounded-2xl overflow-hidden ring-1 ring-white/10 hover:ring-white/25 bg-neutral-900/40"
-          :title="`ID ${core.id} — Lv.${core.CoreLv}`"
+          :title="`ID ${core.id} - Lv.${core.CoreLv}`"
         >
           <div class="absolute inset-0 p-1.5 sm:p-2 relative overflow-hidden">
+            <img
+              src="/wiki/Mechs/Img_BigScreenBG.png"
+              alt=""
+              class="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none select-none"
+              draggable="false"
+            />
             <img class="w-full h-full object-contain relative z-10" :src="iconSrc(core)" alt="" loading="lazy" draggable="false" />
-            <img src="/wiki/Cards/Img_CoreBGFX.png" alt="" class="absolute inset-0 w-full h-full object-contain pointer-events-none select-none core-glow" aria-hidden="true" draggable="false" />
+            <img
+              src="/wiki/Cards/Img_CoreBGFX.png"
+              alt=""
+              class="absolute inset-0 w-full h-full object-contain pointer-events-none select-none core-glow"
+              aria-hidden="true"
+              draggable="false"
+            />
           </div>
           <div class="absolute bottom-0 left-0 right-0 px-2 py-1 text-[11px] bg-black/40 backdrop-blur-sm">
             <div class="flex items-center justify-center text-center">

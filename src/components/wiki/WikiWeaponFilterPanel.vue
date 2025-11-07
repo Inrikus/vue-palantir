@@ -58,24 +58,19 @@ const WEAPON_OPTIONS = [
 
 
 /* -------- dynamic label options (from Weapons.Tips_Label via LabelStore) -------- */
+const tipsLabelIds = computed(() => weaponStore.facets?.labels || [])
 const skillLabelOptions = computed(() => {
-  const items = Array.isArray(weaponStore.items) ? weaponStore.items : []
-  const ids = new Set()
-  for (const w of items) {
-    const arr = Array.isArray(w?.Tips_Label) ? w.Tips_Label : []
-    for (const id of arr) {
-      const n = Number(id)
-      if (Number.isFinite(n)) ids.add(n)
-    }
-  }
+  const ids = Array.isArray(tipsLabelIds.value) ? tipsLabelIds.value : []
+  if (!ids.length) return []
   const out = []
   const byId = labelStore.byId || {}
-  for (const id of Array.from(ids)) {
+  const loc = props.locale
+  for (const id of ids) {
     const l = byId[id]
     if (!l) continue
     out.push({
       value: l.ID,
-      label: l.i18n?.[props.locale] || l.Name?.text || String(l.ID),
+      label: l.i18n?.[loc] || l.Name?.text || String(l.ID),
       color: l.LabelImageColor || '5E5E5E',
     })
   }
