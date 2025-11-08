@@ -312,7 +312,7 @@ function handleLoadMore () {
 
 
     <div v-else>
-      <div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
+      <div class="hidden sm:grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
         <button
           v-for="core in items"
           :key="`${core.id}-${core.CoreLv}`"
@@ -324,7 +324,7 @@ function handleLoadMore () {
             <img
               src="/wiki/Mechs/Img_BigScreenBG.png"
               alt=""
-              class="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none select-none"
+              class="absolute inset-0 w-full h-full object-cover opacity-75 pointer-events-none select-none"
               draggable="false"
             />
             <img class="w-full h-full object-contain relative z-10" :src="iconSrc(core)" alt="" loading="lazy" draggable="false" />
@@ -342,6 +342,30 @@ function handleLoadMore () {
                 {{ coreTitle(core) }}
               </span>
             </div>
+          </div>
+        </button>
+      </div>
+      <div class="flex flex-col gap-3 sm:hidden">
+        <button
+          v-for="core in items"
+          :key="`mobile-${core.id}-${core.CoreLv}`"
+          @click="openModal(core)"
+          class="wiki-card-mobile"
+        >
+          <div class="mobile-art">
+            <img src="/wiki/Mechs/Img_BigScreenBG.png" alt="" class="mobile-bg" aria-hidden="true" draggable="false" />
+            <img
+              :src="iconSrc(core)"
+              alt=""
+              class="mobile-thumb"
+              loading="lazy"
+              draggable="false"
+            />
+          </div>
+          <div class="mobile-copy">
+            <p class="mobile-title">
+              {{ coreTitle(core) }}
+            </p>
           </div>
         </button>
       </div>
@@ -400,7 +424,7 @@ function handleLoadMore () {
 
 <style scoped>
 .core-glow {
-  opacity: 0.3;
+  opacity: 0.2;
   mix-blend-mode: screen;
   filter: drop-shadow(0 2px 6px rgba(255,255,255,.15));
 }
@@ -432,6 +456,47 @@ function handleLoadMore () {
 
 .wiki-card {
   @apply relative aspect-square overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-[#05060c] via-[#0f1016] to-[#05060c] text-left shadow-xl shadow-black/40 transition hover:border-white/30 hover:shadow-sky-900/40;
+}
+
+.wiki-card-mobile {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(5,6,12,.85);
+  box-shadow: 0 10px 25px rgba(0,0,0,.35);
+  text-align: left;
+  overflow: hidden;
+}
+
+.mobile-art {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 0.95rem;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.08);
+}
+.mobile-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.65;
+}
+.mobile-thumb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.mobile-copy {
+  flex: 1;
+  min-width: 0;
 }
 
 .modal-fade-enter-active,

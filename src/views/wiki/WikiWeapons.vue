@@ -284,7 +284,7 @@ watch(filters, (val) => {
     <div v-else-if="weaponStore.error" class="text-sm text-red-400">Error: {{ weaponStore.error }}</div>
 
     <div v-else>
-      <div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
+      <div class="hidden sm:grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
         <button
           v-for="w in items"
           :key="w.id"
@@ -303,7 +303,7 @@ watch(filters, (val) => {
             <img
               src="/wiki/Mechs/Img_BigScreenBG.png"
               alt=""
-              class="absolute inset-0 w-full h-full object-cover opacity-20"
+              class="absolute inset-0 w-full h-full object-cover opacity-75"
               draggable="false"
             />
           </div>
@@ -314,6 +314,30 @@ watch(filters, (val) => {
                 {{ w.i18n?.name?.[locale] || w.englishName || `ID ${w.id}` }}
               </span>
             </div>
+          </div>
+        </button>
+      </div>
+      <div class="flex flex-col gap-3 sm:hidden">
+        <button
+          v-for="w in items"
+          :key="`mobile-${w.id}`"
+          @click="openModal(w)"
+          class="wiki-card-mobile"
+        >
+          <div class="mobile-art">
+            <img src="/wiki/Mechs/Img_BigScreenBG.png" alt="" class="mobile-bg" aria-hidden="true" draggable="false" />
+            <img
+              :src="weaponIconSrc(w)"
+              alt=""
+              class="mobile-thumb"
+              loading="lazy"
+              draggable="false"
+            />
+          </div>
+          <div class="mobile-copy">
+            <p class="mobile-title">
+              {{ w.i18n?.name?.[locale] || w.englishName || `ID ${w.id}` }}
+            </p>
           </div>
         </button>
       </div>
@@ -401,6 +425,59 @@ watch(filters, (val) => {
 
 .wiki-card {
   @apply relative aspect-square overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-[#05060c] via-[#0f1016] to-[#05060c] text-left shadow-xl shadow-black/40 transition hover:border-white/30 hover:shadow-sky-900/40;
+}
+.wiki-card-mobile {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(5,6,12,.85);
+  box-shadow: 0 10px 25px rgba(0,0,0,.35);
+  text-align: left;
+  overflow: hidden;
+}
+.mobile-art {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 0.95rem;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.08);
+}
+.mobile-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.65;
+}
+.mobile-thumb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.mobile-copy {
+  flex: 1;
+  min-width: 0;
+}
+.mobile-title {
+  font-weight: 600;
+  color: #fff;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mobile-sub {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(157,209,222,.75);
 }
 
 .modal-fade-enter-active,
