@@ -151,7 +151,7 @@ watch(route, () => {
   flex-wrap: wrap;
   gap: 1rem;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 1.25rem 1.5rem;
 }
 .left-controls {

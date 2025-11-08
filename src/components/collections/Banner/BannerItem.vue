@@ -56,7 +56,7 @@ defineProps({
   gap: 0.75rem;
   min-height: 200px;
   align-items: center;
-  text-align:center;
+  text-align: center;
 }
 .eyebrow { font-size: 0.7rem; letter-spacing: 0.4em; text-transform: uppercase; color: rgba(233,244,255,.65); }
 .name {

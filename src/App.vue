@@ -12,7 +12,7 @@ const useGlassShell = computed(() => !!route.meta?.glassShell)
   <HeaderSection />
   <main
     :class="[
-      'w-full min-h-[90vh] lg:px-20 sm:pt-10 pb-10 pt-5 px-2',
+      'w-full min-h-[90vh] lg:px-12 sm:pt-10 pb-10 pt-5 px-3',
       useGlassShell ? 'page-shell' : 'page-wide'
     ]"
   >
