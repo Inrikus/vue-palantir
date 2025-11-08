@@ -36,7 +36,7 @@ const tiles = computed(() => [
 
 <template>
   <section class="home">
-    <div class="promo-grid glass-panel">
+    <div class="promo-grid">
       <router-link
         v-for="tile in tiles"
         :key="tile.to"

@@ -66,13 +66,26 @@ const relTime = (tsSec) => {
 const timeLabelAbs = computed(() => absTime(props.item.timestamp))
 const timeLabelRel = computed(() => relTime(props.item.timestamp))
 
-/* ====== словари → иконки ====== */
-const platformSrc = (platform) => `/${platformIcon[platform] || platformIcon.Element}`
-const currencySrc  = (code) => {
-  const key = (code || '').toUpperCase()
-  const file = currencyDict[key] || currencyDict.Unknown
-  return `/currency/${file}`
+/* ====== assets helpers ====== */
+const resolveAssetPath = (src) => {
+  if (!src) return ''
+  if (/^https?:\/\//i.test(src)) return src
+  const normalized = src.startsWith('/') ? src : `/${src.replace(/^\/+/, '')}`
+  return normalized
 }
+
+const platformIconSrc = computed(() => {
+  const raw = platformIcon[props.item.platform] || platformIcon.Element
+  return resolveAssetPath(raw)
+})
+
+const currencyIconSrc = computed(() => {
+  const key = (props.item.currency || '').toUpperCase()
+  const file = currencyDict[key] || currencyDict.Unknown
+  return resolveAssetPath(`currency/${file}`)
+})
+
+const nftThumbSrc = computed(() => resolveAssetPath(props.item.nft_image))
 
 /* ====== ссылка на коллекцию (по платформе) ====== */
 const collectionUrl = computed(() => {
@@ -83,10 +96,10 @@ const collectionUrl = computed(() => {
 
 <template>
 <!-- Desktop row -->
-<div class="row hidden sm:grid">
+<div class="row row-card hidden sm:grid">
   <!-- Market → ссылка на коллекцию -->
   <div class="cell market">
-    <img :src="platformSrc(item.platform)" alt="" class="icon-25" />
+    <img :src="platformIconSrc" alt="" class="icon-25" />
     <a class="chip" :href="collectionUrl" target="_blank" rel="noopener">
       {{ item.platform || 'Market' }}
     </a>
@@ -94,7 +107,7 @@ const collectionUrl = computed(() => {
 
   <!-- Asset -->
   <div class="cell asset">
-    <img v-if="item.nft_image" :src="item.nft_image" alt="" class="thumb" />
+    <img v-if="nftThumbSrc" :src="nftThumbSrc" alt="" class="thumb" />
     <div class="asset-info">
       <a
         class="name link"
@@ -110,7 +123,7 @@ const collectionUrl = computed(() => {
   <!-- Price -->
   <div class="cell price">
     <div class="price-primary-wrapper">
-      <img :src="currencySrc(item.currency)" alt="" class="icon-18" />
+      <img :src="currencyIconSrc" alt="" class="icon-18" />
       <div class="price-primary">
         <span class="price-v num">{{ humanPrice(item.price_native) }}</span>
         <span class="code">{{ item.currency || '—' }}</span>
@@ -154,18 +167,18 @@ const collectionUrl = computed(() => {
 </div>
 
   <!-- Mobile card -->
-  <div class="row-mobile sm:hidden">
+  <div class="row-mobile row-card sm:hidden">
     <div class="top">
       <!-- item (mobile) -->
       <div class="left">
-        <img v-if="item.nft_image" :src="item.nft_image" alt="" class="thumb" />
+        <img v-if="nftThumbSrc" :src="nftThumbSrc" alt="" class="thumb" />
         <div class="asset-info">
           <a
             class="name link"
             :href="getNFTLink(item.chain, item.collectionAddress, item.tokenId)"
             target="_blank" rel="noopener"
           >
-            {{ (item.nft_name || ('#' + item.tokenId)).slice(0, 19) + '…' }}
+            {{ item.nft_name || ('#' + item.tokenId) }}
           </a>
         </div>
       </div>
@@ -173,7 +186,7 @@ const collectionUrl = computed(() => {
       <!-- PRICE (mobile) -->
       <div class="right">
         <div class="price-primary-wrapper">
-          <img :src="currencySrc(item.currency)" alt="" class="icon-18" />
+          <img :src="currencyIconSrc" alt="" class="icon-18" />
           <div class="price-primary">
             <span class="price-v num">{{ humanPrice(item.price_native) }}</span>
             <span class="code">{{ item.currency || '—' }}</span>
@@ -188,7 +201,7 @@ const collectionUrl = computed(() => {
 
     <div class="meta">
       <div class="market">
-        <img :src="platformSrc(item.platform)" alt="" class="icon-25" />
+        <img :src="platformIconSrc" alt="" class="icon-25" />
         <a class="chip" :href="collectionUrl" target="_blank" rel="noopener">
           {{ item.platform || 'Market' }}
         </a>
@@ -220,25 +233,43 @@ const collectionUrl = computed(() => {
 </template>
 
 <style scoped>
+.row-card {
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(99,180,200,.15), transparent 55%),
+    rgba(7,11,22,.85);
+  box-shadow: 0 20px 45px rgba(3,6,19,.35);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.row-card:hover {
+  border-color: rgba(99,180,200,.4);
+  transform: translateY(-2px);
+  box-shadow: 0 26px 60px rgba(3,6,19,.45);
+}
+
 /* ====== GRID (desktop) ====== */
 .row {
-  /* эластичные колонки, которые могут сжиматься без переполнения */
   grid-template-columns:
-    minmax(120px, 0.18fr)   /* market */
-    minmax(220px, 0.70fr)   /* asset  */
-    minmax(150px, 0.55fr)   /* price  */
-    minmax(180px, 0.45fr)   /* actors */
-    minmax(210px, 1fr);     /* time   */
+    minmax(120px, 0.18fr)
+    minmax(220px, 0.70fr)
+    minmax(150px, 0.55fr)
+    minmax(180px, 0.45fr)
+    minmax(210px, 1fr);
   align-items: center;
-  padding: 15px 35px;
-  border-bottom: 1px solid rgba(255,255,255,.06);
-  transition: background .15s ease;
+  padding: 18px 32px;
+  gap: 1rem;
 }
-.row:hover { background: rgba(255,255,255,.04); }
 .cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
 
 /* asset */
-.asset .thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+.asset .thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 10px 25px rgba(0,0,0,.45);
+}
 .asset-info { min-width: 0; }
 .name { font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .link { text-decoration: none; }
@@ -266,8 +297,13 @@ const collectionUrl = computed(() => {
 /* market */
 .cell.market { justify-content: flex-start; }
 .chip {
-  padding: 2px 8px; border: 1px solid rgba(99,180,200,.5);
-  border-radius: 9999px; font-size: 12px; color: #9dd1de; white-space: nowrap;
+  padding: 2px 10px;
+  border: 1px solid rgba(99,180,200,.45);
+  border-radius: 9999px;
+  font-size: 12px;
+  color: #9dd1de;
+  white-space: nowrap;
+  background: rgba(99,180,200,.08);
 }
 
 /* actors */
@@ -312,22 +348,37 @@ const collectionUrl = computed(() => {
 .tx-icon { font-size: 12px; line-height: 1; }
 
 /* ====== MOBILE ====== */
-.row-mobile { padding: 12px; border-bottom: 1px solid rgba(255,255,255,.06); }
-.row-mobile .top { display:flex; justify-content:space-between; gap:10px; }
+.row-mobile {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.row-mobile .top { display:flex; justify-content:space-between; gap:12px; }
 .row-mobile .left { display:flex; gap:10px; min-width:0; align-items:center; }
-.row-mobile .thumb { width:44px; height:44px; border-radius:8px; object-fit:cover; }
+.row-mobile .thumb { width:48px; height:48px; border-radius:12px; object-fit:cover; box-shadow: 0 8px 18px rgba(0,0,0,.45); }
 .row-mobile .right {
   display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px;
 }
-.meta { margin-top:8px; display:grid; gap:6px; }
-.market { display:flex; align-items:center; gap:8px; }
-.actors { display:flex; align-items:center; gap:6px; color:#cfe8ef; }
+.row-mobile .name { display:block; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px; }
+.row-mobile .meta { margin-top:8px; display:grid; gap:6px; }
+.row-mobile .market { display:flex; align-items:center; gap:8px; }
+.row-mobile .actors { display:flex; align-items:center; gap:6px; color:#cfe8ef; }
 .row-mobile .time { display:flex; align-items:center; gap:8px; font-size: 16px;}
 .muted { color:#9cc7d3; opacity:.8; }
 
 /* @media (max-width: 420px){ */
   /* при желании можно скрыть USD на очень узких — оставлено на ваше усмотрение */
 /* } */
+
+/* Visibility guards in case utility classes aren't applied */
+@media (max-width: 639px) {
+  .row { display: none; }
+}
+@media (min-width: 640px) {
+  .row { display: grid; }
+  .row-mobile { display: none !important; }
+}
 
 /* Универсальные размеры иконок */
 .icon-18 { width: 18px; height: 18px; flex: 0 0 18px; object-fit: contain; }

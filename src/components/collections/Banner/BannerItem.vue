@@ -50,13 +50,29 @@ defineProps({
   transition: transform .25s, border-color .25s, box-shadow .25s;
 }
 .banner-card:hover { transform: translateY(-6px); border-color: rgba(99,180,200,.6); box-shadow: 0 30px 70px rgba(4,9,25,.65); }
-.content { display: flex; flex-direction: column; gap: 0.75rem; }
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 170px;
+  justify-content: space-between;
+}
 .eyebrow { font-size: 0.7rem; letter-spacing: 0.4em; text-transform: uppercase; color: rgba(233,244,255,.65); }
-.name { font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 700; line-height: 1.1; color: #fff; }
+.name {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.1;
+  color: #fff;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .metrics {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 1rem;
+  
 }
 .metric { display: flex; flex-direction: column; gap: 0.2rem; }
 .metric .label { font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(233,244,255,.6); }

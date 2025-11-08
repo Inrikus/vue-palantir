@@ -232,7 +232,7 @@ function handleLoadMore () {
           @click="selectJob(m.id)"
           :title="m.label"
         >
-          <img :src="m.img" class="absolute inset-0 h-full w-full object-cover opacity-70" alt="" />
+          <img :src="m.img" class="absolute inset-0 h-full w-full object-cover opacity-90" alt="" />
           <div class="absolute inset-0" style="background-image:url('/wiki/Mechs/Img_BigScreenBG.png'); background-size:cover; opacity:.25" />
           <div class="absolute inset-0 bg-gradient-to-br from-black/70 via-black/40 to-transparent transition-opacity group-hover:opacity-60" />
           <span class="relative z-10 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">

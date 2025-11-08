@@ -31,6 +31,7 @@ defineEmits(['update:modelValue'])
   border: 1px solid rgba(255,255,255,.12);
   background: rgba(5,6,12,.6);
   margin: 1rem 0;
+  justify-content: center;
 }
 .tab {
   border: none;

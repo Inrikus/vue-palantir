@@ -143,7 +143,7 @@ const isChecked = (arr, v) => Array.isArray(arr) && arr.includes(v)
     <transition :name="isMobile ? 'slide-up' : 'slide-down'">
       <aside
         v-if="open"
-        class="fixed z-[1001] overflow-hidden rounded-t-3xl border border-white/10 bg-[#05060c]/95 text-white shadow-2xl backdrop-blur-2xl sm:rounded-none"
+        class="panel-shell fixed z-[1001] overflow-hidden rounded-t-3xl border border-white/10 bg-[#05060c]/95 text-white shadow-2xl backdrop-blur-2xl sm:rounded-none"
         :class="[
           'sm:inset-y-0 sm:left-0 sm:w-[740px] sm:max-w-[92vw]',
           'inset-x-0 bottom-0 top-0 sm:inset-auto'
@@ -160,7 +160,7 @@ const isChecked = (arr, v) => Array.isArray(arr) && arr.includes(v)
                 Weapons scope <span class="text-sm text-white/60">({{ selectedCount }})</span>
               </h3>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 justify-center mt-2">
               <button
                 @click="handleReset"
                 class="ghost-btn"
@@ -174,7 +174,7 @@ const isChecked = (arr, v) => Array.isArray(arr) && arr.includes(v)
           </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto px-6 py-6">
+        <div class="flex-1 min-h-0 overflow-y-auto px-6 py-6">
           <div class="space-y-7 pb-8">
             <!-- JOBS + UNIQ -->
             <section class="filter-card">
@@ -292,6 +292,12 @@ const isChecked = (arr, v) => Array.isArray(arr) && arr.includes(v)
 </template>
 
 <style scoped>
+.panel-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 /* section titles */
 .sec-title {
   @apply mb-2 text-sm uppercase tracking-wide text-white/70;
