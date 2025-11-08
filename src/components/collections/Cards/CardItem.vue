@@ -107,7 +107,7 @@ const usdPrice = computed(() => props.card.price ? `${props.card.price} USD` : '
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   background: #05060c;
   z-index: 0;
 }

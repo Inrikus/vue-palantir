@@ -37,32 +37,36 @@ defineProps({
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1.5rem;
-  padding: 1.5rem;
+  padding: 1.8rem;
   border-radius: 1.75rem;
-  border: 1px solid rgba(255,255,255,.08);
-  background: radial-gradient(circle at top right, rgba(99,180,200,.2), transparent 45%), rgba(15,16,22,.95);
+  border: 1px solid rgba(99,180,200,.3);
+  background:
+    radial-gradient(circle at top right, rgba(99,180,200,.25), transparent 45%),
+    linear-gradient(145deg, rgba(16,22,36,.95), rgba(32,48,78,.9));
   text-decoration: none;
-  color: inherit;
+  color: #e9f5ff;
+  box-shadow: 0 25px 55px rgba(4,9,25,.55);
+  backdrop-filter: blur(10px);
   transition: transform .25s, border-color .25s, box-shadow .25s;
 }
-.banner-card:hover { transform: translateY(-6px); border-color: rgba(99,180,200,.6); box-shadow: 0 25px 60px rgba(0,0,0,.35); }
+.banner-card:hover { transform: translateY(-6px); border-color: rgba(99,180,200,.6); box-shadow: 0 30px 70px rgba(4,9,25,.65); }
 .content { display: flex; flex-direction: column; gap: 0.75rem; }
-.eyebrow { font-size: 0.7rem; letter-spacing: 0.4em; text-transform: uppercase; color: rgba(255,255,255,.6); }
-.name { font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 700; line-height: 1.1; }
+.eyebrow { font-size: 0.7rem; letter-spacing: 0.4em; text-transform: uppercase; color: rgba(233,244,255,.65); }
+.name { font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 700; line-height: 1.1; color: #fff; }
 .metrics {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 1rem;
 }
 .metric { display: flex; flex-direction: column; gap: 0.2rem; }
-.metric .label { font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,.6); }
-.metric .value { font-size: 1.4rem; font-weight: 600; }
+.metric .label { font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(233,244,255,.6); }
+.metric .value { font-size: 1.4rem; font-weight: 600; color: #fff; }
 .art { position: relative; }
 .art img {
   width: 100%;
   aspect-ratio: 4 / 3;
   border-radius: 1.4rem;
   object-fit: cover;
-  box-shadow: 0 20px 45px rgba(0,0,0,.4);
+  box-shadow: 0 20px 45px rgba(4,9,25,.45);
 }
 </style>

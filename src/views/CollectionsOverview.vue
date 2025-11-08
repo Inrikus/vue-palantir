@@ -9,7 +9,7 @@ import BannerPanel from '@/components/collections/Banner/BannerPanel.vue'
         <p class="eyebrow">Fusionist collections</p>
         <h1 class="title">Browse every drop, track floors and jump into detailed analytics.</h1>
         <p class="subtitle">
-          Панель синхронизируется с API Fusionist и отображает живые цены, листинги и активность по всем доступным коллекциям.
+          The dashboard syncs with the Palantir API and displays live prices, listings, and activity across all available collections.
         </p>
       </div>
       <router-link to="/wiki" class="cta">Open Wiki</router-link>
@@ -56,6 +56,7 @@ import BannerPanel from '@/components/collections/Banner/BannerPanel.vue'
   text-transform: uppercase;
   letter-spacing: 0.2em;
   font-size: 0.8rem;
+  text-align: center;
 }
 :global(.grid-banner) {
   display: grid;

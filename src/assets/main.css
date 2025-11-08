@@ -2,7 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-body { background-color: #1a1a1a; }
+body {
+  background-color: #050914;
+  color: #f5f8ff;
+}
 
 /* Стабильный макет при появлении/исчезновении скроллбара */
 @supports (scrollbar-gutter: stable) {

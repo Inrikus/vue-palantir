@@ -30,7 +30,7 @@ defineEmits(['update:modelValue'])
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,.12);
   background: rgba(5,6,12,.6);
-  margin: 2rem 0;
+  margin: 1rem 0;
 }
 .tab {
   border: none;

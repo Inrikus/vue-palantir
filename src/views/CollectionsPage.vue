@@ -50,7 +50,7 @@ watch(route, () => {
 
 <template>
   <div class="min-h-screen space-y-4">
-    <header class="collections-header">
+    <header class="collections-header glass-panel">
       <div class="head-left">
         <img :src="collections[route.name]?.page.image" class="logo" alt="collection logo" />
         <div>
@@ -62,7 +62,7 @@ watch(route, () => {
     </header>
 
     <div v-if="currentPanel === 'Cards'">
-      <div class="filters-bar">
+      <div class="filters-bar glass-panel">
         <div class="left-controls">
           <button
             @click="handleToggleFilter"
@@ -120,6 +120,7 @@ watch(route, () => {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  padding: 1.5rem;
 }
 .head-left {
   display: flex;
@@ -136,7 +137,7 @@ watch(route, () => {
   font-size: 0.75rem;
   letter-spacing: 0.4em;
   text-transform: uppercase;
-  color: rgba(255,255,255,.6);
+  color: rgba(255,255,255,.75);
 }
 .title {
   font-size: clamp(2rem, 4vw, 2.8rem);
@@ -151,6 +152,7 @@ watch(route, () => {
   gap: 1rem;
   align-items: center;
   justify-content: space-between;
+  padding: 1.25rem 1.5rem;
 }
 .left-controls {
   display: flex;
@@ -168,7 +170,15 @@ watch(route, () => {
 }
 
 .filter-toggle {
-  @apply inline-flex items-center gap-2 rounded-2xl border border-sky-400/40 bg-white/5 px-4 py-2 text-sm font-semibold text-sky-200 shadow-lg shadow-sky-900/30 transition hover:border-sky-300 hover:text-white;
+  @apply inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold transition;
+  background: rgba(99,180,200,.15);
+  border: 1px solid rgba(99,180,200,.35);
+  color: #e5f6ff;
+  box-shadow: 0 10px 25px rgba(8,20,40,.3);
+}
+.filter-toggle:hover {
+  border-color: rgba(99,180,200,.7);
+  color: #fff;
 }
 .filter-toggle .count {
   font-size: 0.85em;
@@ -180,7 +190,7 @@ watch(route, () => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
-  color: rgba(255,255,255,.7);
+  color: rgba(255,255,255,.85);
 }
 .indicator .dot {
   width: 0.5rem;
@@ -218,24 +228,21 @@ watch(route, () => {
 .sort-select {
   width: 100%;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.15);
-  background: rgba(5,6,12,.65);
+  border: 1px solid rgba(99,180,200,.35);
+  background: rgba(255,255,255,.92);
   padding: 0.65rem 2.5rem 0.65rem 1rem;
   font-size: 0.9rem;
   font-weight: 600;
   appearance: none;
-  color: white;
+  color: #07122b;
   text-align: center;
+  box-shadow: 0 10px 25px rgba(6,18,43,.15);
 }
 .sort-select:focus {
   outline: none;
-  border-color: rgba(99,180,200,.8);
-  box-shadow: 0 0 0 2px rgba(99,180,200,.25);
-  background: rgba(5,6,12,.85);
-}
-.sort-select:focus {
-  outline: none;
-  border-color: rgba(255,255,255,.5);
+  border-color: rgba(99,180,200,.85);
+  box-shadow: 0 0 0 2px rgba(99,180,200,.25), 0 15px 35px rgba(6,18,43,.2);
+  background: rgba(255,255,255,.98);
 }
 .chevron {
   position: absolute;
@@ -245,6 +252,6 @@ watch(route, () => {
   height: 1rem;
   pointer-events: none;
   transform: translateY(-50%);
-  color: rgba(255,255,255,.7);
+  color: rgba(7,18,43,.5);
 }
 </style>

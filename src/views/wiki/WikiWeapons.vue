@@ -4,6 +4,7 @@ import LocalePicker from '@/components/wiki/LocalePicker.vue'
 import ActiveFiltersBar from '@/components/wiki/ActiveFiltersBar.vue'
 import WikiWeaponFilterPanel from '@/components/wiki/WikiWeaponFilterPanel.vue'
 import WeaponCard from '@/components/wiki/WeaponCard.vue'
+import InfinitePager from '@/components/wiki/InfinitePager.vue'
 
 import { useWikiWeaponStore } from '@/stores/wikiWeaponStore'
 import { useWikiSkillStore } from '@/stores/wikiSkillStore'
@@ -95,8 +96,6 @@ watch(() => filters.value.jobs, (jobs) => {
 })
 watch(search, (q) => {
   weaponStore.applyFilters({ search: q ?? '' })
-  // Restart progressive fill like WikiCores.vue
-  startProgressiveFill()
 })
 
 /* ---------- load ---------- */
@@ -107,7 +106,6 @@ async function loadAll() {
     labelStore.load(locale.value),
   ])
   syncFiltersFromStore()
-  startProgressiveFill()
 }
 
 watch(locale, async (loc) => {
@@ -117,41 +115,19 @@ watch(locale, async (loc) => {
     labelStore.load(loc),
   ])
   syncFiltersFromStore()
-  startProgressiveFill()
 })
-
-/* ---------- Progressive fill helpers ---------- */
-let timer = null
-function stopProgressiveFill () { if (timer) { clearInterval(timer); timer = null } }
-function startProgressiveFill () {
-  stopProgressiveFill()
-  if (!weaponStore.hasNextPage) return
-  timer = setInterval(() => {
-    if (!weaponStore.hasNextPage) { stopProgressiveFill(); return }
-    weaponStore.nextPage()
-  }, 500)
-}
-
-  // Restart progressive fill like WikiCores.vue
-watch(
-  () => [weaponStore.filters.jobs, weaponStore.filters.labels, weaponStore.filters.positions, weaponStore.filters.positionsUniq, weaponStore.filters.uniq, weaponStore.filteredTotal],
-  () => startProgressiveFill(),
-  { deep: true }
-)
 
 /* ---------- Reload helper ---------- */
 function handleReloadClick() {
   search.value = ''
   weaponStore.resetFilters()
   syncFiltersFromStore()
-  startProgressiveFill()
 }
 
 function handleResetFromPanel() {
   search.value = ''
   weaponStore.resetFilters()
   syncFiltersFromStore()
-  startProgressiveFill()
 }
 
 onMounted(() => {
@@ -161,13 +137,19 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateIsMobile)
-  stopProgressiveFill()
   toggleScrollLock(false)
 })
 
 /* ---------- items / helpers ---------- */
 const items = computed(() => weaponStore.pageItems)
 const totalMatched = computed(() => weaponStore.filteredTotal)
+const hasNextPage = computed(() => weaponStore.hasNextPage)
+const isLoading = computed(() => weaponStore.loading)
+
+function handleLoadMore() {
+  if (!weaponStore.hasNextPage) return
+  weaponStore.nextPage()
+}
 
 function weaponIconSrc(w) {
   const icon = w?.Icon || 'weapon_unknown'
@@ -199,7 +181,6 @@ watch(filters, (val) => {
     positionsUniq: !!val.positionsUniq,
     uniq: !!val.uniq,
   })
-  startProgressiveFill()
 }, { deep: true })
 </script>
 
@@ -224,7 +205,7 @@ watch(filters, (val) => {
           :title="m.label"
         >
           <img :src="m.img" class="absolute inset-0 h-full w-full object-cover opacity-70" alt="" />
-          <div class="absolute inset-0" style="background-image:url('/wiki/Mechs/Img_BigScreenBG.png'); background-size:cover; mix-blend:screen; opacity:.25" />
+          <div class="absolute inset-0" style="background-image:url('/wiki/Mechs/Img_BigScreenBG.png'); background-size:cover; opacity:.25" />
           <div class="absolute inset-0 bg-gradient-to-br from-black/70 via-black/40 to-transparent transition-opacity group-hover:opacity-60" />
           <span class="relative z-10 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
             {{ m.label }}
@@ -336,6 +317,11 @@ watch(filters, (val) => {
           </div>
         </button>
       </div>
+      <InfinitePager
+        :is-loading="isLoading"
+        :has-next-page="hasNextPage"
+        @load-more="handleLoadMore"
+      />
     </div>
 
     <Teleport to="body">

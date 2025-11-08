@@ -36,7 +36,7 @@ const tiles = computed(() => [
 
 <template>
   <section class="home">
-    <div class="promo-grid">
+    <div class="promo-grid glass-panel">
       <router-link
         v-for="tile in tiles"
         :key="tile.to"
@@ -64,40 +64,47 @@ const tiles = computed(() => [
 .promo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
+  padding: 1.5rem;
 }
 
 .promo-card {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1.8rem;
-  border-radius: 1.25rem;
-  border: 1px solid rgba(255,255,255,.08);
-  background: rgba(5,6,12,.85);
-  transition: border-color .2s, transform .2s;
+  gap: 0.85rem;
+  padding: 1.9rem;
+  border-radius: 1.35rem;
+  border: 1px solid rgba(99,180,200,.28);
+  background:
+    radial-gradient(circle at top right, rgba(99,180,200,.25), transparent 45%),
+    linear-gradient(145deg, rgba(18,22,38,.95), rgba(34,48,78,.88));
+  color: #eaf4ff;
+  box-shadow: 0 20px 45px rgba(4,9,25,.55);
+  transition: border-color .2s, transform .2s, box-shadow .2s;
 }
 .promo-card:hover {
-  border-color: rgba(99,180,200,.6);
+  border-color: rgba(99,180,200,.65);
   transform: translateY(-4px);
+  box-shadow: 0 30px 65px rgba(4,9,25,.65);
 }
 .eyebrow {
   font-size: 0.7rem;
   letter-spacing: 0.35em;
   text-transform: uppercase;
-  color: rgba(255,255,255,.55);
+  color: rgba(229,242,255,.65);
 }
 h2 {
   font-size: 1.9rem;
   font-weight: 600;
+  color: #fff;
 }
-.description { color: rgba(255,255,255,.7); }
+.description { color: rgba(229,242,255,.75); }
 .action {
   margin-top: auto;
   font-size: 0.85rem;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: #63B4C8;
+  color: #63b4c8;
 }
 
 :global(.grid-banner) {

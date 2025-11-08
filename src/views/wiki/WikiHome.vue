@@ -28,8 +28,8 @@ const sections = [
 </script>
 
 <template>
-  <section class="mx-auto max-w-6xl space-y-8">
-    <div class="rounded-3xl border border-white/10 bg-white/5 p-8 text-white shadow-xl backdrop-blur">
+  <section class="wiki-home glass-panel mx-auto max-w-6xl space-y-8">
+    <div class="rounded-3xl border border-white/20 bg-white/10 p-8 text-white shadow-xl backdrop-blur">
       <p class="text-xs uppercase tracking-[0.4em] text-white/60">Fusionist wiki</p>
       <h1 class="mt-3 text-4xl font-semibold">One hub for Cores, Weapons and upcoming Buffs.</h1>
       <p class="mt-4 text-sm text-white/70">
@@ -84,6 +84,10 @@ const sections = [
 </template>
 
 <style scoped>
+.wiki-home {
+  padding: clamp(1.5rem, 4vw, 3rem);
+  color: #fff;
+}
 .wiki-tile {
   @apply flex min-h-[220px] flex-col rounded-3xl border border-white/20 p-5 shadow-lg shadow-black/30 transition duration-300;
 }

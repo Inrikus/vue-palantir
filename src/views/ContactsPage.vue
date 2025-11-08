@@ -18,7 +18,7 @@ const profile = {
       <p>Reach out if you want to collaborate, share alpha or just talk Fusionist.</p>
     </div>
 
-    <article class="card">
+    <article class="card glass-panel">
       <div class="profile">
         <img :src="profile.avatar" :alt="profile.name" />
         <div>
@@ -55,9 +55,6 @@ const profile = {
 .card {
   width: 100%;
   max-width: 460px;
-  border-radius: 1.5rem;
-  border: 1px solid rgba(255,255,255,.1);
-  background: rgba(5,6,12,.88);
   padding: 2rem;
   display: flex;
   flex-direction: column;

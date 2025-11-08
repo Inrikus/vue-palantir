@@ -101,10 +101,6 @@ const cryptos = computed(() => {
           </router-link>
         </div>
 
-        <div class="flex items-center gap-2">
-          <router-link to="/contacts" class="nav-chip">Contacts</router-link>
-        </div>
-
         <router-link
           to="/wiki/weapons"
           class="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-400/80 to-indigo-500/80 px-5 py-2 text-base font-semibold text-white shadow-lg shadow-sky-900/40 transition hover:shadow-sky-900/60"

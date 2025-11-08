@@ -22,7 +22,7 @@ const routes = [
     path: '/wiki',
     name: 'wiki_home',
     component: WikiHome,
-    meta: { title: 'Wiki' }
+    meta: { title: 'Wiki', glassShell: true }
   },
   {
     path: '/wiki/cores',
@@ -48,13 +48,13 @@ const routes = [
     name: 'home',
     component: HomePage,
     alias: ['/home'],
-    meta: { title: 'Home' }
+    meta: { title: 'Home', glassShell: true }
   },
   {
     path: '/collections',
     name: 'collections_overview',
     component: CollectionsOverview,
-    meta: { title: 'Collections' }
+    meta: { title: 'Collections', glassShell: true }
   },
 
   // Коллекции: один компонент, разные статические пути + props для бэкенда

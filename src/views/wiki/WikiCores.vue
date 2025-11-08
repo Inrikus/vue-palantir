@@ -9,6 +9,7 @@ import CoreCard from '@/components/wiki/CoreCard.vue'
 import WikiCoreFilterPanel from '@/components/wiki/WikiCoreFilterPanel.vue'
 import LocalePicker from '@/components/wiki/LocalePicker.vue'
 import ActiveFiltersBar from '@/components/wiki/ActiveFiltersBar.vue'
+import InfinitePager from '@/components/wiki/InfinitePager.vue'
 import { buildJobCardList } from '@/components/wiki/filters/dicts'
 
 const route = useRoute()
@@ -102,9 +103,6 @@ async function load () {
 
   // Синхроним локальные фильтры со стором
   syncFiltersFromStore()
-
-  // Запускаем прогрессивную догрузку до максимума
-  startProgressiveFill()
 }
 
 function selectJob (job) {
@@ -126,8 +124,6 @@ function handleResetFromPanel () {
   search.value = ''
   store.resetFilters()
   syncFiltersFromStore()
-  // перезапуск автомата
-  startProgressiveFill()
 }
 
 /* ---------- Навигация / query ---------- */
@@ -140,8 +136,6 @@ watch(locale, (val) => {
 // Поиск — только в стор, без router.replace
 watch(search, (q) => {
   store.setSearch(String(q || ''))
-  // перезапуск автомата
-  startProgressiveFill()
 })
 
 /* ---------- Mount lifecycle ---------- */
@@ -152,27 +146,8 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateIsMobile)
-  stopProgressiveFill()
   toggleScrollLock(false)
 })
-
-/* ---------- Прогрессивная «раскатка» до максимума ---------- */
-let fillTimer = null
-function stopProgressiveFill () { if (fillTimer) { clearInterval(fillTimer); fillTimer = null } }
-function startProgressiveFill () {
-  stopProgressiveFill()
-  if (!store.hasNextPage) return
-  fillTimer = setInterval(() => {
-    if (!store.hasNextPage) { stopProgressiveFill(); return }
-    store.nextPage()
-  }, 500)
-}
-
-watch(
-  () => [store.filters.rares, store.filters.jobs, store.filters.labels, store.filters.uniq, store.filteredTotal],
-  () => startProgressiveFill(),
-  { deep: true }
-)
 
 /* ---------- Грид / модалка ---------- */
 const items = computed(() => store.pageItems)
@@ -226,6 +201,13 @@ watch(modalOpen, (v) => toggleScrollLock(v))
 
 /* ---------- Items counter (после фильтров) ---------- */
 const totalMatched = computed(() => store.filteredTotal)
+const hasNextPage = computed(() => store.hasNextPage)
+const isLoading = computed(() => store.loading)
+
+function handleLoadMore () {
+  if (!store.hasNextPage) return
+  store.nextPage()
+}
 </script>
 
 
@@ -251,7 +233,7 @@ const totalMatched = computed(() => store.filteredTotal)
           :title="m.label"
         >
           <img :src="m.img" class="absolute inset-0 h-full w-full object-cover opacity-70" alt="" />
-          <div class="absolute inset-0" style="background-image:url('/wiki/Mechs/Img_BigScreenBG.png'); background-size:cover; mix-blend:screen; opacity:.25" />
+          <div class="absolute inset-0" style="background-image:url('/wiki/Mechs/Img_BigScreenBG.png'); background-size:cover; opacity:.25" />
           <div class="absolute inset-0 bg-gradient-to-br from-black/70 via-black/40 to-transparent transition-opacity group-hover:opacity-60" />
           <span class="relative z-10 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
             {{ m.label }}
@@ -363,6 +345,11 @@ const totalMatched = computed(() => store.filteredTotal)
           </div>
         </button>
       </div>
+      <InfinitePager
+        :is-loading="isLoading"
+        :has-next-page="hasNextPage"
+        @load-more="handleLoadMore"
+      />
     </div>
 
     <!-- МОДАЛКА -->
