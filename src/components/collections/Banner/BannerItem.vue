@@ -54,8 +54,9 @@ defineProps({
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  min-height: 170px;
-  justify-content: space-between;
+  min-height: 200px;
+  align-items: center;
+  text-align:center;
 }
 .eyebrow { font-size: 0.7rem; letter-spacing: 0.4em; text-transform: uppercase; color: rgba(233,244,255,.65); }
 .name {
@@ -70,14 +71,20 @@ defineProps({
 }
 .metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
   gap: 1rem;
-  
+  margin-top: auto;
 }
-.metric { display: flex; flex-direction: column; gap: 0.2rem; }
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  justify-content: flex-start;
+  align-items: center;
+}
 .metric .label { font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(233,244,255,.6); }
 .metric .value { font-size: 1.4rem; font-weight: 600; color: #fff; }
-.art { position: relative; }
+.art { position: relative; display: flex; align-items: center; }
 .art img {
   width: 100%;
   aspect-ratio: 4 / 3;

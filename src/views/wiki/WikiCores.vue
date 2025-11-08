@@ -375,8 +375,6 @@ function handleLoadMore () {
                   v-if="selectedCore"
                   :core="selectedCore"
                   :locale="locale"
-                  @close="closeModal"
-                  @level-change="v => modalLevel = v"
                 />
               </div>
             </div>
