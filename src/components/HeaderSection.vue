@@ -84,7 +84,7 @@ const cryptos = computed(() => {
 
       <!-- Навигация -->
       <nav class="flex flex-col gap-3 text-sm font-semibold text-white/80 sm:flex-row sm:items-center sm:gap-4">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 justify-center">
           <button
             class="nav-chip"
             @click="toggle"
