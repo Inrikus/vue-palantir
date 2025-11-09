@@ -121,6 +121,13 @@ watch(route, () => {
   flex-direction: column;
   gap: 1.25rem;
   padding: 1.5rem;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255,255,255,.12);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(99,180,200,.18), transparent 90%),
+    rgba(7,11,22,.8);
+  box-shadow: 0 20px 45px rgba(3,6,19,.35);
+  backdrop-filter: blur(18px);
 }
 .head-left {
   display: flex;
@@ -153,6 +160,13 @@ watch(route, () => {
   align-items: center;
   justify-content: center;
   padding: 1.25rem 1.5rem;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255,255,255,.12);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(99,180,200,.18), transparent 90%),
+    rgba(7,11,22,.8);
+  box-shadow: 0 20px 45px rgba(3,6,19,.35);
+  backdrop-filter: blur(18px);
 }
 .left-controls {
   display: flex;

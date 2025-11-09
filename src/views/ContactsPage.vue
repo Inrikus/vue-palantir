@@ -1,14 +1,24 @@
 <script setup>
-const profile = {
-  name: 'Inrikus',
-  title: 'Palantir curator & analyst',
-  avatar: '/logo_cropped.png',
-  links: [
-    { label: 'Telegram', icon: '/social-icons/telegram.svg', url: 'https://t.me/Inrikus' },
-    { label: 'X (Twitter)', icon: '/social-icons/x.svg', url: 'https://x.com/MikeSco67162628' },
-    { label: 'Discord: inrikus', icon: '/social-icons/discord.svg' },
-  ]
-}
+const contacts = [
+  {
+    name: 'Inrikus',
+    title: 'Palantir curator & analyst',
+    avatar: '/logo_cropped.png',
+    links: [
+      { label: 'Telegram', icon: '/social-icons/telegram.svg', url: 'https://t.me/Inrikus' },
+      { label: 'X (Twitter)', icon: '/social-icons/x.svg', url: 'https://x.com/MikeSco67162628' },
+      { label: 'Discord: inrikus', icon: '/social-icons/discord.svg' },
+    ]
+  },
+  {
+    name: 'No_Suli4',
+    title: 'Community curator',
+    avatar: '/logo_cropped.png',
+    links: [
+      { label: 'Telegram', icon: '/social-icons/telegram.svg', url: 'https://t.me/No_Suli4' },
+    ]
+  }
+]
 </script>
 
 <template>
@@ -18,17 +28,21 @@ const profile = {
       <p>Reach out if you want to collaborate, share alpha or just talk Fusionist.</p>
     </div>
 
-    <article class="card glass-panel">
+    <article
+      v-for="contact in contacts"
+      :key="contact.name"
+      class="card glass-panel"
+    >
       <div class="profile">
-        <img :src="profile.avatar" :alt="profile.name" />
+        <img :src="contact.avatar" :alt="contact.name" />
         <div>
-          <h2>{{ profile.name }}</h2>
-          <p>{{ profile.title }}</p>
+          <h2>{{ contact.name }}</h2>
+          <p>{{ contact.title }}</p>
         </div>
       </div>
 
       <ul class="links">
-        <li v-for="link in profile.links" :key="link.label">
+        <li v-for="link in contact.links" :key="link.label">
           <img :src="link.icon" alt="" />
           <a v-if="link.url" :href="link.url" target="_blank" rel="noopener">{{ link.label }}</a>
           <span v-else>{{ link.label }}</span>
