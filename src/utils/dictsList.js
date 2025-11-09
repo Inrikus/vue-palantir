@@ -61,7 +61,8 @@ export const collections = {
   bi_mech: {
     queryName: 'bi_mech',
     page: { name: 'Bi-Mech', image: '/collections/Bi-mech.webp' },
-    banner: { name: 'Bi-Mech', image: '/banner/bm.gif', link_to: '/collections/bi_mech' },
+    // banner: { name: 'Bi-Mech', image: '/banner/bm.gif', link_to: '/collections/bi_mech' },
+    banner: { name: 'Bi-Mech', image: '/banner/Bi-Mech-2464.jpg', link_to: '/collections/bi_mech' },
     // при необходимости можно хранить теги статуса/режимы здесь
     status: [],
     sources: ['Element', 'OKX', 'Binance'],
@@ -75,7 +76,8 @@ export const collections = {
   quartan_primes: {
     queryName: 'quartan_primes',
     page: { name: 'Quartan Primes', image: '/collections/Quartan Primes.webp' },
-    banner: { name: 'Quartan Primes', image: '/banner/qp.gif', link_to: '/collections/quartan_primes' },
+    //banner: { name: 'Quartan Primes', image: '/banner/qp.gif', link_to: '/collections/quartan_primes' },
+    banner: { name: 'Quartan Primes', image: '/banner/QuartanPrimes-638.jpg', link_to: '/collections/quartan_primes' },
     // в исходнике "Uncreated" применялся к qp и peace — сохраним как метку
     status: ['Uncreated'],
     sources: ['Blur', 'Opensea', 'Element', 'MagicEden', 'OKX', 'Binance'],
@@ -89,7 +91,8 @@ export const collections = {
   alpha_prestige: {
     queryName: 'alpha_prestige',
     page: { name: 'Alpha Prestige', image: '/collections/Alpha Prestige.webp' },
-    banner: { name: 'Alpha Prestige', image: '/banner/ap.gif', link_to: '/collections/alpha_prestige' },
+    // banner: { name: 'Alpha Prestige', image: '/banner/ap.gif', link_to: '/collections/alpha_prestige' },
+    banner: { name: 'Alpha Prestige', image: '/banner/Alpha Prestige-1.jpg', link_to: '/collections/alpha_prestige' },
     status: [],
     sources: ['Blur', 'Opensea', 'Element', 'MagicEden', 'OKX', 'Binance'],
     filters: {

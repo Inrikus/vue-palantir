@@ -430,11 +430,14 @@ watch(filters, (val) => {
   display: flex;
   align-items: center;
   gap: 0.85rem;
-  padding: 0.75rem 0.9rem;
-  border-radius: 1.2rem;
-  border: 1px solid rgba(255,255,255,.08);
-  background: rgba(5,6,12,.85);
-  box-shadow: 0 10px 25px rgba(0,0,0,.35);
+  padding: 0.85rem 1rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(255,255,255,.12);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(147,206,233,.25), transparent 100%),
+    rgba(15,20,34,.85);
+  box-shadow: 0 18px 35px rgba(3,6,19,.4);
+  backdrop-filter: blur(18px);
   text-align: left;
   overflow: hidden;
 }

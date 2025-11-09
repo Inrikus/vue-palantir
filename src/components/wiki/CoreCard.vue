@@ -202,7 +202,7 @@ const labels = computed(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.3;
+  opacity: 0.45;
 }
 .hero-core,
 .hero-fx {
@@ -216,7 +216,7 @@ const labels = computed(() => {
 .hero-fx {
   z-index: 3;
   mix-blend-mode: screen;
-  opacity: 0.5;
+  opacity: 0.2;
 }
 .hero-copy {
   flex: 1;
