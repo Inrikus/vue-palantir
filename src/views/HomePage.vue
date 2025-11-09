@@ -65,7 +65,6 @@ const tiles = computed(() => [
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 1.25rem;
-  padding: 1.5rem;
 }
 
 .promo-card {
@@ -81,6 +80,8 @@ const tiles = computed(() => [
   color: #eaf4ff;
   box-shadow: 0 20px 45px rgba(4,9,25,.55);
   transition: border-color .2s, transform .2s, box-shadow .2s;
+  text-align: center;
+  align-items: center;
 }
 .promo-card:hover {
   border-color: rgba(99,180,200,.65);

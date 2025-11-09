@@ -37,11 +37,9 @@ const useGlassShell = computed(() => !!route.meta?.glassShell)
   box-shadow: 0 25px 60px rgba(3,6,19,.35);
 }
 .page-shell {
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
   background: rgba(15,18,29,0.6);
   border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 2rem;
   backdrop-filter: blur(40px);
   box-shadow: 0 35px 90px rgba(3,6,19,.45);
 }
