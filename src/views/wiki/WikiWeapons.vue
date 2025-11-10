@@ -352,27 +352,23 @@ watch(filters, (val) => {
       <transition name="modal-fade">
         <div
           v-if="modalOpen"
-          class="fixed inset-0 z-50 flex items-center justify-center p-4"
+          class="fixed inset-0 z-50 flex items-stretch justify-center p-0 sm:items-center sm:p-6"
           @keydown.esc="closeModal"
         >
-          <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="closeModal" />
+          <div class="modal-overlay" @click="closeModal" />
           <transition name="modal-scale" appear>
             <div
-              class="relative w-full max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-[#05060c]/95 text-white shadow-2xl backdrop-blur"
+              class="modal-shell"
+              :class="{ 'modal-shell--mobile': isMobile }"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Weapon details"
             >
-              <div class="flex flex-col gap-2 border-b border-white/10 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p class="text-[11px] uppercase tracking-[0.4em] text-white/60">Weapon</p>
-                  <h3 class="text-xl font-semibold">
-                    {{ (selectedWeapon?.i18n?.name?.[locale] || selectedWeapon?.englishName) ?? '-' }}
-                  </h3>
-                </div>
-                <button @click="closeModal" class="ghost-btn shrink-0">
-                  Close
-                </button>
-              </div>
+              <button class="modal-close-btn" type="button" @click="closeModal">
+                Close
+              </button>
 
-              <div class="max-h-[calc(90vh-96px)] overflow-y-auto p-6">
+              <div class="modal-card">
                 <WeaponCard
                   v-if="selectedWeapon"
                   :weapon="selectedWeapon"
@@ -492,4 +488,69 @@ watch(filters, (val) => {
 .modal-scale-leave-active { transition: transform 0.25s ease, opacity 0.25s ease; }
 .modal-scale-enter-from,
 .modal-scale-leave-to { transform: scale(0.9); opacity: 0; }
+
+.modal-shell {
+  position: relative;
+  width: min(calc(100vw - 2rem), 960px);
+  max-height: min(calc(100vh - 2rem), 920px);
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+}
+.modal-shell--mobile {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  background: #05060c;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.modal-card {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  border-radius: 2rem;
+  overscroll-behavior: contain;
+}
+.modal-card :deep(.weapon-card) {
+  flex: 1;
+  min-height: 100%;
+}
+.modal-shell--mobile .modal-card {
+  border-radius: 0;
+  background: #05060c;
+}
+.modal-close-btn {
+  position: absolute;
+  top: clamp(0.85rem, 2vw, 1.5rem);
+  right: clamp(0.85rem, 2vw, 1.5rem);
+  z-index: 10;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(5, 6, 12, 0.65);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.45rem 1.25rem;
+  backdrop-filter: blur(10px);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.modal-close-btn:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.12);
+}
+.modal-shell--mobile .modal-close-btn {
+  top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+  right: calc(env(safe-area-inset-right, 0px) + 0.75rem);
+}
+
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 6, 12, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity 0.25s ease;
+  will-change: opacity, backdrop-filter;
+}
 </style>

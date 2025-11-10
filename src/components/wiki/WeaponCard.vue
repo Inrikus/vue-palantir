@@ -108,7 +108,7 @@ const skills = computed(() => {
   border: 1px solid rgba(255,255,255,.08);
   background:
     radial-gradient(circle at 0% 0%, rgba(99,180,200,.18), transparent 55%),
-    rgba(6,10,20,.92);
+    #070b16;
   box-shadow: 0 25px 60px rgba(3,6,19,.45);
   padding: clamp(1.25rem, 4vw, 2rem);
 }
@@ -227,5 +227,12 @@ const skills = computed(() => {
   background: #0003;
   box-shadow: 0 0 0 1px rgba(255,255,255,.1);
   transform: translateY(0.04em);
+}
+
+@media (max-width: 640px) {
+  .weapon-card {
+    border: none;
+    border-radius: 0;
+  }
 }
 </style>

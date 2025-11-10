@@ -88,6 +88,9 @@ const labels = computed(() => {
 
 <template>
   <article class="core-card">
+    <div v-if="$slots.controls" class="card-controls">
+      <slot name="controls" />
+    </div>
     <div class="hero">
       <div class="hero-art">
         <img
@@ -167,9 +170,21 @@ const labels = computed(() => {
   border: 1px solid rgba(255,255,255,.08);
   background:
     radial-gradient(circle at 0% 0%, rgba(99,180,200,.18), transparent 55%),
-    rgba(7,11,22,.9);
+    #070b16;
   box-shadow: 0 25px 60px rgba(3,6,19,.45);
   padding: clamp(1.25rem, 4vw, 2rem);
+  isolation: isolate;
+}
+
+.card-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  margin-bottom: 1rem;
 }
 
 .hero {
@@ -326,5 +341,12 @@ const labels = computed(() => {
   background: #0003;
   box-shadow: 0 0 0 1px rgba(255,255,255,.1);
   transform: translateY(0.04em);
+}
+
+@media (max-width: 640px) {
+  .core-card {
+    border: none;
+    border-radius: 0;
+  }
 }
 </style>
