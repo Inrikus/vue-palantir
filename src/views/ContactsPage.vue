@@ -2,7 +2,7 @@
 const contacts = [
   {
     name: 'Inrikus',
-    title: 'Palantir curator & analyst',
+    title: 'Palantir Creator',
     avatar: '/logo_cropped.png',
     links: [
       { label: 'Telegram', icon: '/social-icons/telegram.svg', url: 'https://t.me/Inrikus' },
@@ -12,7 +12,7 @@ const contacts = [
   },
   {
     name: 'No_Suli4',
-    title: 'Community curator',
+    title: 'UI/UX advisor',
     avatar: '/logo_cropped.png',
     links: [
       { label: 'Telegram', icon: '/social-icons/telegram.svg', url: 'https://t.me/No_Suli4' },

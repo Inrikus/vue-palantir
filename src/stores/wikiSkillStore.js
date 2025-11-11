@@ -52,7 +52,7 @@ export const useWikiSkillStore = defineStore('wikiSkill', {
 
   getters: {
     /** Удобные локализаторы */
-    makeLocalizers: (state) => (locale) => ({
+    makeLocalizers: () => (locale) => ({
       nameOf: (s) => (s?.i18n?.name?.[locale] ?? s?.englishName ?? ''),
       descOf: (s) => (s?.i18n?.desc?.[locale] ?? ''),
     }),

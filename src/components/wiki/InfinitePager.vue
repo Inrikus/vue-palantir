@@ -57,7 +57,6 @@ let rafId = 0
 let lastFiredAt = 0
 
 function nearBottom() {
-  const el = (rootEl instanceof Element) ? rootEl : document.scrollingElement || document.documentElement
   const scrollTop = (rootEl instanceof Element) ? rootEl.scrollTop : window.scrollY || window.pageYOffset
   const viewportH = (rootEl instanceof Element) ? rootEl.clientHeight : window.innerHeight
   const scrollHeight = (rootEl instanceof Element)

@@ -1,7 +1,8 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useWikiLabelStore } from '@/stores/wikiLabelStore'
 import { useWikiWeaponStore } from '@/stores/wikiWeaponStore'
+import WikiFilterPanelFrame from './WikiFilterPanelFrame.vue'
 
 // Props and v-model API aligned with WikiCoreFilterPanel
 const props = defineProps({
@@ -78,21 +79,6 @@ const skillLabelOptions = computed(() => {
   return out
 })
 
-/* -------- mobile / scroll lock (parity with core panel) -------- */
-const isMobile = computed(() =>
-  typeof window !== 'undefined'
-    ? window.matchMedia('(max-width: 640px)').matches
-    : false
-)
-function toggleScrollLock(locked) {
-  const html = document.documentElement
-  const body = document.body
-  html.classList.toggle('hidden-scroll', !!locked)
-  body.classList.toggle('hidden-scroll', !!locked)
-}
-watch(() => props.open, (v) => { if (isMobile.value) toggleScrollLock(v) })
-onBeforeUnmount(() => toggleScrollLock(false))
-
 /* -------- toggles -------- */
 const toggleVal = (key, val) => {
   const curr = new Set(
@@ -129,55 +115,16 @@ const isChecked = (arr, v) => Array.isArray(arr) && arr.includes(v)
 </script>
 
 <template>
-  <Teleport to="body">
-    <!-- overlay -->
-    <transition name="fade">
-      <div
-        v-if="open"
-        class="fixed inset-0 z-[1000] bg-black/70 backdrop-blur-sm"
-        @click="$emit('close')"
-      />
-    </transition>
-
-    <!-- panel -->
-    <transition :name="isMobile ? 'slide-up' : 'slide-down'">
-      <aside
-        v-if="open"
-        class="panel-shell fixed z-[1001] overflow-hidden rounded-t-3xl border border-white/10 bg-[#05060c]/95 text-white shadow-2xl backdrop-blur-2xl sm:rounded-none"
-        :class="[
-          'sm:inset-y-0 sm:left-0 sm:w-[740px] sm:max-w-[92vw]',
-          'inset-x-0 bottom-0 top-0 sm:inset-auto'
-        ]"
-        role="dialog" aria-modal="true"
-        aria-labelledby="weapon-filter-title"
-      >
-        <!-- TOP BAR -->
-        <header class="sticky top-0 z-10 border-b border-white/10 bg-[#05060c]/95 px-6 py-4">
-          <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p class="text-xs uppercase tracking-[0.4em] text-white/60">Filters</p>
-              <h3 id="weapon-filter-title" class="text-2xl font-semibold text-white">
-                Weapons scope <span class="text-sm text-white/60">({{ selectedCount }})</span>
-              </h3>
-            </div>
-            <div class="flex items-center gap-3 justify-center mt-2">
-              <button
-                @click="handleReset"
-                class="ghost-btn"
-                title="Reset all filters"
-              >Reset</button>
-              <button
-                @click="$emit('close')"
-                class="ghost-btn"
-              >Close</button>
-            </div>
-          </div>
-        </header>
-
-        <div class="flex-1 min-h-0 overflow-y-auto px-6 py-6">
-          <div class="space-y-7 pb-8">
-            <!-- JOBS + UNIQ -->
-            <section class="filter-card">
+  <WikiFilterPanelFrame
+    :open="open"
+    title="Weapons scope"
+    :count="selectedCount"
+    @close="$emit('close')"
+    @reset="handleReset"
+  >
+    <div class="space-y-7 pb-8">
+          <!-- JOBS + UNIQ -->
+          <section class="filter-card">
               <div class="flex items-center justify-between gap-4">
                 <h4 class="sec-title">Jobs</h4>
                 <label class="inline-flex items-center gap-2 cursor-pointer select-none text-xs">
@@ -284,20 +231,11 @@ const isChecked = (arr, v) => Array.isArray(arr) && arr.includes(v)
                 </template>
               </p>
             </section>
-          </div>
-        </div>
-      </aside>
-    </transition>
-  </Teleport>
+    </div>
+  </WikiFilterPanelFrame>
 </template>
 
 <style scoped>
-.panel-shell {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
 /* section titles */
 .sec-title {
   @apply mb-2 text-sm uppercase tracking-wide text-white/70;
@@ -351,25 +289,4 @@ const isChecked = (arr, v) => Array.isArray(arr) && arr.includes(v)
   box-shadow: 0 12px 30px rgba(7,14,26,0.6);
 }
 
-/* transitions */
-.fade-enter-active, .fade-leave-active { transition: opacity 200ms ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
-
-.slide-left-enter-active, .slide-left-leave-active { transition: transform 250ms ease, opacity 250ms ease; }
-.slide-left-enter-from, .slide-left-leave-to { transform: translateX(-100%); opacity: 0.8; }
-
-.slide-down-enter-active, .slide-down-leave-active { transition: transform 280ms ease, opacity 280ms ease; }
-.slide-down-enter-from, .slide-down-leave-to { transform: translateY(-100%); opacity: 0.7; }
-
-@media (max-width: 640px) {
-  .slide-up-enter-active, .slide-up-leave-active { transition: transform 250ms ease, opacity 250ms ease; }
-  .slide-up-enter-from, .slide-up-leave-to { transform: translateY(100%); opacity: 0.8; }
-}
-
-/* global helper for scroll lock */
-:global(.hidden-scroll) { overflow: hidden !important; }
-
-.ghost-btn {
-  @apply rounded-full border border-white/20 px-4 py-1.5 text-sm font-semibold text-white/80 transition hover:border-white/40 hover:text-white;
-}
 </style>

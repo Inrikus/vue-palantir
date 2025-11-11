@@ -88,9 +88,6 @@ const labels = computed(() => {
 
 <template>
   <article class="core-card">
-    <div v-if="$slots.controls" class="card-controls">
-      <slot name="controls" />
-    </div>
     <div class="hero">
       <div class="hero-art">
         <img
@@ -167,24 +164,10 @@ const labels = computed(() => {
   flex-direction: column;
   gap: 1.5rem;
   border-radius: 1.75rem;
-  border: 1px solid rgba(255,255,255,.08);
-  background:
-    radial-gradient(circle at 0% 0%, rgba(99,180,200,.18), transparent 55%),
-    #070b16;
-  box-shadow: 0 25px 60px rgba(3,6,19,.45);
+  border: none;
+  background: transparent;
   padding: clamp(1.25rem, 4vw, 2rem);
   isolation: isolate;
-}
-
-.card-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-  margin-bottom: 1rem;
 }
 
 .hero {
@@ -301,11 +284,15 @@ const labels = computed(() => {
 
 .buff-card {
   display: flex;
+  width: 100%;
   gap: 0.85rem;
   padding: 0.9rem;
   border-radius: 1rem;
-  border: 1px solid rgba(255,255,255,.08);
-  background: rgba(0,0,0,.25);
+  border: 1px solid rgba(255,255,255,.12);
+  background:
+    radial-gradient(circle at top left, rgba(103,172,212,.08), transparent 60%),
+    rgba(6, 9, 20, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.02), 0 12px 25px rgba(2,4,12,.45);
 }
 .buff-card img {
   width: 58px;

@@ -1,10 +1,12 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import LocalePicker from '@/components/wiki/LocalePicker.vue'
 import ActiveFiltersBar from '@/components/wiki/ActiveFiltersBar.vue'
 import WikiWeaponFilterPanel from '@/components/wiki/WikiWeaponFilterPanel.vue'
 import WeaponCard from '@/components/wiki/WeaponCard.vue'
+import WikiDetailModal from '@/components/wiki/WikiDetailModal.vue'
 import InfinitePager from '@/components/wiki/InfinitePager.vue'
+import { useWikiListingPage } from '@/composables/useWikiListingPage'
 
 import { useWikiWeaponStore } from '@/stores/wikiWeaponStore'
 import { useWikiSkillStore } from '@/stores/wikiSkillStore'
@@ -16,20 +18,32 @@ const weaponStore = useWikiWeaponStore()
 const skillStore  = useWikiSkillStore()
 const labelStore  = useWikiLabelStore()
 
-/* ---------- locale ---------- */
-const locale = ref('en')
-
-/* ---------- ui state ---------- */
-const isMobile = ref(false)
-const showFilterPanel = ref(false)
-const search = ref('')
-
-function updateIsMobile () {
-  isMobile.value = typeof window !== 'undefined'
-    ? window.matchMedia('(max-width: 640px)').matches
-    : false
+async function loadAll(targetLocale = locale.value) {
+  const lang = targetLocale ?? locale.value
+  await Promise.all([
+    weaponStore.load(lang),
+    skillStore.load(lang),
+    labelStore.load(lang),
+  ])
+  syncFiltersFromStore()
 }
-const handleToggleFilter = () => { showFilterPanel.value = !showFilterPanel.value }
+
+const {
+  locale,
+  search,
+  isMobile,
+  showFilterPanel,
+  modalOpen,
+  toggleFilterPanel,
+  setFilterPanelOpen,
+  setModalOpen,
+} = useWikiListingPage({
+  initialLocale: 'en',
+  loadResources: loadAll,
+  onSearchChange: (term) => {
+    weaponStore.applyFilters({ search: term ?? '' })
+  },
+})
 
 /* ---------- Top class switcher ---------- */
 const JOBS = buildJobCardList('All Weapons')
@@ -94,28 +108,8 @@ watch(() => filters.value.jobs, (jobs) => {
   const arr = Array.isArray(jobs) ? jobs : []
   selectedJob.value = arr.length === 1 ? arr[0] : 0
 })
-watch(search, (q) => {
-  weaponStore.applyFilters({ search: q ?? '' })
-})
 
 /* ---------- load ---------- */
-async function loadAll() {
-  await Promise.all([
-    weaponStore.load(locale.value),
-    skillStore.load(locale.value),
-    labelStore.load(locale.value),
-  ])
-  syncFiltersFromStore()
-}
-
-watch(locale, async (loc) => {
-  await Promise.all([
-    weaponStore.load(loc),
-    skillStore.load(loc),
-    labelStore.load(loc),
-  ])
-  syncFiltersFromStore()
-})
 
 /* ---------- Reload helper ---------- */
 function handleReloadClick() {
@@ -129,16 +123,6 @@ function handleResetFromPanel() {
   weaponStore.resetFilters()
   syncFiltersFromStore()
 }
-
-onMounted(() => {
-  updateIsMobile()
-  window.addEventListener('resize', updateIsMobile, { passive: true })
-  loadAll()
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', updateIsMobile)
-  toggleScrollLock(false)
-})
 
 /* ---------- items / helpers ---------- */
 const items = computed(() => weaponStore.pageItems)
@@ -157,19 +141,16 @@ function weaponIconSrc(w) {
 }
 
 /* ---------- modal ---------- */
-const modalOpen  = ref(false)
 const selectedWeapon   = ref(null)
 
-function openModal(w) { selectedWeapon.value = w; modalOpen.value = true }
-function closeModal()  { modalOpen.value = false; selectedWeapon.value = null }
-
-function toggleScrollLock (locked) {
-  const html = document.documentElement
-  const body = document.body
-  html.classList.toggle('hidden-scroll', !!locked)
-  body.classList.toggle('hidden-scroll', !!locked)
+function openModal(w) {
+  selectedWeapon.value = w
+  setModalOpen(true)
 }
-watch(modalOpen, v => toggleScrollLock(v))
+function closeModal() {
+  setModalOpen(false)
+  selectedWeapon.value = null
+}
 
 // apply local filter changes to the store
 watch(filters, (val) => {
@@ -216,7 +197,7 @@ watch(filters, (val) => {
       <div class="flex flex-wrap items-center gap-3">
         <div class="order-1 sm:order-1">
           <button
-            @click="handleToggleFilter"
+            @click="toggleFilterPanel"
             class="filter-toggle"
           >
             <img src="@/assets/filter-1.svg" class="w-5 sm:w-6" alt="filter" />
@@ -348,38 +329,18 @@ watch(filters, (val) => {
       />
     </div>
 
-    <Teleport to="body">
-      <transition name="modal-fade">
-        <div
-          v-if="modalOpen"
-          class="fixed inset-0 z-50 flex items-stretch justify-center p-0 sm:items-center sm:p-6"
-          @keydown.esc="closeModal"
-        >
-          <div class="modal-overlay" @click="closeModal" />
-          <transition name="modal-scale" appear>
-            <div
-              class="modal-shell"
-              :class="{ 'modal-shell--mobile': isMobile }"
-              role="dialog"
-              aria-modal="true"
-              aria-label="Weapon details"
-            >
-              <button class="modal-close-btn" type="button" @click="closeModal">
-                Close
-              </button>
-
-              <div class="modal-card">
-                <WeaponCard
-                  v-if="selectedWeapon"
-                  :weapon="selectedWeapon"
-                  :locale="locale"
-                />
-              </div>
-            </div>
-          </transition>
-        </div>
-      </transition>
-    </Teleport>
+    <WikiDetailModal
+      :open="modalOpen"
+      :mobile="isMobile"
+      aria-label="Weapon details"
+      @close="closeModal"
+    >
+      <WeaponCard
+        v-if="selectedWeapon"
+        :weapon="selectedWeapon"
+        :locale="locale"
+      />
+    </WikiDetailModal>
 
 
     <WikiWeaponFilterPanel
@@ -390,7 +351,7 @@ watch(filters, (val) => {
       v-model:positions="filters.positions"
       v-model:positions-uniq="filters.positionsUniq"
       v-model:uniq="filters.uniq"
-      @close="handleToggleFilter"
+      @close="() => setFilterPanelOpen(false)"
       @reset="handleResetFromPanel"
     />
 
@@ -420,7 +381,10 @@ watch(filters, (val) => {
 }
 
 .wiki-card {
-  @apply relative aspect-square overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-[#05060c] via-[#0f1016] to-[#05060c] text-left shadow-xl shadow-black/40 transition hover:border-white/30 hover:shadow-sky-900/40;
+  @apply relative aspect-square overflow-hidden rounded-3xl border border-white/5 text-left shadow-xl shadow-black/40 transition hover:border-white/30 hover:shadow-sky-900/40;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(147,206,233,.12), transparent 70%),
+    linear-gradient(135deg, #05060c, #0f1016 65%, #05060c);
 }
 .wiki-card-mobile {
   display: flex;
@@ -479,78 +443,4 @@ watch(filters, (val) => {
   color: rgba(157,209,222,.75);
 }
 
-.modal-fade-enter-active,
-.modal-fade-leave-active { transition: opacity 0.2s ease; }
-.modal-fade-enter-from,
-.modal-fade-leave-to { opacity: 0; }
-
-.modal-scale-enter-active,
-.modal-scale-leave-active { transition: transform 0.25s ease, opacity 0.25s ease; }
-.modal-scale-enter-from,
-.modal-scale-leave-to { transform: scale(0.9); opacity: 0; }
-
-.modal-shell {
-  position: relative;
-  width: min(calc(100vw - 2rem), 960px);
-  max-height: min(calc(100vh - 2rem), 920px);
-  display: flex;
-  flex-direction: column;
-  pointer-events: auto;
-}
-.modal-shell--mobile {
-  width: 100%;
-  height: 100%;
-  max-height: none;
-  background: #05060c;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-.modal-card {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  border-radius: 2rem;
-  overscroll-behavior: contain;
-}
-.modal-card :deep(.weapon-card) {
-  flex: 1;
-  min-height: 100%;
-}
-.modal-shell--mobile .modal-card {
-  border-radius: 0;
-  background: #05060c;
-}
-.modal-close-btn {
-  position: absolute;
-  top: clamp(0.85rem, 2vw, 1.5rem);
-  right: clamp(0.85rem, 2vw, 1.5rem);
-  z-index: 10;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(5, 6, 12, 0.65);
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.9rem;
-  padding: 0.45rem 1.25rem;
-  backdrop-filter: blur(10px);
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-.modal-close-btn:hover {
-  border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.12);
-}
-.modal-shell--mobile .modal-close-btn {
-  top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
-  right: calc(env(safe-area-inset-right, 0px) + 0.75rem);
-}
-
-.modal-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(5, 6, 12, 0.78);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: opacity 0.25s ease;
-  will-change: opacity, backdrop-filter;
-}
 </style>

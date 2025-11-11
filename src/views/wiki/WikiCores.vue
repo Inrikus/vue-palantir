@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { useWikiCoreStore } from '@/stores/wikiCoreStore'
@@ -11,6 +11,8 @@ import LocalePicker from '@/components/wiki/LocalePicker.vue'
 import ActiveFiltersBar from '@/components/wiki/ActiveFiltersBar.vue'
 import InfinitePager from '@/components/wiki/InfinitePager.vue'
 import { buildJobCardList } from '@/components/wiki/filters/dicts'
+import WikiDetailModal from '@/components/wiki/WikiDetailModal.vue'
+import { useWikiListingPage } from '@/composables/useWikiListingPage'
 
 const route = useRoute()
 const router = useRouter()
@@ -21,22 +23,30 @@ const labelStore = useWikiLabelStore()
 const JOBS = buildJobCardList('All Cores')
 const selectedJob = ref(0)
 
-/* ---------- Locale ---------- */
-const locale = ref(route.query.locale ?? 'en')
-
-/* ---------- Поиск ---------- */
-// Больше не читаем поиск из query и не сохраняем туда
-const search = ref('')
-
-/* ---------- Фильтр-панель ---------- */
-const showFilterPanel = ref(false)
-const isMobile = ref(false)
-function updateIsMobile () {
-  isMobile.value = typeof window !== 'undefined'
-    ? window.matchMedia('(max-width: 640px)').matches
-    : false
+async function load(targetLocale = locale.value) {
+  const lang = targetLocale ?? locale.value
+  await store.load(lang)
+  await labelStore.load(lang)
+  store.setSearch(String(search.value || ''))
+  syncFiltersFromStore()
 }
-const handleToggleFilter = () => { showFilterPanel.value = !showFilterPanel.value }
+
+const {
+  locale,
+  search,
+  isMobile,
+  showFilterPanel,
+  modalOpen,
+  toggleFilterPanel,
+  setFilterPanelOpen,
+  setModalOpen,
+} = useWikiListingPage({
+  initialLocale: route.query.locale ?? 'en',
+  loadResources: load,
+  onSearchChange: (term) => {
+    store.setSearch(String(term || ''))
+  },
+})
 
 // Локальная форма фильтров (массивы + uniq toggle)
 function buildFilterState (source = {}) {
@@ -94,17 +104,6 @@ const labelMap = computed(() => {
 })
 
 /* ---------- Загрузка / перезагрузка ---------- */
-async function load () {
-  await store.load(locale.value)
-  await labelStore.load(locale.value)
-
-  // Поиск — только локальный стейт/стор, без URL
-  store.setSearch(String(search.value || ''))
-
-  // Синхроним локальные фильтры со стором
-  syncFiltersFromStore()
-}
-
 function selectJob (job) {
   selectedJob.value = job
   filters.value.jobs = job === 0 ? [] : [job]
@@ -130,24 +129,18 @@ function handleResetFromPanel () {
 // Локаль остаётся в query, поиск — нет
 watch(locale, (val) => {
   router.replace({ query: { ...route.query, locale: val || undefined } })
-  load()
 })
 
-// Поиск — только в стор, без router.replace
-watch(search, (q) => {
-  store.setSearch(String(q || ''))
+watch(() => route.query.locale, (next) => {
+  const normalized = next ?? 'en'
+  if (normalized !== locale.value) {
+    locale.value = normalized
+  }
 })
+
 
 /* ---------- Mount lifecycle ---------- */
-onMounted(() => {
-  updateIsMobile()
-  window.addEventListener('resize', updateIsMobile, { passive: true })
-  load()
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', updateIsMobile)
-  toggleScrollLock(false)
-})
+// Общий ресайз/загрузка/scroll-lock обрабатываются в useWikiListingPage
 
 /* ---------- Грид / модалка ---------- */
 const items = computed(() => store.pageItems)
@@ -163,7 +156,6 @@ function findByIdLevel (id, lv) {
          store.items.find(c => c.id === id) || null
 }
 
-const modalOpen    = ref(false)
 const modalLevel   = ref(1)
 const selectedId   = ref(null)
 const selectedCore = ref(null)
@@ -172,11 +164,11 @@ function openModal (core) {
   selectedId.value   = core.id
   modalLevel.value   = core.CoreLv || 1
   selectedCore.value = findByIdLevel(core.id, modalLevel.value) || core
-  modalOpen.value    = true
+  setModalOpen(true)
 }
 
 function closeModal () {
-  modalOpen.value    = false
+  setModalOpen(false)
   selectedId.value   = null
   selectedCore.value = null
 }
@@ -189,15 +181,6 @@ watch(modalLevel, (lv) => {
     if (next) selectedCore.value = next
   }
 })
-
-/* ---------- ЛОК СКРОЛЛА фона при модалке ---------- */
-function toggleScrollLock (locked) {
-  const html = document.documentElement
-  const body = document.body
-  html.classList.toggle('hidden-scroll', !!locked)
-  body.classList.toggle('hidden-scroll', !!locked)
-}
-watch(modalOpen, (v) => toggleScrollLock(v))
 
 /* ---------- Items counter (после фильтров) ---------- */
 const totalMatched = computed(() => store.filteredTotal)
@@ -244,7 +227,7 @@ function handleLoadMore () {
       <div class="flex flex-wrap items-center gap-3">
         <div class="order-1 sm:order-1">
           <button
-            @click="handleToggleFilter"
+            @click="toggleFilterPanel"
             class="filter-toggle"
           >
             <img src="@/assets/filter-1.svg" class="w-5 sm:w-6" alt="filter" />
@@ -377,54 +360,33 @@ function handleLoadMore () {
     </div>
 
     <!-- МОДАЛКА -->
-    <Teleport to="body">
-      <transition name="modal-fade">
-        <div
-          v-if="modalOpen"
-          class="fixed inset-0 z-50 flex items-stretch justify-center p-0 sm:items-center sm:p-6"
-          @keydown.esc="closeModal"
-        >
-          <div class="modal-overlay" @click="closeModal" />
-          <transition name="modal-scale" appear>
-            <div
-              class="modal-shell"
-              :class="{ 'modal-shell--mobile': isMobile }"
-              role="dialog"
-              aria-modal="true"
-              aria-label="Core details"
-            >
-              <button class="modal-close-btn" type="button" @click="closeModal">
-                Close
-              </button>
-
-              <div class="modal-card">
-                <CoreCard
-                  v-if="selectedCore"
-                  :core="selectedCore"
-                  :locale="locale"
-                >
-                  <template #controls>
-                    <div class="level-control">
-                      <span class="level-label">Level</span>
-                      <input
-                        class="level-range"
-                        type="range"
-                        min="1"
-                        max="10"
-                        step="1"
-                        v-model.number="modalLevel"
-                        aria-label="Core level"
-                      />
-                      <span class="level-value">{{ modalLevel }}</span>
-                    </div>
-                  </template>
-                </CoreCard>
-              </div>
-            </div>
-          </transition>
+    <WikiDetailModal
+      :open="modalOpen"
+      :mobile="isMobile"
+      aria-label="Core details"
+      @close="closeModal"
+    >
+      <template #header-left>
+        <div v-if="modalOpen && selectedCore" class="level-control level-control--header">
+          <span class="level-label">Level</span>
+          <input
+            class="level-range"
+            type="range"
+            min="1"
+            max="10"
+            step="1"
+            v-model.number="modalLevel"
+            aria-label="Core level"
+          />
+          <span class="level-value">{{ modalLevel }}</span>
         </div>
-      </transition>
-    </Teleport>
+      </template>
+      <CoreCard
+        v-if="selectedCore"
+        :core="selectedCore"
+        :locale="locale"
+      />
+    </WikiDetailModal>
 
 
     <!-- ПАНЕЛЬ ФИЛЬТРОВ -->
@@ -435,7 +397,7 @@ function handleLoadMore () {
       v-model:jobs="filters.jobs"
       v-model:labels="filters.labels"
       v-model:uniq="filters.uniq"
-      @close="handleToggleFilter"
+      @close="() => setFilterPanelOpen(false)"
       @reset="handleResetFromPanel"
     />
   </section>
@@ -474,7 +436,10 @@ function handleLoadMore () {
 }
 
 .wiki-card {
-  @apply relative aspect-square overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-br from-[#05060c] via-[#0f1016] to-[#05060c] text-left shadow-xl shadow-black/40 transition hover:border-white/30 hover:shadow-sky-900/40;
+  @apply relative aspect-square overflow-hidden rounded-3xl border border-white/5 text-left shadow-xl shadow-black/40 transition hover:border-white/30 hover:shadow-sky-900/40;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(147,206,233,.12), transparent 70%),
+    linear-gradient(135deg, #05060c, #0f1016 65%, #05060c);
 }
 
 .wiki-card-mobile {
@@ -521,85 +486,14 @@ function handleLoadMore () {
   min-width: 0;
 }
 
-.modal-fade-enter-active,
-.modal-fade-leave-active { transition: opacity 0.2s ease; }
-.modal-fade-enter-from,
-.modal-fade-leave-to { opacity: 0; }
-
-.modal-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(5, 6, 12, 0.78);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: opacity 0.25s ease;
-  will-change: opacity, backdrop-filter;
-}
-
-.modal-scale-enter-active,
-.modal-scale-leave-active { transition: transform 0.25s ease, opacity 0.25s ease; }
-.modal-scale-enter-from,
-.modal-scale-leave-to { transform: scale(0.9); opacity: 0; }
-
-.modal-shell {
-  position: relative;
-  width: min(calc(100vw - 2rem), 960px);
-  max-height: min(calc(100vh - 2rem), 920px);
-  display: flex;
-  flex-direction: column;
-  pointer-events: auto;
-}
-.modal-shell--mobile {
-  width: 100%;
-  height: 100%;
-  max-height: none;
-  background: #05060c;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-.modal-card {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  border-radius: 2rem;
-  overscroll-behavior: contain;
-}
-.modal-card :deep(.core-card) {
-  flex: 1;
-  min-height: 100%;
-}
-.modal-shell--mobile .modal-card {
-  border-radius: 0;
-  background: #05060c;
-}
-.modal-close-btn {
-  position: absolute;
-  top: clamp(0.85rem, 2vw, 1.5rem);
-  right: clamp(0.85rem, 2vw, 1.5rem);
-  z-index: 10;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(5, 6, 12, 0.65);
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.9rem;
-  padding: 0.45rem 1.25rem;
-  backdrop-filter: blur(10px);
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-.modal-close-btn:hover {
-  border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.12);
-}
-.modal-shell--mobile .modal-close-btn {
-  top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
-  right: calc(env(safe-area-inset-right, 0px) + 0.75rem);
-}
-
 .level-control {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+.level-control--header {
+  flex-wrap: nowrap;
   gap: 0.75rem;
 }
 .level-label {
@@ -607,10 +501,12 @@ function handleLoadMore () {
   letter-spacing: 0.35em;
   text-transform: uppercase;
   color: rgba(157, 209, 222, 0.7);
+  white-space: nowrap;
 }
 .level-range {
-  flex: 1 1 220px;
+  flex: 0 1 280px;
   accent-color: #4fd1c5;
+  min-width: 120px;
 }
 .level-value {
   width: 3rem;

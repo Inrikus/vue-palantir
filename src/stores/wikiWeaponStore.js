@@ -71,7 +71,7 @@ export const useWikiWeaponStore = defineStore('wikiWeapon', {
     },
 
     /** Функции локализации для текущей локали */
-    makeLocalizers: (state) => (locale) => ({
+    makeLocalizers: () => (locale) => ({
       nameOf: (w) => (w?.i18n?.name?.[locale] ?? w?.englishName ?? ''),
       descOf: (w) => (w?.i18n?.desc?.[locale] ?? w?.desc ?? ''),
       locationOf: (w) => (w?.i18n?.location?.[locale] ?? ''),

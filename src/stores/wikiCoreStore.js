@@ -57,7 +57,7 @@ export const useWikiCoreStore = defineStore('wikiCore', {
       return { rares: Array.from(rares).sort((a,b)=>a-b) }
     },
 
-    makeLocalizers: (state) => (locale) => ({
+    makeLocalizers: () => (locale) => ({
       nameOf: (c) => (c?.i18n?.name?.[locale] ?? c?.englishName ?? ''),
       descOf: (c) => (c?.i18n?.desc?.[locale] ?? ''),
     }),
