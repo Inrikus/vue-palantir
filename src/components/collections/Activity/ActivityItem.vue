@@ -236,9 +236,7 @@ const collectionUrl = computed(() => {
 .row-card {
   border: 1px solid rgba(255,255,255,.08);
   border-radius: 1.25rem;
-  background:
-    radial-gradient(circle at 0% 0%, rgba(99,180,200,.15), transparent 55%),
-    rgba(7,11,22,.85);
+  background: linear-gradient(115deg, rgba(10,15,28,.9) 0%, rgba(20,28,48,.9) 60%, rgba(34,48,78,.88) 100%);
   box-shadow: 0 20px 45px rgba(3,6,19,.35);
   transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
 }

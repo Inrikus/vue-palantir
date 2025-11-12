@@ -45,7 +45,7 @@ onBeforeUnmount(() => toggleScrollLock(false))
         v-if="open"
         class="filter-shell"
         :class="[
-          'fixed z-[1001] overflow-hidden rounded-t-3xl border border-white/10 bg-[#05060c]/95 text-white shadow-2xl backdrop-blur-2xl sm:rounded-none',
+          'fixed z-[1001] overflow-hidden text-white shadow-2xl backdrop-blur-2xl',
           'sm:inset-y-0 sm:left-0 sm:w-[740px] sm:max-w-[92vw]',
           'inset-x-0 bottom-0 top-0 sm:inset-auto'
         ]"
@@ -53,7 +53,7 @@ onBeforeUnmount(() => toggleScrollLock(false))
         aria-modal="true"
       >
         <header class="panel-header">
-          <div>
+          <div class="panel-headings">
             <p class="panel-eyebrow">Filters</p>
             <h3 class="panel-title">
               {{ title }}
@@ -83,24 +83,30 @@ onBeforeUnmount(() => toggleScrollLock(false))
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(5, 6, 12, 0.78);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(4, 7, 16, 0.62);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .filter-shell {
   display: flex;
   flex-direction: column;
   height: 100%;
+  background:
+    radial-gradient(circle at 15% 5%, rgba(84,141,194,0.15), transparent 55%),
+    rgba(12, 18, 34, 0.9);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 35px 90px rgba(0,0,0,0.45);
+  backdrop-filter: blur(26px);
 }
 
 .panel-header {
   position: sticky;
   top: 0;
   z-index: 10;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(5, 6, 12, 0.95);
-  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(6, 10, 22, 0.82);
+  padding: 1.5rem 1.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -111,6 +117,13 @@ onBeforeUnmount(() => toggleScrollLock(false))
     align-items: center;
     justify-content: space-between;
   }
+}
+
+.panel-headings {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .panel-eyebrow {
@@ -142,7 +155,7 @@ onBeforeUnmount(() => toggleScrollLock(false))
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 1.5rem;
+  padding: 1.5rem 1.75rem 2rem;
 }
 
 .filter-fade-enter-active,
@@ -163,6 +176,8 @@ onBeforeUnmount(() => toggleScrollLock(false))
 }
 
 .ghost-btn {
-  @apply rounded-full border border-white/20 px-4 py-1.5 text-sm font-semibold text-white/80 transition hover:border-white/40 hover:text-white;
+  @apply rounded-full border border-white/25 px-4 py-1.5 text-sm font-semibold text-white/80 transition hover:border-white/50 hover:text-white;
+  background: rgba(255,255,255,0.06);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
 }
 </style>

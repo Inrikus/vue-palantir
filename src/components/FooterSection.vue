@@ -1,7 +1,7 @@
 <template>
-  <footer class="relative border-t border-white/10 bg-[#05060c]/90 text-white backdrop-blur-2xl">
-    <div class="pointer-events-none absolute inset-0 opacity-50 gradient-noise" aria-hidden="true" />
-    <div class="relative mx-auto grid max-w-screen-2xl gap-10 px-6 py-12 md:grid-cols-[1.1fr_auto_0.9fr]">
+  <footer class="footer-shell">
+    <div class="pointer-events-none absolute inset-0 gradient-noise" aria-hidden="true" />
+    <div class="footer-inner">
       <!-- Левая колонка -->
       <div class="space-y-4">
         <p class="text-[11px] uppercase tracking-[0.4em] text-white/60">Palantir</p>
@@ -22,7 +22,7 @@
       </div>
 
       <!-- Центр -->
-      <div class="flex flex-col items-center justify-center gap-6 rounded-3xl border border-white/10 bg-white/5 px-6 py-8 text-center backdrop-blur">
+      <div class="footer-card footer-center">
         <img src="/fusionist-logo.svg" alt="Fusionist Logo" class="h-16 w-auto" />
         <div class="space-y-1 text-sm text-white/70">
           <p>Inspired by Fusionist.io</p>
@@ -89,13 +89,39 @@
       </div>
     </div>
 
-    <div class="relative border-t border-white/10 px-6 py-5 text-center text-xs uppercase tracking-[0.4em] text-white/60">
+    <div class="footer-bottom">
       © {{ new Date().getFullYear() }} Palantir • Crafted for the Fusionist community
     </div>
   </footer>
 </template>
 
 <style scoped>
+:global(body) {
+  color: #f1f5ff;
+}
+.footer-shell {
+  position: relative;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  background:
+    radial-gradient(circle at 10% 20%, rgba(84,141,194,0.18), transparent 45%),
+    linear-gradient(180deg, rgba(5,6,12,0.95), rgba(5,7,14,0.92));
+  color: #fff;
+  backdrop-filter: blur(18px);
+  overflow: hidden;
+}
+.footer-inner {
+  position: relative;
+  display: grid;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 2.5rem;
+  padding: 3.5rem 1.5rem;
+  grid-template-columns: 1.1fr auto 0.9fr;
+}
+@media (max-width: 1024px) {
+  .footer-inner { grid-template-columns: 1fr; }
+}
+
 .footer-link {
   @apply transition hover:text-white;
 }
@@ -109,5 +135,30 @@
     radial-gradient(circle at 10% 20%, rgba(99,180,200,0.2), transparent 35%),
     radial-gradient(circle at 90% 30%, rgba(80,125,255,0.2), transparent 40%),
     linear-gradient(120deg, rgba(255,255,255,0.05), transparent);
+  opacity: 0.5;
+}
+.footer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  padding: 2rem;
+  text-align: center;
+  backdrop-filter: blur(18px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+}
+.footer-bottom {
+  position: relative;
+  border-top: 1px solid rgba(255,255,255,0.12);
+  padding: 1.25rem;
+  text-align: center;
+  font-size: 0.7rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
 }
 </style>
