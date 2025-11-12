@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 import { useWikiCoreStore } from '@/stores/wikiCoreStore'
 import { useWikiLabelStore } from '@/stores/wikiLabelStore'
+import { useWikiBuffStore } from '@/stores/wikiBuffStore'
 
 import CoreCard from '@/components/wiki/CoreCard.vue'
 import WikiCoreFilterPanel from '@/components/wiki/WikiCoreFilterPanel.vue'
@@ -19,15 +20,18 @@ const router = useRouter()
 
 const store      = useWikiCoreStore()
 const labelStore = useWikiLabelStore()
+const buffStore  = useWikiBuffStore()
 
 const JOBS = buildJobCardList('All Cores')
 const selectedJob = ref(0)
 
 async function load(targetLocale = locale.value) {
   const lang = targetLocale ?? locale.value
-  await store.load(lang)
-  await labelStore.load(lang)
-  store.setSearch(String(search.value || ''))
+  await Promise.all([
+    store.load(lang),
+    labelStore.load(lang),
+    buffStore.load(lang),
+  ])
   syncFiltersFromStore()
 }
 
@@ -43,8 +47,8 @@ const {
 } = useWikiListingPage({
   initialLocale: route.query.locale ?? 'en',
   loadResources: load,
-  onSearchChange: (term) => {
-    store.setSearch(String(term || ''))
+  onSearchChange: () => {
+    store.page = 1
   },
 })
 
@@ -114,7 +118,6 @@ function handleReload () {
   search.value = ''
   store.resetFilters()
   syncFiltersFromStore()
-  store.setSearch('')
   load()
 }
 
@@ -143,7 +146,35 @@ watch(() => route.query.locale, (next) => {
 // Общий ресайз/загрузка/scroll-lock обрабатываются в useWikiListingPage
 
 /* ---------- Грид / модалка ---------- */
-const items = computed(() => store.pageItems)
+const searchTerm = computed(() => String(search.value || '').trim().toLowerCase())
+const normalizeText = (val) => String(val || '').toLowerCase()
+
+function matchesCoreSearch(core) {
+  if (!searchTerm.value) return true
+  const term = searchTerm.value
+  const locKey = String(locale.value || 'en')
+
+  const english = normalizeText(core?.englishName)
+  const name = normalizeText(core?.i18n?.name?.[locKey])
+  const desc = normalizeText(core?.i18n?.desc?.[locKey])
+  if (english.includes(term) || name.includes(term) || desc.includes(term)) return true
+
+  const buffEntries = Array.isArray(core?.Buff_Display) ? core.Buff_Display : []
+  for (const entry of buffEntries) {
+    const buff = buffStore.byId?.[entry?.BuffId]
+    if (!buff) continue
+    const buffName = normalizeText(buff?.i18n?.name?.[locKey] || buff?.englishName)
+    const buffDesc = normalizeText(buff?.i18n?.desc?.[locKey])
+    if (buffName.includes(term) || buffDesc.includes(term)) return true
+  }
+  return false
+}
+
+const items = computed(() => {
+  const base = store.pageItems
+  if (!searchTerm.value) return base
+  return base.filter(matchesCoreSearch)
+})
 function iconSrc (core) { return `/wiki/Cores/${core?.Icon}.png` }
 
 function coreTitle (core) {

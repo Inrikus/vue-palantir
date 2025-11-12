@@ -40,8 +40,8 @@ const {
 } = useWikiListingPage({
   initialLocale: 'en',
   loadResources: loadAll,
-  onSearchChange: (term) => {
-    weaponStore.applyFilters({ search: term ?? '' })
+  onSearchChange: () => {
+    weaponStore.page = 1
   },
 })
 
@@ -125,7 +125,43 @@ function handleResetFromPanel() {
 }
 
 /* ---------- items / helpers ---------- */
-const items = computed(() => weaponStore.pageItems)
+const skillMap = computed(() => {
+  const map = Object.create(null)
+  for (const skill of skillStore.items || []) {
+    map[skill.id] = skill
+  }
+  return map
+})
+
+const searchTerm = computed(() => String(search.value || '').trim().toLowerCase())
+const normalizeText = (val) => String(val || '').toLowerCase()
+
+function matchesWeaponSearch(weapon) {
+  if (!searchTerm.value) return true
+  const term = searchTerm.value
+  const locKey = String(locale.value || 'en')
+
+  const english = normalizeText(weapon?.englishName)
+  const name = normalizeText(weapon?.i18n?.name?.[locKey])
+  const desc = normalizeText(weapon?.i18n?.desc?.[locKey])
+  if (english.includes(term) || name.includes(term) || desc.includes(term)) return true
+
+  const skills = Array.isArray(weapon?.skills) ? weapon.skills : []
+  for (const sid of skills) {
+    const skill = skillMap.value?.[sid]
+    if (!skill) continue
+    const skillName = normalizeText(skill?.i18n?.name?.[locKey] || skill?.englishName)
+    const skillDesc = normalizeText(skill?.i18n?.desc?.[locKey])
+    if (skillName.includes(term) || skillDesc.includes(term)) return true
+  }
+  return false
+}
+
+const items = computed(() => {
+  const base = weaponStore.pageItems
+  if (!searchTerm.value) return base
+  return base.filter(matchesWeaponSearch)
+})
 const totalMatched = computed(() => weaponStore.filteredTotal)
 const hasNextPage = computed(() => weaponStore.hasNextPage)
 const isLoading = computed(() => weaponStore.loading)
