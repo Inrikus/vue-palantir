@@ -157,17 +157,20 @@ function matchesWeaponSearch(weapon) {
   return false
 }
 
-const items = computed(() => {
-  const base = weaponStore.pageItems
+const filteredWeapons = computed(() => {
+  const base = weaponStore.sorted
+  if (!Array.isArray(base)) return []
   if (!searchTerm.value) return base
   return base.filter(matchesWeaponSearch)
 })
-const totalMatched = computed(() => weaponStore.filteredTotal)
-const hasNextPage = computed(() => weaponStore.hasNextPage)
+
+const items = computed(() => filteredWeapons.value.slice(0, weaponStore.page * weaponStore.pageSize))
+const totalMatched = computed(() => filteredWeapons.value.length)
+const hasNextPage = computed(() => weaponStore.page * weaponStore.pageSize < filteredWeapons.value.length)
 const isLoading = computed(() => weaponStore.loading)
 
 function handleLoadMore() {
-  if (!weaponStore.hasNextPage) return
+  if (!hasNextPage.value) return
   weaponStore.nextPage()
 }
 

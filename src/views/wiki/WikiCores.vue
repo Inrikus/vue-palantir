@@ -170,11 +170,14 @@ function matchesCoreSearch(core) {
   return false
 }
 
-const items = computed(() => {
-  const base = store.pageItems
+const filteredCores = computed(() => {
+  const base = store.sorted
+  if (!Array.isArray(base)) return []
   if (!searchTerm.value) return base
   return base.filter(matchesCoreSearch)
 })
+
+const items = computed(() => filteredCores.value.slice(0, store.page * store.pageSize))
 function iconSrc (core) { return `/wiki/Cores/${core?.Icon}.png` }
 
 function coreTitle (core) {
@@ -214,12 +217,12 @@ watch(modalLevel, (lv) => {
 })
 
 /* ---------- Items counter (после фильтров) ---------- */
-const totalMatched = computed(() => store.filteredTotal)
-const hasNextPage = computed(() => store.hasNextPage)
+const totalMatched = computed(() => filteredCores.value.length)
+const hasNextPage = computed(() => store.page * store.pageSize < filteredCores.value.length)
 const isLoading = computed(() => store.loading)
 
 function handleLoadMore () {
-  if (!store.hasNextPage) return
+  if (!hasNextPage.value) return
   store.nextPage()
 }
 </script>
