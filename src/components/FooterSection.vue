@@ -22,7 +22,7 @@
       </div>
 
       <!-- Центр -->
-      <div class="footer-card footer-center">
+      <div class="footer-card glass-surface glass-surface--radial footer-center">
         <img src="/fusionist-logo.svg" alt="Fusionist Logo" class="h-16 w-auto" />
         <div class="space-y-1 text-sm text-white/70">
           <p>Inspired by Fusionist.io</p>
@@ -59,7 +59,7 @@
               target="_blank"
               rel="noopener"
               aria-label="Fusionist Discord"
-              class="social-pill"
+              class="social-pill glass-chip"
             >
               <img src="/social-icons/discord.svg" alt="Discord" class="h-5 w-5" />
               Discord
@@ -69,7 +69,7 @@
               target="_blank"
               rel="noopener"
               aria-label="Fusionist on X"
-              class="social-pill"
+              class="social-pill glass-chip"
             >
               <img src="/social-icons/x.svg" alt="X (Twitter)" class="h-5 w-5" />
               X / Twitter
@@ -79,7 +79,7 @@
               target="_blank"
               rel="noopener"
               aria-label="Fusionist Website"
-              class="social-pill"
+              class="social-pill glass-chip"
             >
               <img src="/social-icons/website.svg" alt="Website" class="h-5 w-5" />
               ACE Portal
@@ -127,7 +127,9 @@
 }
 
 .social-pill {
-  @apply inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white/80 transition hover:border-white/30 hover:text-white;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
 }
 
 .gradient-noise {
@@ -144,12 +146,8 @@
   justify-content: center;
   gap: 1.5rem;
   border-radius: 24px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.06);
   padding: 2rem;
   text-align: center;
-  backdrop-filter: blur(18px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
 }
 .footer-bottom {
   position: relative;

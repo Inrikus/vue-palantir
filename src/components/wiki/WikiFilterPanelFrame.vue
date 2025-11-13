@@ -43,9 +43,9 @@ onBeforeUnmount(() => toggleScrollLock(false))
     <transition :name="isMobile ? 'slide-up' : 'slide-down'">
       <aside
         v-if="open"
-        class="filter-shell"
+        class="filter-shell glass-surface glass-surface--radial"
         :class="[
-          'fixed z-[1001] overflow-hidden text-white shadow-2xl backdrop-blur-2xl',
+          'fixed z-[1001] overflow-hidden text-white',
           'sm:inset-y-0 sm:left-0 sm:w-[740px] sm:max-w-[92vw]',
           'inset-x-0 bottom-0 top-0 sm:inset-auto'
         ]"
@@ -92,12 +92,8 @@ onBeforeUnmount(() => toggleScrollLock(false))
   display: flex;
   flex-direction: column;
   height: 100%;
-  background:
-    radial-gradient(circle at 15% 5%, rgba(84,141,194,0.15), transparent 55%),
-    rgba(12, 18, 34, 0.9);
-  border: 1px solid rgba(255,255,255,0.1);
-  box-shadow: 0 35px 90px rgba(0,0,0,0.45);
-  backdrop-filter: blur(26px);
+  border: none;
+  border-radius: 0;
 }
 
 .panel-header {

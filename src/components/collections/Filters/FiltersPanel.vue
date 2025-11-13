@@ -67,7 +67,7 @@ const handleResetFilter = () => {
       <aside
         v-show="props.isFilterPanelOpen"
         id="filter-inner-panel"
-        class="fixed top-0 left-0 z-[9999] flex h-full w-full flex-col overflow-hidden text-white shadow-2xl backdrop-blur-2xl sm:w-[440px] sm:rounded-none"
+        class="fixed top-0 left-0 z-[9999] flex h-full w-full flex-col overflow-hidden text-white shadow-2xl sm:w-[440px] sm:rounded-none glass-surface glass-surface--radial"
         role="dialog"
         aria-modal="true"
         aria-labelledby="filters-title"
@@ -222,12 +222,8 @@ const handleResetFilter = () => {
 .slide-up-enter-from, .slide-up-leave-to { transform: translateY(100%); }
 
 #filter-inner-panel {
-  background:
-    radial-gradient(circle at 15% 0%, rgba(84,141,194,0.18), transparent 55%),
-    rgba(14,18,32,0.93);
   border: none;
   border-radius: 0;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.55);
 }
 
 /* Layout */

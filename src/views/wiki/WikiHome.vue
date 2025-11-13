@@ -35,16 +35,6 @@ const sections = [
       <p class="mt-4 text-sm text-white/70">
         We synchronize the data with the live API and use Palantir's filters to enhance it.
       </p>
-      <RouterLink
-        to="/wiki/weapons"
-        class="mt-6 inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-sky-400/70 to-blue-600/70 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-900/40"
-      >
-        Open Weapons / Skills
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M5 12h14" />
-          <path d="M13 5l7 7-7 7" />
-        </svg>
-      </RouterLink>
     </div>
 
     <div class="grid gap-5 md:grid-cols-3">
