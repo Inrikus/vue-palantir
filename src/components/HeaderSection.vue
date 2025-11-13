@@ -65,7 +65,7 @@ const cryptos = computed(() => {
 
 <template>
   <!-- Хедер -->
-  <header class="relative z-40 border-b border-white/5 bg-[#05060c]/70 backdrop-blur-2xl shadow-[0_10px_40px_rgba(5,6,12,0.6)]">
+  <header class="relative z-40 border-b border-white/5 bg-[#05060c]/70 header-blur shadow-[0_10px_40px_rgba(5,6,12,0.6)]">
     <div class="pointer-events-none absolute inset-0 opacity-60 mix-blend-screen gradient-noise" aria-hidden="true" />
     <div class="relative mx-auto flex w-full max-w-screen-2xl flex-col gap-4 px-5 py-6 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
       <!-- Лого -->
@@ -164,7 +164,7 @@ const cryptos = computed(() => {
         v-show="isOpen"
         id="collections-drawer"
         ref="panelRef"
-        class="fixed right-0 top-0 z-[9999] flex h-full w-full flex-col bg-[#05060c]/95 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-2xl sm:w-[460px]"
+        class="fixed right-0 top-0 z-[9999] flex h-full w-full flex-col bg-transparent text-white shadow-2xl ring-1 ring-white/10 header-blur sm:w-[460px]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="collections-title"
@@ -186,7 +186,7 @@ const cryptos = computed(() => {
           </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6 space-y-8">
+        <div class="flex-1 overflow-y-auto p-6 space-y-8 panel-body-bg">
           <section>
             <p class="mb-3 text-[11px] uppercase tracking-[0.4em] text-white/50">Collections</p>
             <nav>
@@ -210,7 +210,7 @@ const cryptos = computed(() => {
             </nav>
           </section>
 
-          <section class="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+          <section>
             <div class="mb-4 flex items-center justify-between">
               <div>
                 <p class="text-[11px] uppercase tracking-[0.3em] text-white/60">Wiki</p>
@@ -239,15 +239,14 @@ const cryptos = computed(() => {
               </li>
             </ul>
           </section>
-        </div>
-
-        <div
-          class="flex items-center justify-between gap-4 border-t border-white/10 px-6 py-4 text-xs uppercase tracking-[0.3em] text-white/60"
-        >
-          <span>© {{ new Date().getFullYear() }} Palantir</span>
-          <router-link to="/" class="text-[#63b4c8] hover:text-white" @click="close">
-            Home
-          </router-link>
+          <div
+            class="flex items-center justify-between gap-4 border-t border-white/10 px-6 py-4 text-xs uppercase tracking-[0.3em] text-white/60"
+          >
+            <span>© {{ new Date().getFullYear() }} Palantir</span>
+            <router-link to="/" class="text-[#63b4c8] hover:text-white" @click="close">
+              Home
+            </router-link>
+          </div>
         </div>
       </aside>
     </transition>
@@ -281,6 +280,12 @@ const cryptos = computed(() => {
   @apply inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-white/80 transition hover:border-white/30 hover:text-white;
 }
 
+.header-blur {
+  backdrop-filter: blur(50px);
+  -webkit-backdrop-filter: blur(32px);
+}
+
+
 .badge {
   @apply ml-2 inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white;
 }
@@ -291,9 +296,15 @@ const cryptos = computed(() => {
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
 }
 
+.panel-body-bg {
+  background:
+    radial-gradient(circle at 15% 0%, rgba(84,141,194,0.16), rgba(7,11,22,0.8)),
+    rgba(7,11,22,0.92);
+}
 .glass-row {
   @apply flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/90 transition hover:border-white/30 hover:bg-white/10;
 }
+
 
 .gradient-noise {
   background-image:

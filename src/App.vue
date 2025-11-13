@@ -25,8 +25,9 @@ const useGlassShell = computed(() => !!route.meta?.glassShell)
 <style scoped>
 :global(body) {
   background:
-    radial-gradient(circle at 18% 15%, rgba(255,255,255,.18), rgba(126,162,201,.2) 32%, rgba(5,7,14,.3) 60%),
-    linear-gradient(135deg, #05070f 0%, #060b17 45%, #05060c 100%);
+    radial-gradient(circle at 10% 10%, rgba(255,255,255,.08), transparent 50%),
+    radial-gradient(circle at 90% 20%, rgba(63,125,180,.07), transparent 40%),
+    linear-gradient(145deg, #03060c 0%, #050a13 45%, #05070f 100%);
   color: #f1f5ff;
 }
 :global(.glass-panel) {
