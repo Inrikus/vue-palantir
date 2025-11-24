@@ -5,7 +5,7 @@ export const getCollectionLink = {
     default: 'https://element.market/collections/bi-mech'
   },
   quartan_primes: {
-    Opensea: 'https://opensea.io/assets/ethereum/0xd396e2018b67446b134c30a89166487a8b2abd2e',
+    Opensea: 'https://opensea.io/collection/fusionist-quartan-primes',
     Blur: 'https://blur.io/eth/collection/fusionist-quartan-primes',
     Element: 'https://element.market/collections/fusionist-quartan-primes',
     OKX: 'https://www.okx.com/ru/web3/marketplace/nft/collection/eth/fusionist-quartan-primes',
@@ -34,7 +34,7 @@ export const getCollectionLink = {
   },
   primeace: {
     Tesseract: 'https://www.tesseract.world/nfts/list/648-0xaf8ef2b180fe7cade68643705adae08d1d2791a1',
-    default: 'https://www.tesseract.world/nfts/list/648-0xaf8ef2b180fe7cade68643705adae08d1d2791a1'
+    default: 'https://www.tesseract.world/nfts/list/getCollectionLink'
   },
 }
 
