@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1024 1024">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fda430;
+      }
+
+      .cls-2 {
+        fill: #1a1a1a;
+        fill-rule: evenodd;
+      }
+
+      .cls-3 {
+        fill: url(#_未命名的渐变_2);
+      }
+    </style>
+    <linearGradient id="_未命名的渐变_2" data-name="未命名的渐变 2" x1="673.82" y1="-1.41" x2="673.82" y2="-689.27" gradientTransform="translate(-162.42 768)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#bababa"/>
+      <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+  </defs>
+  <!-- Generator: Adobe Illustrator 28.7.0, SVG Export Plug-In . SVG Version: 1.2.0 Build 136)  -->
+  <g>
+    <g id="_图层_2" data-name="图层_2">
+      <path id="_x33_" class="cls-2" d="M512.02,26.02c268.44,0,486.06,217.67,486.06,486.17s-217.62,486.17-486.06,486.17S25.96,780.7,25.96,512.19,243.58,26.02,512.02,26.02Z"/>
+      <g id="_图层_1-2" data-name="图层_1-2">
+        <path class="cls-3" d="M511.35,206.92l222.49,445.03h64.13L511.35,78.73,224.74,651.95h64.1l222.51-445.03ZM826.61,709.3h-128.01l-187.09-374.24-187.07,374.24h-128.35l-28.69,57.29h192.26l151.81-303.33,151.76,303.33h192.19l-28.8-57.29Z"/>
+        <path class="cls-1" d="M597.23,766.59l-85.77-170.72-86.54,170.72h172.31Z"/>
+      </g>
+    </g>
+  </g>
+</svg>
