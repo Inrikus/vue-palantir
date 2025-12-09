@@ -285,7 +285,7 @@ const isChecked = (arr, v) => Array.isArray(arr) && arr.includes(v)
 /* active state */
 .tile.is-active {
   border-color: rgba(99,180,200,0.7);
-  background: linear-gradient(120deg, rgba(99,180,200,0.2), rgba(5,6,12,0.8));
+  background: var(--grad-panel-glass);
   box-shadow: 0 12px 30px rgba(7,14,26,0.6);
 }
 

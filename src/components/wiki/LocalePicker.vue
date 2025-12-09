@@ -118,7 +118,7 @@ onBeforeUnmount(() => {
       aria-haspopup="listbox"
       :aria-expanded="open ? 'true' : 'false'"
     >
-      <img v-if="current.flag" :src="current.flag" :alt="current.native" class="w-5 h-5 rounded-sm ring-1 ring-white/10 object-contain" />
+      <img v-if="current.flag" :src="current.flag" :alt="current.native" class="w-5 h-5 rounded-sm object-contain" />
       <span class="text-sm font-medium">{{ current.native }}</span>
       <svg class="w-4 h-4 opacity-70" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd"/>
@@ -143,7 +143,7 @@ onBeforeUnmount(() => {
           :aria-selected="opt.value === modelValue"
         >
           <div class="flex items-center gap-2">
-            <img v-if="opt.flag" :src="opt.flag" :alt="opt.native" class="w-5 h-5 rounded-sm ring-1 ring-white/10 object-contain" />
+            <img v-if="opt.flag" :src="opt.flag" :alt="opt.native" class="w-5 h-5 rounded-sm object-contain" />
             <span class="text-sm">{{ opt.native }}</span>
           </div>
           <span class="text-xs opacity-70 uppercase">{{ opt.value }}</span>
@@ -168,7 +168,7 @@ onBeforeUnmount(() => {
         :aria-selected="opt.value === modelValue"
       >
         <div class="flex items-center gap-2">
-          <img v-if="opt.flag" :src="opt.flag" :alt="opt.native" class="w-5 h-5 rounded-sm ring-1 ring-white/10 object-contain" />
+          <img v-if="opt.flag" :src="opt.flag" :alt="opt.native" class="w-5 h-5 rounded-sm object-contain" />
           <span class="text-sm">{{ opt.native }}</span>
         </div>
         <span class="text-xs opacity-70 uppercase">{{ opt.value }}</span>

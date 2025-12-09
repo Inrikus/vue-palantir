@@ -2,9 +2,82 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #050914;
-  color: #f5f8ff;
+:root {
+  /* --- Colors & Accents --- */
+  --color-bg-dark: #050914;
+  --color-text-main: #f5f8ff;
+  
+  --color-accent-sky: rgba(99, 180, 200, 1);
+  --color-accent-blue: rgba(80, 125, 255, 1);
+
+  /* --- Rarity Gradients (Solid) --- */
+  --grad-rarity-common: linear-gradient(90deg, #0b1118, #2e2e2e);
+  --grad-rarity-elite: linear-gradient(90deg, #0f2f1b, #3a853f);
+  --grad-rarity-epic: linear-gradient(90deg, #0f1f44, #2c68c0);
+  --grad-rarity-legend: linear-gradient(90deg, #2b1142, #7c3db1);
+  --grad-rarity-mythical: linear-gradient(90deg, #3f2406, #b88627);
+
+    /* --- Page Backgrounds --- */
+    /* Main app background noise/glow */
+    --grad-page-bg:
+      radial-gradient(circle at 15% -10%, rgba(99,180,200,0.08), transparent 50%),
+      radial-gradient(circle at 85% -10%, rgba(80,125,255,0.06), transparent 50%),
+      #050914;
+
+  /* --- Card & Panel Backgrounds --- */
+  /* Standard dark card with slight blue tint */
+  --grad-card-dark: linear-gradient(145deg, rgba(18,22,38,.95), rgba(34,48,78,.88));
+  
+  /* Filter panels / Wiki panels with transparency */
+  --grad-panel-glass: linear-gradient(120deg, rgba(99,180,200,0.2), rgba(5,6,12,0.8));
+  
+  /* Active/Hover states */
+  --grad-glass-border: linear-gradient(145deg, rgba(255,255,255,0.22), rgba(255,255,255,0.05));
+  
+  /* Button Gradients */
+  --grad-btn-accent: linear-gradient(120deg, rgba(99,180,200,0.7), rgba(80,125,255,0.7));
+
+  /* Glow effects */
+  --grad-glow-blue: radial-gradient(circle at 0% 0%, rgba(99,180,200,.18), transparent 90%);
+}
+
+/* body { */
+  /* background-color: var(--color-bg-dark); */
+  /* color: var(--color-text-main); */
+  
+  /* Optional: Apply the main page gradient to body or a wrapper */
+/* } */
+
+/* --- Utility Classes --- */
+
+/* Page Background */
+.bg-page-gradient {
+  background: var(--grad-page-bg);
+}
+
+/* Cards */
+.bg-card-dark {
+  background: var(--grad-card-dark);
+}
+
+.bg-panel-glass {
+  background: var(--grad-panel-glass);
+}
+
+.bg-btn-accent {
+  background: var(--grad-btn-accent);
+}
+
+/* Rarity Badges */
+.bg-rarity-common { background: var(--grad-rarity-common); }
+.bg-rarity-elite { background: var(--grad-rarity-elite); }
+.bg-rarity-epic { background: var(--grad-rarity-epic); }
+.bg-rarity-legend { background: var(--grad-rarity-legend); }
+.bg-rarity-mythical { background: var(--grad-rarity-mythical); }
+
+/* Decorative Glows */
+.bg-glow-corner-blue {
+  background: var(--grad-glow-blue);
 }
 
 /* Стабильный макет при появлении/исчезновении скроллбара */

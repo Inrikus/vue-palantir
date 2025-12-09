@@ -265,7 +265,7 @@ const handleResetFilter = () => {
 }
 .action-button.solid {
   border: none;
-  background: linear-gradient(120deg, rgba(99,180,200,0.7), rgba(80,125,255,0.7));
+  background: var(--grad-btn-accent);
   color: white;
   box-shadow: 0 12px 30px rgba(7,14,26,0.6);
 }

@@ -42,7 +42,7 @@ defineProps({
   border: 1px solid rgba(99,180,200,.3);
   background:
     radial-gradient(circle at top right, rgba(99,180,200,.25), transparent 45%),
-    linear-gradient(145deg, rgba(16,22,36,.95), rgba(32,48,78,.9));
+    var(--grad-card-dark);
   text-decoration: none;
   color: #e9f5ff;
   box-shadow: 0 25px 55px rgba(4,9,25,.55);

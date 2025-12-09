@@ -27,10 +27,7 @@ defineEmits(['update:modelValue'])
   display: inline-flex;
   gap: 0.5rem;
   padding: 0.4rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(5,6,12,.6);
-  margin: 1rem 0;
+  /* Removed container styling */
   justify-content: center;
 }
 .tab {

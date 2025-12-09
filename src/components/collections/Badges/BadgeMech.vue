@@ -92,9 +92,16 @@ const gradeClass = computed(() => `grade-${(gradeKey.value || 'Common').toLowerC
 .grade-label { font-size: 0.58rem; }
 .weapon-label { font-size: 0.62rem; letter-spacing: 0.18em; }
 
-.grade-common  { background: linear-gradient(90deg, #0b1118, #2e2e2e); }
-.grade-elite    { background: linear-gradient(90deg, #0f2f1b, #3a853f); }
-.grade-epic     { background: linear-gradient(90deg, #0f1f44, #2c68c0); }
-.grade-legend   { background: linear-gradient(90deg, #2b1142, #7c3db1); }
-.grade-mythical { background: linear-gradient(90deg, #3f2406, #b88627); }
+.badge-mech.common   { border-color: #64748b; color: #e2e8f0; }
+.badge-mech.elite    { border-color: #4ade80; color: #dcfce7; }
+.badge-mech.epic     { border-color: #60a5fa; color: #dbeafe; }
+.badge-mech.legend   { border-color: #c084fc; color: #f3e8ff; }
+.badge-mech.mythical { border-color: #facc15; color: #fef9c3; }
+
+/* Background gradients for rarities */
+.grade-common  { background: var(--grad-rarity-common); }
+.grade-elite    { background: var(--grad-rarity-elite); }
+.grade-epic     { background: var(--grad-rarity-epic); }
+.grade-legend   { background: var(--grad-rarity-legend); }
+.grade-mythical { background: var(--grad-rarity-mythical); }
 </style>

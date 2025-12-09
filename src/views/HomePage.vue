@@ -73,10 +73,8 @@ const tiles = computed(() => [
   gap: 0.85rem;
   padding: 1.9rem;
   border-radius: 1.35rem;
-  border: 1px solid rgba(99,180,200,.28);
-  background:
-    radial-gradient(circle at top right, rgba(99,180,200,.25), transparent 45%),
-    linear-gradient(145deg, rgba(18,22,38,.95), rgba(34,48,78,.88));
+  border: 1px solid rgba(255,255,255,0.08); /* Unified border style */
+  background: var(--grad-card-dark); /* Use the new card gradient variable */
   color: #eaf4ff;
   box-shadow: 0 20px 45px rgba(4,9,25,.55);
   transition: border-color .2s, transform .2s, box-shadow .2s;

@@ -49,8 +49,8 @@ watch(route, () => {
 </script>
 
 <template>
-  <div class="min-h-screen space-y-4">
-    <header class="collections-header glass-panel">
+  <div class="min-h-screen space-y-2">
+    <header class="collections-header">
       <div class="head-left">
         <img :src="collections[route.name]?.page.image" class="logo" alt="collection logo" />
         <div>
@@ -58,51 +58,56 @@ watch(route, () => {
           <h2 class="title">{{ collections[route.name]?.page.name }}</h2>
         </div>
       </div>
-      <TabsPanel v-model="currentPanel" />
+      
+      <div class="controls-row">
+        <TabsPanel v-model="currentPanel" />
+        
+        <div v-if="currentPanel === 'Cards'" class="filters-inline">
+            <div class="left-controls">
+              <button
+                @click="handleToggleFilter"
+                class="filter-toggle"
+              >
+                <img src="@/assets/filter-1.svg" class="w-5 sm:w-6" alt="filter" />
+                Filters
+                <span v-if="selectedFiltersCount" class="count">({{ selectedFiltersCount }})</span>
+              </button>
+
+              <div class="indicator">
+                <span class="dot"></span>
+                <span>Items: <span class="font-medium">{{ cardStore.maxCards }}</span></span>
+              </div>
+            </div>
+
+            <div class="right-controls">
+              <div class="sort-area">
+                <label for="sort-select" class="sr-only">Sort by</label>
+                <div class="select-wrapper">
+                  <select
+                    id="sort-select"
+                    v-model="sortOrder"
+                    class="sort-select"
+                  >
+                    <option value="priceDesc">Price: High to low</option>
+                    <option value="priceAsc">Price: Low to high</option>
+                    <option value="rarityDesc">Rarity: High to low</option>
+                    <option value="rarityAsc">Rarity: Low to high</option>
+                    <option value="tokenIdDesc">Token id: High to low</option>
+                    <option value="tokenIdAsc">Token id: Low to high</option>
+                  </select>
+                  <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+        </div>
+      </div>
+      
+      
     </header>
 
     <div v-if="currentPanel === 'Cards'">
-      <div class="filters-bar glass-panel">
-        <div class="left-controls">
-          <button
-            @click="handleToggleFilter"
-            class="filter-toggle"
-          >
-            <img src="@/assets/filter-1.svg" class="w-5 sm:w-6" alt="filter" />
-            Filters
-            <span v-if="selectedFiltersCount" class="count">({{ selectedFiltersCount }})</span>
-          </button>
-
-          <div class="indicator">
-            <span class="dot"></span>
-            <span>Items: <span class="font-medium">{{ cardStore.maxCards }}</span></span>
-          </div>
-        </div>
-
-        <div class="right-controls">
-          <div class="sort-area">
-            <label for="sort-select">Sort by</label>
-            <div class="select-wrapper">
-              <select
-                id="sort-select"
-                v-model="sortOrder"
-                class="sort-select"
-              >
-                <option value="priceDesc">Price: High to low</option>
-                <option value="priceAsc">Price: Low to high</option>
-                <option value="rarityDesc">Rarity: High to low</option>
-                <option value="rarityAsc">Rarity: Low to high</option>
-                <option value="tokenIdDesc">Token id: High to low</option>
-                <option value="tokenIdAsc">Token id: Low to high</option>
-              </select>
-              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div class="mt-8 relative h-full">
         <FiltersPanel :is-filter-panel-open="showFilterPanel" @toggle="handleToggleFilter" />
         <CardsList :endpoint="endPoint" :key="endPoint" />
@@ -122,11 +127,7 @@ watch(route, () => {
   gap: 1.25rem;
   padding: 1.5rem;
   border-radius: 1.5rem;
-  border: 1px solid rgba(255,255,255,.12);
-  background:
-    radial-gradient(circle at 0% 0%, rgba(99,180,200,.18), transparent 90%),
-    rgba(7,11,22,.8);
-  box-shadow: 0 20px 45px rgba(3,6,19,.35);
+  /* box-shadow removed for glassmorphism */
   backdrop-filter: blur(18px);
 }
 .head-left {
@@ -153,21 +154,23 @@ watch(route, () => {
   color: #63B4C8;
 }
 
-.filters-bar {
+.controls-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
   align-items: center;
-  justify-content: center;
-  padding: 1.25rem 1.5rem;
-  border-radius: 1.5rem;
-  border: 1px solid rgba(255,255,255,.12);
-  background:
-    radial-gradient(circle at 0% 0%, rgba(99,180,200,.18), transparent 90%),
-    rgba(7,11,22,.8);
-  box-shadow: 0 20px 45px rgba(3,6,19,.35);
-  backdrop-filter: blur(18px);
+  gap: 1.5rem;
 }
+
+.filters-inline {
+  display: contents; /* Allows children to participate in controls-row flex layout directly if needed, or just flex container */
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 1rem;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
 .left-controls {
   display: flex;
   align-items: center;
@@ -181,6 +184,8 @@ watch(route, () => {
 }
 @media (max-width: 640px) {
   .right-controls { width: 100%; justify-content: space-between; }
+  .controls-row { flex-direction: column; align-items: stretch; }
+  .filters-inline { flex-direction: column; align-items: stretch; }
 }
 
 .filter-toggle {
@@ -228,12 +233,6 @@ watch(route, () => {
 }
 @media (max-width: 640px) {
   .sort-area { flex: 1; }
-}
-.sort-area label {
-  font-size: 0.7rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,.6);
 }
 .select-wrapper {
   position: relative;
