@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* --- Colors & Accents --- */
+  --color-bg-dark: #050914;
+  --color-text-main: #f5f8ff;
+  
+  --color-accent-sky: rgba(99, 180, 200, 1);
+  --color-accent-blue: rgba(80, 125, 255, 1);
+
+  /* --- Rarity Gradients (Solid) --- */
+  --grad-rarity-common: linear-gradient(90deg, #0b1118, #2e2e2e);
+  --grad-rarity-elite: linear-gradient(90deg, #0f2f1b, #3a853f);
+  --grad-rarity-epic: linear-gradient(90deg, #0f1f44, #2c68c0);
+  --grad-rarity-legend: linear-gradient(90deg, #2b1142, #7c3db1);
+  --grad-rarity-mythical: linear-gradient(90deg, #3f2406, #b88627);
+
+    /* --- Page Backgrounds --- */
+    /* Main app background noise/glow */
+    --grad-page-bg:
+      radial-gradient(circle at 15% -10%, rgba(99,180,200,0.08), transparent 50%),
+      radial-gradient(circle at 85% -10%, rgba(80,125,255,0.06), transparent 50%),
+      #050914;
+
+  /* --- Card & Panel Backgrounds --- */
+  /* Standard dark card with slight blue tint */
+  --grad-card-dark: linear-gradient(145deg, rgba(18,22,38,.95), rgba(34,48,78,.88));
+  
+  /* Filter panels / Wiki panels with transparency */
+  --grad-panel-glass: linear-gradient(120deg, rgba(99,180,200,0.2), rgba(5,6,12,0.8));
+  
+  /* Active/Hover states */
+  --grad-glass-border: linear-gradient(145deg, rgba(255,255,255,0.22), rgba(255,255,255,0.05));
+  
+  /* Button Gradients */
+  --grad-btn-accent: linear-gradient(120deg, rgba(99,180,200,0.7), rgba(80,125,255,0.7));
+
+  /* Glow effects */
+  --grad-glow-blue: radial-gradient(circle at 0% 0%, rgba(99,180,200,.18), transparent 90%);
+}
+
+/* body { */
+  /* background-color: var(--color-bg-dark); */
+  /* color: var(--color-text-main); */
+  
+  /* Optional: Apply the main page gradient to body or a wrapper */
+/* } */
+
+/* --- Utility Classes --- */
+
+/* Page Background */
+.bg-page-gradient {
+  background: var(--grad-page-bg);
+}
+
+/* Cards */
+.bg-card-dark {
+  background: var(--grad-card-dark);
+}
+
+.bg-panel-glass {
+  background: var(--grad-panel-glass);
+}
+
+.bg-btn-accent {
+  background: var(--grad-btn-accent);
+}
+
+/* Rarity Badges */
+.bg-rarity-common { background: var(--grad-rarity-common); }
+.bg-rarity-elite { background: var(--grad-rarity-elite); }
+.bg-rarity-epic { background: var(--grad-rarity-epic); }
+.bg-rarity-legend { background: var(--grad-rarity-legend); }
+.bg-rarity-mythical { background: var(--grad-rarity-mythical); }
+
+/* Decorative Glows */
+.bg-glow-corner-blue {
+  background: var(--grad-glow-blue);
+}
+
+/* Стабильный макет при появлении/исчезновении скроллбара */
+@supports (scrollbar-gutter: stable) {
+  html { scrollbar-gutter: stable both-edges; }
+}
+
+/* Скрыть полосу прокрутки (если нужно) */
+body::-webkit-scrollbar { width: 0; } /* webkit */
+body { -ms-overflow-style: none; }    /* IE/Edge Legacy */
+
+/* Глобальная блокировка скролла для документа */
+html.hidden-scroll,
+body.hidden-scroll {
+  overflow: hidden !important;
+}
+
+/* (опционально) фиксы iOS дерганья */
+@supports (-webkit-touch-callout: none) {
+  html.hidden-scroll,
+  body.hidden-scroll {
+    position: relative;
+    width: 100%;
+  }
+}
+
+/* (опционально) системная тёмная тема */
+:root { color-scheme: dark; }
+
+/* Glass surfaces */
+.glass-surface {
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 1.5rem;
+  background: rgba(10,16,28,0.85);
+  box-shadow: 0 35px 90px rgba(0,0,0,0.45);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+}
+
+.glass-surface--radial {
+  background:
+    radial-gradient(circle at 15% 0%, rgba(84,141,194,0.16), rgba(10,16,28,0.78)),
+    rgba(10,16,28,0.9);
+}
+
+.glass-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+.glass-chip:hover {
+  border-color: rgba(255,255,255,0.35);
+  color: #fff;
+  background: rgba(255,255,255,0.08);
+}
+
+/* Page shells */
+.page-shell {
+  width: 100%;
+  background: rgba(24,30,48,0.65);
+  backdrop-filter: blur(42px);
+  box-shadow: 0 35px 90px rgba(3,6,19,.45);
+}
+.page-wide {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  background: var(--grad-page-bg);
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.layout-default {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+}
