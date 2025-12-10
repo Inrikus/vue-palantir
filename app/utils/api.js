@@ -5,8 +5,8 @@ let cachedBase = ''
 let cachedApi = null
 
 const getApi = () => {
-  const { public: { apiBase = '' } } = useRuntimeConfig()
-  const baseURL = apiBase
+  const config = useRuntimeConfig()
+  const baseURL = config.public.apiBase || ''
 
   if (!cachedApi || cachedBase !== baseURL) {
     cachedBase = baseURL

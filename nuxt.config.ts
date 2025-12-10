@@ -14,6 +14,7 @@ const i18nOptions: NuxtI18nOptions & { lazy: true } = {
   vueI18n: './i18n/i18n.config.ts'
 };
 
+const gtagId = process.env.NUXT_PUBLIC_GTAG_ID;
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
@@ -23,7 +24,8 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
     '@nuxtjs/i18n',
-    '@nuxt/content'
+    '@nuxt/content',
+    'nuxt-gtag'
   ],
 
   css: ['~/assets/main.css'],
@@ -41,8 +43,14 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000'
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000',
+      gtagId: gtagId || ''
     }
+  },
+
+  gtag: {
+    enabled: !!gtagId,
+    id: gtagId
   },
 
   routeRules: {},
