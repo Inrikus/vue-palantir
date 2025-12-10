@@ -197,6 +197,12 @@ useHead(() => ({
   gap: 0.85rem;
   justify-self: start;
 }
+.filter-toggle,
+.indicator {
+  min-width: 130px;
+  justify-content: center;
+  text-align: center;
+}
 @media (max-width: 640px) {
   .collections-header {
     padding: 1.25rem 1rem;
@@ -247,7 +253,7 @@ useHead(() => ({
 
 .filter-toggle {
   @apply inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold transition;
-  background: rgba(99,180,200,.15);
+  background: linear-gradient(120deg, rgba(99,180,200,.25), rgba(80,125,255,.25));
   border: 1px solid rgba(99,180,200,.35);
   color: #e5f6ff;
   box-shadow: 0 10px 25px rgba(8,20,40,.3);

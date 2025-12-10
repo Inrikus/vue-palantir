@@ -5,8 +5,8 @@ let cachedBase = ''
 let cachedApi = null
 
 const getApi = () => {
-  const config = useRuntimeConfig()
-  const baseURL = config.public.apiBase || process.env.NUXT_PUBLIC_API_BASE || ''
+  const { public: { apiBase = '' } } = useRuntimeConfig()
+  const baseURL = apiBase
 
   if (!cachedApi || cachedBase !== baseURL) {
     cachedBase = baseURL

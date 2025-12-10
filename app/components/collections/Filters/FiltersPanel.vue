@@ -13,6 +13,9 @@ const emit = defineEmits(['toggle'])
 const route = useRoute()
 const filterStore = useFilterStore()
 
+const currentSlug = computed(() => route.params.slug)
+const currentCollection = computed(() => collections[currentSlug.value] || null)
+
 // UI-состояние: какие секции раскрыты
 const openSections = ref({ Status: true })
 
@@ -27,7 +30,10 @@ const isSourceChecked = (source) => filterStore.sources?.includes(source) || fal
 const isTradeTypeChecked = () => filterStore.tradeType === 1
 
 // handlers
-const handleToggleShow = (section) => { openSections.value[section] = !openSections.value[section] }
+const handleToggleShow = (section) => {
+  const current = !!openSections.value[section]
+  openSections.value = { ...openSections.value, [section]: !current }
+}
 const handleToggleFilter = () => emit('toggle')
 const handleTradeTypeClick = (e) => filterStore.changeTradeType(e)
 const handleStatusClick   = (e) => filterStore.changeStatus(e)
@@ -123,7 +129,7 @@ const handleResetFilter = () => {
                 <span class="text-sm font-semibold uppercase tracking-[0.2em]">Normal</span>
               </label>
 
-              <label class="checkbox-label" v-if="['quartan_primes', 'primeace'].includes(route.name)">
+              <label class="checkbox-label" v-if="['quartan_primes', 'primeace'].includes(currentSlug)">
                 <input
                   type="checkbox"
                   class="custom-checkbox"
@@ -139,7 +145,7 @@ const handleResetFilter = () => {
 
           <!-- Traits -->
           <section
-            v-for="(filter, i) in Object.keys(collections[route.name]?.filters || {})"
+            v-for="(filter, i) in Object.keys(currentCollection?.filters || {})"
             :key="i"
             class="section-container"
           >
@@ -152,7 +158,7 @@ const handleResetFilter = () => {
             </div>
             <div :class="['section-content', { open: openSections[filter] }]">
               <label
-                v-for="(option, idx) in collections[route.name].filters[filter] || []"
+                v-for="(option, idx) in currentCollection?.filters?.[filter] || []"
                 :key="idx"
                 class="checkbox-label"
               >
@@ -180,7 +186,7 @@ const handleResetFilter = () => {
             </div>
             <div :class="['section-content', { open: openSections.Sources }]">
               <label
-                v-for="(option, i) in collections[route.name]?.sources || []"
+                v-for="(option, i) in currentCollection?.sources || []"
                 :key="i"
                 class="checkbox-label"
               >
