@@ -42,37 +42,51 @@ useHead({ title: 'Wiki — Fusionist Palantir' })
     </div>
 
     <div class="grid gap-5 md:grid-cols-3">
-      <component
-        v-for="entry in sections"
-        :key="entry.title"
-        :is="entry.comingSoon ? 'div' : 'NuxtLink'"
-        :to="entry.comingSoon ? undefined : entry.to"
-        class="wiki-tile"
-        :class="[
-          `bg-gradient-to-br ${entry.accent}`,
-          entry.comingSoon ? 'opacity-70 cursor-not-allowed' : 'hover:border-white/60'
-        ]"
-      >
-        <div class="flex items-center justify-between">
-          <h2 class="text-2xl font-semibold text-white">{{ entry.title }}</h2>
-          <span class="status-pill" :class="entry.status === 'Soon' ? 'bg-amber-400/80 text-black' : 'bg-emerald-400/80 text-black'">
-            {{ entry.status }}
-          </span>
+      <template v-for="entry in sections" :key="entry.title">
+        <NuxtLink
+          v-if="!entry.comingSoon"
+          :to="entry.to"
+          class="wiki-tile"
+          :class="`bg-gradient-to-br ${entry.accent} hover:border-white/60`"
+        >
+          <div class="flex items-center justify-between">
+            <h2 class="text-2xl font-semibold text-white">{{ entry.title }}</h2>
+            <span class="status-pill bg-emerald-400/80 text-black">
+              {{ entry.status }}
+            </span>
+          </div>
+          <p class="mt-3 text-sm text-white/80">
+            {{ entry.desc }}
+          </p>
+          <div class="mt-auto flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-white/70">
+            View details
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M5 12h14" />
+              <path d="M13 5l7 7-7 7" />
+            </svg>
+          </div>
+        </NuxtLink>
+
+        <div
+          v-else
+          class="wiki-tile opacity-70 cursor-not-allowed"
+          :class="`bg-gradient-to-br ${entry.accent}`"
+          role="presentation"
+        >
+          <div class="flex items-center justify-between">
+            <h2 class="text-2xl font-semibold text-white">{{ entry.title }}</h2>
+            <span class="status-pill bg-amber-400/80 text-black">
+              {{ entry.status }}
+            </span>
+          </div>
+          <p class="mt-3 text-sm text-white/80">
+            {{ entry.desc }}
+          </p>
+          <div class="mt-auto text-xs uppercase tracking-[0.3em] text-white/80">
+            Work in progress
+          </div>
         </div>
-        <p class="mt-3 text-sm text-white/80">
-          {{ entry.desc }}
-        </p>
-        <div v-if="!entry.comingSoon" class="mt-auto flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-white/70">
-          View details
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-            <path d="M5 12h14" />
-            <path d="M13 5l7 7-7 7" />
-          </svg>
-        </div>
-        <div v-else class="mt-auto text-xs uppercase tracking-[0.3em] text-white/80">
-          Work in progress
-        </div>
-      </component>
+      </template>
     </div>
   </section>
 </template>

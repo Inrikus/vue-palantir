@@ -37,7 +37,7 @@ useHead({ title: 'Contacts — Fusionist Palantir' })
     <article
       v-for="contact in contacts"
       :key="contact.name"
-      class="card glass-panel"
+      class="card glass-surface glass-surface--radial"
     >
       <div class="profile">
         <img :src="contact.avatar" :alt="contact.name" />
@@ -79,6 +79,7 @@ useHead({ title: 'Contacts — Fusionist Palantir' })
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  border-radius: 24px;
 }
 
 .profile { display: flex; gap: 1rem; align-items: center; }

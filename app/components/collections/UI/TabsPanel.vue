@@ -33,6 +33,7 @@ defineEmits(['update:modelValue'])
 .tab {
   border: none;
   border-radius: 999px;
+  min-width: 150px;
   padding: 0.6rem 1.6rem;
   font-size: 0.9rem;
   font-weight: 600;
