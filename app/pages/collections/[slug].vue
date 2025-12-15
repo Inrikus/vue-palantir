@@ -45,10 +45,16 @@ const handleToggleFilter = () => {
 }
 onBeforeUnmount(() => toggleScrollLock(false))
 
-watch(() => route.params.slug, () => {
-  currentPanel.value = 'Cards'
-  showFilterPanel.value = false
-})
+watch(
+  () => route.params.slug,
+  () => {
+    currentPanel.value = 'Cards'
+    showFilterPanel.value = false
+    filterStore.clearFilter()
+    if (typeof document !== 'undefined') toggleScrollLock(false)
+  },
+  { immediate: true },
+)
 
 useHead(() => ({
   title: currentCollection.value ? `${currentCollection.value.page.name} — Collections` : 'Collections'
@@ -116,7 +122,7 @@ useHead(() => ({
 
     <div v-if="currentPanel === 'Cards'">
       <div class="mt-8 relative h-full">
-        <FiltersPanel :is-filter-panel-open="showFilterPanel" @toggle="handleToggleFilter" />
+        <FiltersPanel :key="endPoint" :is-filter-panel-open="showFilterPanel" @toggle="handleToggleFilter" />
         <CardsList :endpoint="endPoint" :key="endPoint" />
       </div>
     </div>

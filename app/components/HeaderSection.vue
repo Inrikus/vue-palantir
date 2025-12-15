@@ -12,7 +12,7 @@ const navItems = [
   { to: '/collections/bi_mech', label: 'Bi-Mech' },
   { to: '/collections/quartan_primes', label: 'Quartan Primes' },
   { to: '/collections/alpha_prestige', label: 'Alpha Prestige' },
-  { to: '/collections/pioneer_of_fusionist', label: 'Pioneer of Fusionist' },
+  //{ to: '/collections/pioneer_of_fusionist', label: 'Pioneer of Fusionist' },
   { to: '/collections/primeace', label: 'PrimeACE' },
 ]
 const wikiNavItems = [
