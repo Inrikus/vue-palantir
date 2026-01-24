@@ -24,7 +24,6 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
     '@nuxtjs/i18n',
-    '@nuxt/content',
     'nuxt-gtag'
   ],
 
