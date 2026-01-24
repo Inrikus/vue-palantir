@@ -297,9 +297,6 @@ const labels = computed(() => {
 .buff-card img {
   width: 58px;
   height: 58px;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(255,255,255,.08);
-  background: rgba(0,0,0,.35);
   object-fit: contain;
 }
 .buff-copy {

@@ -200,9 +200,6 @@ const skills = computed(() => {
 .skill-card img {
   width: 60px;
   height: 60px;
-  border-radius: 0.9rem;
-  border: 1px solid rgba(255,255,255,.08);
-  background: rgba(0,0,0,.35);
   object-fit: contain;
 }
 .skill-copy {

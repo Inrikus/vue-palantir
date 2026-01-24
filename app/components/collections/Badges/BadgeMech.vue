@@ -73,13 +73,12 @@ const gradeClass = computed(() => `grade-${(gradeKey.value || 'Common').toLowerC
   background: radial-gradient(circle at 5% 50%, rgba(255,255,255,.8), transparent 55%);
 }
 .class-icon {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
-  background: rgba(0,0,0,.45);
   display: grid;
   place-items: center;
-  padding: 0.25rem;
+  padding: 0.15rem;
   margin-right: 0.6rem;
 }
 .class-icon img { width: 100%; height: 100%; object-fit: contain; }

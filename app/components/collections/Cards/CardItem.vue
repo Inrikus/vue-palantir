@@ -9,7 +9,7 @@ const props = defineProps({
 })
 
 const isMechBadge = computed(() =>
-  ['bi_mech', 'quartan_primes'].includes(props.card.collection_name) && props.card.status === 'Normal'
+  ['bi_mech', 'quartan_primes', 'battle_mech'].includes(props.card.collection_name) && props.card.status === 'Normal'
 )
 const isPlanetBadge = computed(() => props.card.collection_name === 'fusionist_planet')
 
@@ -124,11 +124,10 @@ const usdPrice = computed(() => props.card.price ? `${props.card.price} USD` : '
   position: absolute;
   top: 1rem;
   left: 1rem;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 2rem;
+  height: 2rem;
   border-radius: 0.6rem;
-  background: rgba(5,6,12,.4);
-  padding: 0.35rem;
+  padding: 0.25rem;
   z-index: 2;
 }
 

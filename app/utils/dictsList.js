@@ -58,6 +58,19 @@ export const currency = {
 }
 // ЕДИНЫЙ объект коллекций
 export const collections = {
+  battle_mech: {
+    queryName: 'battle_mech',
+    page: { name: 'Battle Mech', image: '/collections/fmech-avatar.png' },
+    banner: { name: 'Battle Mech', image: '/banner/fmech-banner.png', link_to: '/collections/battle_mech' },
+    // при необходимости можно хранить теги статуса/режимы здесь
+    status: [],
+    sources: ['Tesseract'],
+    filters: {
+      GRADE: ['Common', 'Elite', 'Epic', 'Legend', 'Mythical'],
+      Class: ['Buster', 'Keystone', 'Striker', 'Bullseye', 'Apostle'],
+      Weapons: ['1', '2', '3', '4']
+    }
+  },
   bi_mech: {
     queryName: 'bi_mech',
     page: { name: 'Bi-Mech', image: '/collections/Bi-mech.webp' },
