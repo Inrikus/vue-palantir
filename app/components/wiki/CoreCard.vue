@@ -315,6 +315,51 @@ const labels = computed(() => {
   vertical-align: baseline;
   line-height: 1;
 }
+.richtext :deep(.inline-buff-wrap[data-tooltip]) {
+  position: relative;
+  cursor: help;
+}
+.richtext :deep(.inline-buff-wrap[data-tooltip])::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%) translateY(4px);
+  max-width: 260px;
+  min-width: 140px;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.45rem;
+  background: rgba(8,10,16,0.96);
+  color: #f5f7ff;
+  font-size: 0.7rem;
+  line-height: 1.25;
+  text-align: center;
+  box-shadow: 0 10px 22px rgba(0,0,0,.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .08s ease, transform .08s ease;
+  z-index: 20;
+}
+.richtext :deep(.inline-buff-wrap[data-tooltip])::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 2px);
+  transform: translateX(-50%) translateY(4px);
+  border: 6px solid transparent;
+  border-top-color: rgba(8,10,16,0.96);
+  opacity: 0;
+  transition: opacity .08s ease, transform .08s ease;
+  pointer-events: none;
+  z-index: 21;
+}
+.richtext :deep(.inline-buff-wrap[data-tooltip]):hover::after,
+.richtext :deep(.inline-buff-wrap[data-tooltip]):focus-visible::after,
+.richtext :deep(.inline-buff-wrap[data-tooltip]):hover::before,
+.richtext :deep(.inline-buff-wrap[data-tooltip]):focus-visible::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
 .richtext :deep(img.inline-buff-icon) {
   display: inline-block;
   width: 0.9em;
