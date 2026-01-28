@@ -161,6 +161,8 @@ export const useWikiSkillStore = defineStore('wikiSkill', {
   actions: {
     /** Загрузка */
     async load(locale = 'en') {
+      if (this.loading) return
+      if (this.items.length && this.loadedLocale === locale) return
       if (this.loadedLocale !== locale) {
         this.page = 1
         this.sort = { ...DEFAULT_SORT }

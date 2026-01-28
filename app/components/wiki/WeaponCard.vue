@@ -86,12 +86,14 @@ const skills = computed(() => {
     const upVals = Array.isArray(s.Upgrade_Value) ? s.Upgrade_Value : []
     const nameRaw = s?.i18n?.name?.[loc.value] || s?.englishName || `Skill ${s.id}`
     const descRaw = s?.i18n?.desc?.[loc.value] || ''
+    const namePlain = stripTags(nameRaw).toLowerCase()
     return {
       id: s.id,
       icon: `/wiki/Skills/${s?.Icon || 'Icon_Skill_10001'}.png`,
       nameHtml: formatter.format(nameRaw, upVals),
       descHtml: formatter.format(descRaw, upVals),
       videoName: s?.englishName || nameRaw,
+      isDisabled: namePlain === 'normal attack',
     }
   }).filter(Boolean)
 })
@@ -116,6 +118,7 @@ const activeVideoTitle = ref('')
 const videoError = ref('')
 
 function openSkillVideo(skill) {
+  if (skill?.isDisabled) return
   const src = buildVideoSrc(weaponJobLabel.value, skill?.videoName)
   if (!src) return
   activeVideoSrc.value = src
@@ -161,7 +164,13 @@ function handleVideoError() {
 
     <section v-if="skills.length" class="section-block">
       <h3 class="section-title">Skills</h3>
-      <div class="skill-card" v-for="skill in skills" :key="skill.id" @click="openSkillVideo(skill)">
+      <div
+        class="skill-card"
+        :class="{ 'skill-card--disabled': skill.isDisabled }"
+        v-for="skill in skills"
+        :key="skill.id"
+        @click="openSkillVideo(skill)"
+      >
         <img :src="skill.icon" alt="" loading="lazy" />
         <div class="skill-copy">
           <div class="richtext skill-name" v-html="skill.nameHtml" />
@@ -277,6 +286,7 @@ function handleVideoError() {
     rgba(6, 9, 20, 0.92);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.02), 0 12px 25px rgba(2,4,12,.45);
   cursor: pointer;
+  transition: box-shadow .15s ease, border-color .15s ease;
 }
 .skill-card::before,
 .skill-card::after { content: none; }
@@ -293,6 +303,10 @@ function handleVideoError() {
 }
 .skill-name { font-weight: 600; }
 .skill-desc { opacity: 0.9; font-size: 0.95rem; line-height: 1.4; }
+.skill-card:not(.skill-card--disabled):hover {
+  border-color: rgba(157,209,222,.4);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.05), 0 16px 30px rgba(2,4,12,.55);
+}
 
 
 .richtext :deep(.inline-buff-wrap) {

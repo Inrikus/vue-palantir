@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useWikiSkillStore } from '@/stores/wikiSkillStore'
 import VideoModal from '@/components/common/VideoModal.vue'
 import { buildVideoUrl } from '@/utils/video'
@@ -7,10 +7,6 @@ import { buildVideoUrl } from '@/utils/video'
 const props = defineProps({ card: Object })
 
 const skillStore = useWikiSkillStore()
-
-onMounted(() => {
-  skillStore.load('en')
-})
 
 const findTrait = (type) => props.card.traits?.find(t => t.trait_type === type)?.value || ''
 const skillTraits = computed(() => (props.card.traits || []).filter(t => t.trait_type === 'Skill').map(t => String(t.value || '')).filter(Boolean))
@@ -129,11 +125,20 @@ function handleVideoError() {
   display: grid;
   place-items: center;
   border: none;
+  transition: transform .12s ease, box-shadow .12s ease;
 }
 .skill-icon {
   width: 40px;
   height: 40px;
   object-fit: contain;
+  transition: transform .12s ease, filter .12s ease;
+}
+.skill-pill:hover {
+  transform: translateY(-2px);
+}
+.skill-pill:hover .skill-icon {
+  transform: scale(1.04);
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,.4));
 }
 
 </style>

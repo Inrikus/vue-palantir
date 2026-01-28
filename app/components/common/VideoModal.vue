@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, onMounted } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch, nextTick } from 'vue'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -9,6 +9,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'error'])
+const videoRef = ref(null)
 
 function handleClose() {
   emit('close')
@@ -21,6 +22,18 @@ function handleError() {
 function onKeydown(e) {
   if (e.key === 'Escape') handleClose()
 }
+
+async function applyDefaultVolume() {
+  await nextTick()
+  if (videoRef.value) videoRef.value.volume = 0.15
+}
+
+watch(
+  () => [props.open, props.src],
+  ([open]) => {
+    if (open) applyDefaultVolume()
+  }
+)
 
 onMounted(() => {
   document.addEventListener('keydown', onKeydown)
@@ -43,6 +56,7 @@ onBeforeUnmount(() => {
         </div>
         <video
           v-if="src"
+          ref="videoRef"
           class="video-modal-player"
           :src="src"
           controls
