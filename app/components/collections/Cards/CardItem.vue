@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { platformIcon, currency } from '@/utils/dictsList.js'
 import BadgeMech from '@/components/collections/Badges/BadgeMech.vue'
+import BadgeBattleMech from '@/components/collections/Badges/BadgeBattleMech.vue'
 import BadgePlanet from '@/components/collections/Badges/BadgePlanet.vue'
 
 const props = defineProps({
@@ -11,6 +12,7 @@ const props = defineProps({
 const isMechBadge = computed(() =>
   ['bi_mech', 'quartan_primes', 'battle_mech'].includes(props.card.collection_name) && props.card.status === 'Normal'
 )
+const isBattleMechBadge = computed(() => props.card.collection_name === 'battle_mech' && props.card.status === 'Normal')
 const isPlanetBadge = computed(() => props.card.collection_name === 'fusionist_planet')
 
 const platformIconSrc = computed(() => {
@@ -55,6 +57,10 @@ const usdPrice = computed(() => props.card.price ? `${props.card.price} USD` : '
 
       <div v-if="isPlanetBadge" class="badge-layer badge-layer--planet">
         <BadgePlanet :card="card" />
+      </div>
+      <div v-else-if="isBattleMechBadge" class="badge-layer badge-layer--mech badge-layer--mech-stack badge-layer--mech-interactive">
+        <BadgeBattleMech :card="card" />
+        <BadgeMech :card="card" />
       </div>
       <div v-else-if="isMechBadge" class="badge-layer badge-layer--mech">
         <BadgeMech :card="card" />
@@ -185,6 +191,9 @@ const usdPrice = computed(() => props.card.price ? `${props.card.price} USD` : '
   z-index: 4;
   pointer-events: none;
 }
+.badge-layer--mech-interactive {
+  pointer-events: auto;
+}
 .badge-layer--planet {
   bottom: 0;
 }
@@ -199,6 +208,11 @@ const usdPrice = computed(() => props.card.price ? `${props.card.price} USD` : '
   padding: 0 1rem;
   display: flex;
   justify-content: flex-end;
+}
+.badge-layer--mech-stack {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
 }
 .badge-layer--mech :deep(.mech-badge) {
   max-width: 320px;

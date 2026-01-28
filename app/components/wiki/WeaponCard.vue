@@ -1,8 +1,10 @@
 <script setup>
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import VideoModal from '@/components/common/VideoModal.vue'
 import { useWikiSkillStore } from '@/stores/wikiSkillStore'
 import { useWikiBuffStore } from '@/stores/wikiBuffStore'
 import { createRichTextFormatter } from '@/utils/richtext'
+import { buildVideoUrl } from '@/utils/video'
 
 const props = defineProps({
   weapon: { type: Object, required: true },
@@ -42,6 +44,21 @@ const weaponDescHtml = computed(() => {
   return formatter.format(raw, props.weapon?.Upgrade_Value || [])
 })
 
+const JOB_OPTIONS = [
+  { label: 'Striker',  value: 1  },
+  { label: 'Keystone', value: 2  },
+  { label: 'Buster',   value: 4  },
+  { label: 'Bullseye', value: 8  },
+  { label: 'Apostle',  value: 16 },
+]
+
+const weaponJobLabel = computed(() => {
+  const mask = Number(props.weapon?.JobLimit || 0)
+  if (!mask) return ''
+  const match = JOB_OPTIONS.find(opt => (mask & opt.value) !== 0) || JOB_OPTIONS.find(opt => opt.value === mask)
+  return match?.label || ''
+})
+
 const FALLBACK_ICON = '/wiki/fallback/icon_missing.png'
 const weaponIconSrc = computed(() => {
   const icon = props.weapon?.Icon
@@ -74,9 +91,47 @@ const skills = computed(() => {
       icon: `/wiki/Skills/${s?.Icon || 'Icon_Skill_10001'}.png`,
       nameHtml: formatter.format(nameRaw, upVals),
       descHtml: formatter.format(descRaw, upVals),
+      videoName: s?.englishName || nameRaw,
     }
   }).filter(Boolean)
 })
+
+function stripTags(text) {
+  return String(text || '').replace(/<[^>]*>/g, '').trim()
+}
+
+function buildVideoSrc(jobLabel, skillName) {
+  if (!jobLabel || !skillName) return ''
+  const safeName = stripTags(skillName)
+    .replace(/[\\/:*?"<>|]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!safeName) return ''
+  const filename = `${jobLabel} - ${safeName}.mp4`
+  return buildVideoUrl(filename)
+}
+
+const activeVideoSrc = ref('')
+const activeVideoTitle = ref('')
+const videoError = ref('')
+
+function openSkillVideo(skill) {
+  const src = buildVideoSrc(weaponJobLabel.value, skill?.videoName)
+  if (!src) return
+  activeVideoSrc.value = src
+  activeVideoTitle.value = stripTags(skill?.videoName || '')
+  videoError.value = ''
+}
+
+function closeSkillVideo() {
+  activeVideoSrc.value = ''
+  activeVideoTitle.value = ''
+  videoError.value = ''
+}
+
+function handleVideoError() {
+  videoError.value = 'Video not found.'
+}
 </script>
 
 <template>
@@ -106,7 +161,7 @@ const skills = computed(() => {
 
     <section v-if="skills.length" class="section-block">
       <h3 class="section-title">Skills</h3>
-      <div class="skill-card" v-for="skill in skills" :key="skill.id">
+      <div class="skill-card" v-for="skill in skills" :key="skill.id" @click="openSkillVideo(skill)">
         <img :src="skill.icon" alt="" loading="lazy" />
         <div class="skill-copy">
           <div class="richtext skill-name" v-html="skill.nameHtml" />
@@ -114,6 +169,15 @@ const skills = computed(() => {
         </div>
       </div>
     </section>
+
+    <VideoModal
+      :open="!!activeVideoSrc"
+      :src="activeVideoSrc"
+      :title="activeVideoTitle"
+      :error="videoError"
+      @close="closeSkillVideo"
+      @error="handleVideoError"
+    />
   </article>
 </template>
 
@@ -212,6 +276,7 @@ const skills = computed(() => {
     radial-gradient(circle at top left, rgba(103,172,212,.08), transparent 60%),
     rgba(6, 9, 20, 0.92);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.02), 0 12px 25px rgba(2,4,12,.45);
+  cursor: pointer;
 }
 .skill-card::before,
 .skill-card::after { content: none; }
@@ -228,6 +293,7 @@ const skills = computed(() => {
 }
 .skill-name { font-weight: 600; }
 .skill-desc { opacity: 0.9; font-size: 0.95rem; line-height: 1.4; }
+
 
 .richtext :deep(.inline-buff-wrap) {
   display: inline-flex;

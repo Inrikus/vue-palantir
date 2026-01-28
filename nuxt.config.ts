@@ -43,6 +43,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000',
+      videoBase: process.env.NUXT_PUBLIC_VIDEO_BASE || '',
       gtagId: gtagId || ''
     }
   },
