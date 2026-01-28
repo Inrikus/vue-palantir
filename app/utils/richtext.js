@@ -112,7 +112,6 @@ export function createRichTextFormatter(cfg) {
       const iconSrc = `/wiki/Buffs/${b.Icon || 'Icon_Buff_Unknown'}.png`
       return `
         <span class="inline-flex items-center gap-[0.25em] align-baseline not-prose inline-buff-wrap"${tooltipAttr}>
-          <img src="${iconSrc}" alt="" class="inline-buff-icon" />
           <span class="inline-block text-[#63B4C8] leading-none">${name}</span>
         </span>
       `

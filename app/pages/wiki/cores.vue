@@ -1,26 +1,24 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 
 import { useWikiCoreStore } from '@/stores/wikiCoreStore'
 import { useWikiLabelStore } from '@/stores/wikiLabelStore'
 import { useWikiBuffStore } from '@/stores/wikiBuffStore'
+import { useWikiLocaleStore } from '@/stores/wikiLocaleStore'
 
 import CoreCard from '@/components/wiki/CoreCard.vue'
 import WikiCoreFilterPanel from '@/components/wiki/WikiCoreFilterPanel.vue'
-import LocalePicker from '@/components/wiki/LocalePicker.vue'
 import ActiveFiltersBar from '@/components/wiki/ActiveFiltersBar.vue'
 import InfinitePager from '@/components/wiki/InfinitePager.vue'
 import { buildJobCardList } from '@/components/wiki/filters/dicts'
 import WikiDetailModal from '@/components/wiki/WikiDetailModal.vue'
 import { useWikiListingPage } from '@/composables/useWikiListingPage'
 
-const route = useRoute()
-const router = useRouter()
 
 const store      = useWikiCoreStore()
 const labelStore = useWikiLabelStore()
 const buffStore  = useWikiBuffStore()
+const wikiLocaleStore = useWikiLocaleStore()
 
 definePageMeta({
   glassShell: false
@@ -41,6 +39,11 @@ async function load(targetLocale = locale.value) {
   syncFiltersFromStore()
 }
 
+const localeRef = computed({
+  get: () => wikiLocaleStore.locale,
+  set: (val) => wikiLocaleStore.setLocale(val),
+})
+
 const {
   locale,
   search,
@@ -51,7 +54,7 @@ const {
   setFilterPanelOpen,
   setModalOpen,
 } = useWikiListingPage({
-  initialLocale: route.query.locale ?? 'en',
+  localeRef,
   loadResources: load,
   onSearchChange: () => {
     store.page = 1
@@ -133,20 +136,6 @@ function handleResetFromPanel () {
   store.resetFilters()
   syncFiltersFromStore()
 }
-
-/* ---------- Навигация / query ---------- */
-// Локаль остаётся в query, поиск — нет
-watch(locale, (val) => {
-  router.replace({ query: { ...route.query, locale: val || undefined } })
-})
-
-watch(() => route.query.locale, (next) => {
-  const normalized = next ?? 'en'
-  if (normalized !== locale.value) {
-    locale.value = normalized
-  }
-})
-
 
 /* ---------- Mount lifecycle ---------- */
 // Общий ресайз/загрузка/scroll-lock обрабатываются в useWikiListingPage
@@ -251,7 +240,6 @@ function handleLoadMore () {
     <section class="space-y-3" aria-label="Cores navigation and filters">
       <div class="flex items-center justify-between">
         <h1 class="text-2xl font-semibold">Wiki - Cores</h1>
-        <LocalePicker v-model="locale" />
       </div>
 
       <div

@@ -1,12 +1,24 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useWikiSkillStore } from '@/stores/wikiSkillStore'
+import { useWikiBuffStore } from '@/stores/wikiBuffStore'
 import VideoModal from '@/components/common/VideoModal.vue'
 import { buildVideoUrl } from '@/utils/video'
+import { createRichTextFormatter } from '@/utils/richtext'
 
 const props = defineProps({ card: Object })
 
 const skillStore = useWikiSkillStore()
+const buffStore = useWikiBuffStore()
+
+function findBuff(id, lv) {
+  const byId = buffStore.byId?.[id]
+  if (byId && (byId.Buff_LV == null || Number(byId.Buff_LV) === Number(lv))) return byId
+  const list = Array.isArray(buffStore.items) ? buffStore.items : []
+  return list.find(b => b.id === id && Number(b.Buff_LV) === Number(lv)) || byId || null
+}
+
+const formatter = createRichTextFormatter({ locale: 'en', findBuff })
 
 const findTrait = (type) => props.card.traits?.find(t => t.trait_type === type)?.value || ''
 const skillTraits = computed(() => (props.card.traits || []).filter(t => t.trait_type === 'Skill').map(t => String(t.value || '')).filter(Boolean))
@@ -19,6 +31,14 @@ const className = computed(() => {
 
 const FALLBACK_SKILL_ICON = '/wiki/Skills/Icon_Skill_10001.png'
 
+function normalizeSkillName(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/[^a-z0-9 ]/g, '')
+    .trim()
+}
+
 const skillLookup = computed(() => {
   const map = Object.create(null)
   for (const s of skillStore.items || []) {
@@ -26,7 +46,7 @@ const skillLookup = computed(() => {
       s?.englishName,
       s?.i18n?.name?.en,
     ].filter(Boolean)
-    for (const k of keys) map[String(k).toLowerCase().trim()] = s
+    for (const k of keys) map[normalizeSkillName(k)] = s
   }
   return map
 })
@@ -34,11 +54,14 @@ const skillLookup = computed(() => {
 const skills = computed(() => {
   const list = skillTraits.value
   return list.map((name) => {
-    const key = String(name).toLowerCase().trim()
+    const key = normalizeSkillName(name)
     const s = skillLookup.value[key]
+    const upVals = Array.isArray(s?.Upgrade_Value) ? s.Upgrade_Value : []
+    const descRaw = s?.i18n?.desc?.en || ''
     return {
       name,
       icon: s?.Icon ? `/wiki/Skills/${s.Icon}.png` : FALLBACK_SKILL_ICON,
+      descHtml: descRaw ? formatter.format(descRaw, upVals) : '',
     }
   })
 })
@@ -90,6 +113,7 @@ function handleVideoError() {
         @click.stop.prevent="openSkillVideo(skill.name)"
       >
         <img :src="skill.icon" alt="" class="skill-icon" />
+        <span v-if="skill.descHtml" class="skill-tooltip" v-html="skill.descHtml" />
       </button>
     </div>
   </div>
@@ -126,12 +150,49 @@ function handleVideoError() {
   place-items: center;
   border: none;
   transition: transform .12s ease, box-shadow .12s ease;
+  position: relative;
 }
 .skill-icon {
   width: 40px;
   height: 40px;
   object-fit: contain;
   transition: transform .12s ease, filter .12s ease;
+}
+.skill-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%) translateY(4px);
+  min-width: 320px;
+  max-width: 520px;
+  padding: 0.4rem 0.55rem;
+  border-radius: 0.5rem;
+  background: rgba(8,10,16,0.96);
+  color: #f5f7ff;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
+  box-shadow: 0 10px 22px rgba(0,0,0,.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .08s ease, transform .08s ease;
+  z-index: 20;
+}
+.skill-tooltip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(8,10,16,0.96);
+}
+.skill-pill:hover .skill-tooltip,
+.skill-pill:focus-visible .skill-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 .skill-pill:hover {
   transform: translateY(-2px);

@@ -6,9 +6,10 @@ export function useWikiListingPage(options = {}) {
     loadResources,
     onSearchChange,
     mobileQuery = '(max-width: 640px)',
+    localeRef,
   } = options
 
-  const locale = ref(initialLocale)
+  const locale = localeRef || ref(initialLocale)
   const search = ref('')
   const isMobile = ref(false)
   const showFilterPanel = ref(false)

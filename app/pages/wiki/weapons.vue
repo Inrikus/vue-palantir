@@ -1,6 +1,5 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
-import LocalePicker from '@/components/wiki/LocalePicker.vue'
 import ActiveFiltersBar from '@/components/wiki/ActiveFiltersBar.vue'
 import WikiWeaponFilterPanel from '@/components/wiki/WikiWeaponFilterPanel.vue'
 import WeaponCard from '@/components/wiki/WeaponCard.vue'
@@ -11,12 +10,14 @@ import { useWikiListingPage } from '@/composables/useWikiListingPage'
 import { useWikiWeaponStore } from '@/stores/wikiWeaponStore'
 import { useWikiSkillStore } from '@/stores/wikiSkillStore'
 import { useWikiLabelStore } from '@/stores/wikiLabelStore'
+import { useWikiLocaleStore } from '@/stores/wikiLocaleStore'
 import { buildJobCardList } from '@/components/wiki/filters/dicts'
 
 /* ---------- stores ---------- */
 const weaponStore = useWikiWeaponStore()
 const skillStore  = useWikiSkillStore()
 const labelStore  = useWikiLabelStore()
+const wikiLocaleStore = useWikiLocaleStore()
 
 definePageMeta({
   glassShell: false
@@ -34,6 +35,11 @@ async function loadAll(targetLocale = locale.value) {
   syncFiltersFromStore()
 }
 
+const localeRef = computed({
+  get: () => wikiLocaleStore.locale,
+  set: (val) => wikiLocaleStore.setLocale(val),
+})
+
 const {
   locale,
   search,
@@ -44,7 +50,7 @@ const {
   setFilterPanelOpen,
   setModalOpen,
 } = useWikiListingPage({
-  initialLocale: 'en',
+  localeRef,
   loadResources: loadAll,
   onSearchChange: () => {
     weaponStore.page = 1
@@ -224,7 +230,6 @@ watch(filters, (val) => {
     <section class="space-y-3" aria-label="Weapons navigation and filters">
       <div class="flex items-center justify-between">
         <h1 class="text-2xl font-semibold">Wiki - Weapons</h1>
-        <LocalePicker v-model="locale" />
       </div>
 
       <div

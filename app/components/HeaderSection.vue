@@ -3,9 +3,16 @@ import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue'
 import { toggleScrollLock } from '@/utils/scrollLock'
 import { currency as currencyDict } from '@/utils/dictsList.js'
 import { fetchCryptocurrencies } from '@/utils/api.js'
+import LocalePicker from '@/components/wiki/LocalePicker.vue'
+import { useWikiLocaleStore } from '@/stores/wikiLocaleStore'
 
 const isOpen = ref(false)
 const panelRef = ref(null)
+const wikiLocaleStore = useWikiLocaleStore()
+const localeRef = computed({
+  get: () => wikiLocaleStore.locale,
+  set: (val) => wikiLocaleStore.setLocale(val),
+})
 
 const navItems = [
   { to: '/collections/fusionist_planet', label: 'Fusionist Planet' },
@@ -121,6 +128,9 @@ const cryptos = computed(() => {
             <path d="M13 5l7 7-7 7" />
           </svg>
         </NuxtLink>
+        <div class="flex items-center justify-center">
+          <LocalePicker v-model="localeRef" />
+        </div>
       </nav>
     </div>
   </header>

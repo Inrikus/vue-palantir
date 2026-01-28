@@ -184,6 +184,8 @@ export const useWikiWeaponStore = defineStore('wikiWeapon', {
   actions: {
     /** Загрузка списка оружия по локали */
     async load(locale = 'en') {
+      if (this.loading) return
+      if (this.items.length && this.loadedLocale === locale) return
       if (this.loadedLocale !== locale) {
         this.page = 1
         this.sort = { ...DEFAULT_SORT }

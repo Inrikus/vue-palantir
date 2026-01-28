@@ -163,6 +163,8 @@ export const useWikiCoreStore = defineStore('wikiCore', {
 
   actions: {
     async load(locale = 'en') {
+      if (this.loading) return
+      if (this.items.length && this.loadedLocale === locale) return
       if (this.loadedLocale !== locale) {
         this.page = 1
         this.sort = { ...DEFAULT_SORT }

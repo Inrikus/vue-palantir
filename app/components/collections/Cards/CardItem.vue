@@ -40,6 +40,7 @@ const usdPrice = computed(() => props.card.price ? `${props.card.price} USD` : '
 <template>
   <a
     class="collection-card"
+    :class="{ 'has-battle-mech': isBattleMechBadge }"
     :href="card.link?.value || '#'"
     target="_blank"
     rel="noopener"
@@ -93,12 +94,14 @@ const usdPrice = computed(() => props.card.price ? `${props.card.price} USD` : '
   border: 1px solid rgba(99,180,200,.08);
   background: #0b0d13;
   transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+  z-index: 0;
 }
 
 .collection-card:hover {
   transform: translateY(-6px);
   border-color: rgba(99,180,200,.4);
   box-shadow: 0 20px 45px rgba(7,14,26,.4);
+  z-index: 5;
 }
 
 .media {
@@ -106,6 +109,9 @@ const usdPrice = computed(() => props.card.price ? `${props.card.price} USD` : '
   width: 100%;
   aspect-ratio: 1 / 1;
   overflow: hidden;
+}
+.collection-card.has-battle-mech .media {
+  overflow: visible;
 }
 
 .card-bg {

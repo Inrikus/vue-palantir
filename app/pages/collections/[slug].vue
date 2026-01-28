@@ -7,7 +7,6 @@ import TabsPanel from '~/components/collections/UI/TabsPanel.vue'
 
 import { useCardStore } from '@/stores/cardStore'
 import { useFilterStore } from '@/stores/filterStore'
-import { useWikiSkillStore } from '@/stores/wikiSkillStore'
 import { collections } from '@/utils/dictsList.js'
 import { toggleScrollLock } from '@/utils/scrollLock'
 
@@ -18,7 +17,6 @@ definePageMeta({
 const route = useRoute()
 const cardStore = useCardStore()
 const filterStore = useFilterStore()
-const wikiSkillStore = useWikiSkillStore()
 const showFilterPanel = ref(false)
 
 const currentPanel = ref('Cards')
@@ -53,9 +51,6 @@ watch(
     currentPanel.value = 'Cards'
     showFilterPanel.value = false
     filterStore.clearFilter()
-    if (route.params.slug === 'battle_mech') {
-      wikiSkillStore.load('en')
-    }
     if (typeof document !== 'undefined') toggleScrollLock(false)
   },
   { immediate: true },
