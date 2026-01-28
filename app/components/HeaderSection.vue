@@ -15,6 +15,7 @@ const localeRef = computed({
 })
 
 const navItems = [
+  { to: '/collections/battle_mech', label: 'Battle Mech' },
   { to: '/collections/fusionist_planet', label: 'Fusionist Planet' },
   { to: '/collections/bi_mech', label: 'Bi-Mech' },
   { to: '/collections/quartan_primes', label: 'Quartan Primes' },
