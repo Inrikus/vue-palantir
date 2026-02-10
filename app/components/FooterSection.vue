@@ -96,6 +96,7 @@
 </template>
 
 <style scoped>
+@reference "tailwindcss";
 :global(body) {
   color: #f1f5ff;
 }

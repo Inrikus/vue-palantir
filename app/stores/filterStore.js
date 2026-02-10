@@ -6,6 +6,7 @@ const initial = () => ({
   sources: [],
   order: 'priceAsc',
   tradeType: 1,
+  search: '',
   priceRangeMax: 0,
   page: 1,
   rows: 30,
@@ -16,7 +17,7 @@ const initial = () => ({
 export const useFilterStore = defineStore('filter', {
   state: initial,
   getters: {
-    getAllFilters: (s) => [s.sources, s.status, s.tradeType, s.order, s.priceRangeMax, s.page, s.rows, s.traits],
+    getAllFilters: (s) => [s.sources, s.status, s.tradeType, s.order, s.search, s.priceRangeMax, s.page, s.rows, s.traits],
   },
   actions: {
     setNeedsUpdate(v) { this.needsUpdate = v },
@@ -37,6 +38,7 @@ export const useFilterStore = defineStore('filter', {
       if (i !== -1) this.traits.splice(i, 1)
     },
     changeTradeType(e) { this.tradeType = e?.target?.checked ? 1 : 0 },
+    setSearch(v) { this.search = v ?? ''; this.page = 1 },
 
     setOrder(newOrder) {
     if (this.order === newOrder) return

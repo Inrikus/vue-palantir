@@ -235,7 +235,7 @@ function handleLoadMore () {
 
 
 <template>
-  <section class="mx-auto w-full max-w-[98vw] px-2 sm:px-4 lg:px-6 space-y-4">
+  <section class="w-full space-y-4">
     <!-- TOP SECTION -->
     <section class="space-y-3" aria-label="Cores navigation and filters">
       <div class="flex items-center justify-between">
@@ -444,6 +444,7 @@ function handleLoadMore () {
 </template>
 
 <style scoped>
+@reference "tailwindcss";
 .core-glow {
   opacity: 0.2;
   mix-blend-mode: screen;

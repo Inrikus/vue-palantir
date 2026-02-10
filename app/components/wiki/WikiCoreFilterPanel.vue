@@ -215,13 +215,22 @@ const isChecked = (arr, v) => Array.isArray(arr) && arr.includes(v)
 </template>
 
 <style scoped>
+@reference "tailwindcss";
 /* Заголовки секций */
 .sec-title {
-  @apply mb-2 text-sm uppercase tracking-wide text-white/70;
+  font-size: 0.75rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(99,180,200,0.9);
+  font-weight: 700;
 }
 
 .filter-card {
-  @apply rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 /* Сетка «кирпичей» фиксированной ширины */

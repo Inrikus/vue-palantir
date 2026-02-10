@@ -92,6 +92,7 @@ useHead({ title: 'Wiki — Fusionist Palantir' })
 </template>
 
 <style scoped>
+@reference "tailwindcss";
 .wiki-home {
   color: #fff;
   display: flex;

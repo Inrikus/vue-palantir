@@ -88,6 +88,7 @@ const infoOpen = ref(false)
 const infoTitle = ref('')
 const infoDescHtml = ref('')
 const tooltipOpen = ref(false)
+const tooltipTitle = ref('')
 const tooltipHtml = ref('')
 const tooltipStyle = ref({ left: '0px', top: '0px' })
 
@@ -124,6 +125,7 @@ function toggleTooltip(name) {
 
 async function showDesktopTooltip(skill, evt) {
   if (isTouch.value || !skill?.descHtml) return
+  tooltipTitle.value = skill.name || ''
   tooltipHtml.value = skill.descHtml
   tooltipOpen.value = true
   await nextTick()
@@ -143,6 +145,7 @@ async function showDesktopTooltip(skill, evt) {
 
 function hideDesktopTooltip() {
   tooltipOpen.value = false
+  tooltipTitle.value = ''
   tooltipHtml.value = ''
 }
 
@@ -201,6 +204,7 @@ function handleVideoError() {
       class="skill-tooltip"
       :style="tooltipStyle"
     >
+      <span v-if="tooltipTitle" class="tooltip-title">{{ tooltipTitle }}</span>
       <span class="tooltip-text" v-html="tooltipHtml" />
     </div>
   </Teleport>
@@ -294,6 +298,15 @@ function handleVideoError() {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+.tooltip-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(157,209,222,0.9);
+  margin-bottom: 0.25rem;
+  text-align: center;
 }
 .tooltip-text {
   display: block;

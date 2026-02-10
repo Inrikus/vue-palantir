@@ -14,12 +14,13 @@ const cardStore = useCardStore()
 const filterStore = useFilterStore()
 
 // формируем полезную нагрузку для бэка из стора фильтров
-const payload = computed(() => ({
+  const payload = computed(() => ({
   sources: filterStore.sources,
   status: filterStore.status,
   traits: filterStore.traits,
   order: filterStore.order,
   tradeType: filterStore.tradeType,
+  search: filterStore.search,
   priceRangeMax: filterStore.priceRangeMax,
   page: filterStore.page,
   rows: filterStore.rows,

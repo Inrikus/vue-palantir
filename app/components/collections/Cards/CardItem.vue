@@ -92,7 +92,8 @@ const usdPrice = computed(() => props.card.price ? `${props.card.price} USD` : '
   flex-direction: column;
   border-radius: 1.25rem;
   border: 1px solid rgba(99,180,200,.08);
-  background: #0b0d13;
+  background: #273042;
+  background-image: linear-gradient(to bottom, rgba(255,255,255,0.12), rgba(255,255,255,0.06) 40%, rgba(0,0,0,0.28));
   transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
   z-index: 0;
 }

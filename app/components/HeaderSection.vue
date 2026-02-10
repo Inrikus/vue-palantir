@@ -268,6 +268,7 @@ const cryptos = computed(() => {
 
 
 <style scoped>
+@reference "tailwindcss";
 /* Backdrop fade */
 .fade-enter-active, .fade-leave-active { transition: opacity 180ms ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }

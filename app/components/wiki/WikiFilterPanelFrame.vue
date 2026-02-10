@@ -79,6 +79,7 @@ onBeforeUnmount(() => toggleScrollLock(false))
 </template>
 
 <style scoped>
+@reference "tailwindcss";
 .filter-overlay {
   position: fixed;
   inset: 0;

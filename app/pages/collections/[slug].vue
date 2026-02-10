@@ -4,6 +4,7 @@ import CardsList from '~/components/collections/Cards/CardsList.vue'
 import FiltersPanel from '~/components/collections/Filters/FiltersPanel.vue'
 import ActivityPanel from '~/components/collections/Activity/ActivityPanel.vue'
 import TabsPanel from '~/components/collections/UI/TabsPanel.vue'
+import ActiveCollectionFiltersBar from '~/components/collections/Filters/ActiveCollectionFiltersBar.vue'
 
 import { useCardStore } from '@/stores/cardStore'
 import { useFilterStore } from '@/stores/filterStore'
@@ -27,6 +28,42 @@ const sortOrder = computed({
   set: (val) => filterStore.setOrder(val)
 })
 
+const SORT_OPTIONS = [
+  { value: 'priceDesc', label: 'Price: High to low' },
+  { value: 'priceAsc', label: 'Price: Low to high' },
+  { value: 'rarityDesc', label: 'Rarity: High to low' },
+  { value: 'rarityAsc', label: 'Rarity: Low to high' },
+  { value: 'tokenIdDesc', label: 'Token id: High to low' },
+  { value: 'tokenIdAsc', label: 'Token id: Low to high' },
+]
+
+const sortLabel = computed(() => {
+  const found = SORT_OPTIONS.find((opt) => opt.value === sortOrder.value)
+  return found?.label || 'Sort'
+})
+
+const sortItems = computed(() => ([
+  SORT_OPTIONS.map((opt) => ({
+    label: opt.label,
+    class: opt.value === sortOrder.value
+      ? 'bg-[#5da8ff]/30 text-white'
+      : 'text-white/80 hover:bg-white/10',
+    onSelect: () => { sortOrder.value = opt.value },
+  }))
+]))
+
+const sortDropdownUi = {
+  content: 'w-[var(--reka-dropdown-menu-trigger-width)] rounded-2xl border border-white/10 bg-[#0b101a]/95 text-white shadow-[0_20px_45px_rgba(2,6,18,0.7)] backdrop-blur',
+  item: {
+    base: 'text-center text-sm font-semibold',
+    rounded: 'rounded-xl',
+    padding: 'px-4 py-2',
+    inactive: 'text-white/80 hover:bg-white/10',
+    active: 'bg-[#5da8ff]/30 text-white',
+  },
+}
+
+
 const currentCollection = computed(() => collections[route.params.slug] || null)
 const endPoint = computed(() => currentCollection.value?.queryName || '')
 
@@ -36,7 +73,8 @@ const selectedFiltersCount = computed(() => {
   const sources = filterStore.sources?.length || 0
   const buys = filterStore.tradeType ? 1 : 0
   const price = filterStore.priceRangeMax ? 1 : 0
-  return traits + statuses + sources + buys + price
+  const search = filterStore.search?.trim() ? 1 : 0
+  return traits + statuses + sources + buys + price + search
 })
 
 const handleToggleFilter = () => {
@@ -62,7 +100,7 @@ useHead(() => ({
 </script>
 
 <template>
-  <div class="min-h-screen space-y-2" v-if="currentCollection">
+  <section class="catalog-page" v-if="currentCollection">
     <section class="collections-header" aria-label="Collection overview and controls">
       <div class="head-left">
         <img :src="currentCollection.page.image" class="logo" alt="collection logo" />
@@ -96,23 +134,14 @@ useHead(() => ({
 
           <div class="sort-area">
             <label for="sort-select" class="sort-label">Sort by</label>
-            <div class="select-wrapper">
-              <select
-                id="sort-select"
-                v-model="sortOrder"
-                class="sort-select"
-              >
-                <option value="priceDesc">Price: High to low</option>
-                <option value="priceAsc">Price: Low to high</option>
-                <option value="rarityDesc">Rarity: High to low</option>
-                <option value="rarityAsc">Rarity: Low to high</option>
-                <option value="tokenIdDesc">Token id: High to low</option>
-                <option value="tokenIdAsc">Token id: Low to high</option>
-              </select>
-              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </div>
+            <UDropdownMenu :items="sortItems" :ui="sortDropdownUi">
+              <button type="button" class="sort-trigger">
+                <span>{{ sortLabel }}</span>
+                <svg class="sort-trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+            </UDropdownMenu>
           </div>
         </div>
       </div>
@@ -120,17 +149,17 @@ useHead(() => ({
       
     </section>
 
-    <div v-if="currentPanel === 'Cards'">
-      <div class="mt-8 relative h-full">
-        <FiltersPanel :key="endPoint" :is-filter-panel-open="showFilterPanel" @toggle="handleToggleFilter" />
-        <CardsList :endpoint="endPoint" :key="endPoint" />
-      </div>
+    <ActiveCollectionFiltersBar v-if="currentPanel === 'Cards'" />
+
+    <div v-if="currentPanel === 'Cards'" class="catalog-body">
+      <FiltersPanel :key="endPoint" :is-filter-panel-open="showFilterPanel" @toggle="handleToggleFilter" />
+      <CardsList :endpoint="endPoint" :key="endPoint" />
     </div>
 
     <div v-else>
       <ActivityPanel :endpoint="endPoint" />
     </div>
-  </div>
+  </section>
 
   <div v-else class="text-center py-10 text-white/80">
     Unknown collection.
@@ -138,6 +167,17 @@ useHead(() => ({
 </template>
 
 <style scoped>
+@reference "tailwindcss";
+.catalog-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.catalog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
 .collections-header {
   display: flex;
   flex-direction: column;
@@ -311,37 +351,36 @@ useHead(() => ({
 @media (max-width: 640px) {
   .sort-area { flex: 1; }
 }
-.select-wrapper {
-  position: relative;
-  text-align: center;
-}
-.sort-select {
-  width: 100%;
+.sort-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1.4rem;
   border-radius: 999px;
-  border: 1px solid rgba(99,180,200,.35);
-  background: rgba(255,255,255,.92);
-  padding: 0.65rem 2.5rem 0.65rem 1rem;
-  font-size: 0.9rem;
+  border: none;
+  background: linear-gradient(120deg, rgba(99,180,200,.3), rgba(80,125,255,.3));
+  color: #eaf1ff;
   font-weight: 600;
-  appearance: none;
-  color: #07122b;
+  font-size: 0.9rem;
   text-align: center;
-  box-shadow: 0 10px 25px rgba(6,18,43,.15);
+  box-shadow: 0 10px 20px rgba(6,18,43,.2);
 }
-.sort-select:focus {
+.sort-trigger:focus-visible {
   outline: none;
-  border-color: rgba(99,180,200,.85);
-  box-shadow: 0 0 0 2px rgba(99,180,200,.25), 0 15px 35px rgba(6,18,43,.2);
-  background: rgba(255,255,255,.98);
+  background: linear-gradient(120deg, rgba(120,200,220,.42), rgba(100,140,255,.45));
+  box-shadow: 0 14px 26px rgba(6,18,43,.3);
 }
-.chevron {
-  position: absolute;
-  right: 0.9rem;
-  top: 50%;
+.sort-trigger-icon {
   width: 1rem;
   height: 1rem;
-  pointer-events: none;
-  transform: translateY(-50%);
-  color: rgba(7,18,43,.5);
+  color: rgba(234,241,255,0.8);
+}
+@media (max-width: 640px) {
+  .sort-trigger {
+    width: 100%;
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
+  }
 }
 </style>

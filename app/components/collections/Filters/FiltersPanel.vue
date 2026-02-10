@@ -1,9 +1,9 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { computed, nextTick, ref, watch, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import { useFilterStore } from '@/stores/filterStore'
+import { useCardStore } from '@/stores/cardStore'
 import { collections, platformIcon } from '@/utils/dictsList.js'
-import ArrowIcon from '@/components/collections/UI/ArrowIcon.vue'
 
 const props = defineProps({
   isFilterPanelOpen: { type: Boolean, required: true }
@@ -12,12 +12,10 @@ const emit = defineEmits(['toggle'])
 
 const route = useRoute()
 const filterStore = useFilterStore()
+const cardStore = useCardStore()
 
 const currentSlug = computed(() => route.params.slug)
 const currentCollection = computed(() => collections[currentSlug.value] || null)
-
-// UI-состояние: какие секции раскрыты
-const openSections = ref({ Status: true })
 
 // Mobile/desktop анимация панели
 const isMobile = computed(() => (typeof window !== 'undefined') && window.innerWidth <= 768)
@@ -28,32 +26,123 @@ const isTraitChecked = (filter, option) =>
 const isStatusChecked = (status) => filterStore.status?.includes(status) || false
 const isSourceChecked = (source) => filterStore.sources?.includes(source) || false
 const isTradeTypeChecked = () => filterStore.tradeType === 1
+const showSearch = computed(() => currentSlug.value === 'battle_mech')
+
+const searchValue = ref(filterStore.search || '')
+const isSearchPending = ref(false)
+let searchTimer = null
+
+const scheduleSearchApply = (value) => {
+  if (searchTimer) clearTimeout(searchTimer)
+  const term = String(value || '').trim()
+  if (term && term.length < 3) {
+    isSearchPending.value = false
+    return
+  }
+  isSearchPending.value = true
+  searchTimer = setTimeout(async () => {
+    await requestApply()
+  }, 1000)
+}
+
+watch(searchValue, (val) => {
+  filterStore.setSearch(val)
+  scheduleSearchApply(val)
+})
+
+watch(() => filterStore.search, (val) => {
+  if (val !== searchValue.value) searchValue.value = val || ''
+})
+
+watch(currentSlug, (slug) => {
+  if (slug !== 'battle_mech' && filterStore.search) {
+    filterStore.setSearch('')
+    searchValue.value = ''
+    requestApply()
+  }
+})
+
+watch(() => cardStore.isLoading, (loading) => {
+  if (!loading) {
+    isSearchPending.value = false
+  }
+})
+
+const searchStatus = computed(() => {
+  if (!showSearch.value) return ''
+  const term = String(searchValue.value || '').trim()
+  if (!term || term.length < 3) return ''
+  if (isSearchPending.value || cardStore.isLoading) return 'Searching…'
+  return `${cardStore.maxCards} results`
+})
+
+const gradeKey = (val) => {
+  const raw = String(val || '').toLowerCase()
+  if (raw === 'legendary') return 'legend'
+  return raw
+}
+const gradeGradientMap = {
+  common: 'var(--grad-rarity-common)',
+  elite: 'var(--grad-rarity-elite)',
+  epic: 'var(--grad-rarity-epic)',
+  legend: 'var(--grad-rarity-legend)',
+  mythical: 'var(--grad-rarity-mythical)',
+}
+const gradeTileStyle = (filter, option, active) => {
+  if (filter !== 'GRADE') return null
+  const key = gradeKey(option)
+  const bg = gradeGradientMap[key]
+  if (!bg) return null
+  return {
+    background: bg,
+    color: '#ffffff',
+    borderColor: active ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.2)',
+    boxShadow: active
+      ? '0 10px 22px rgba(5,10,20,0.5), inset 0 0 0 1px rgba(255,255,255,0.4)'
+      : 'none',
+  }
+}
 
 // handlers
-const handleToggleShow = (section) => {
-  const current = !!openSections.value[section]
-  openSections.value = { ...openSections.value, [section]: !current }
-}
 const handleToggleFilter = () => emit('toggle')
-const handleTradeTypeClick = (e) => filterStore.changeTradeType(e)
-const handleStatusClick   = (e) => filterStore.changeStatus(e)
-const handleSourcesClick  = (e) => filterStore.changeSources(e)
-const handleClick = (e) => {
-  if (!e?.target) return
-  const [key, val] = e.target.value.split(':')
-  filterStore.changeTraits(e, key, val)
+
+const requestApply = async () => {
+  if (filterStore.needsUpdate) {
+    filterStore.setNeedsUpdate(false)
+    await nextTick()
+  }
+  filterStore.setNeedsUpdate(true)
+}
+
+const toggleTradeType = async () => {
+  filterStore.changeTradeType({ target: { checked: !isTradeTypeChecked() } })
+  await requestApply()
+}
+const toggleStatus = async (status) => {
+  filterStore.changeStatus({ target: { value: status, checked: !isStatusChecked(status) } })
+  await requestApply()
+}
+const toggleSource = async (source) => {
+  filterStore.changeSources({ target: { value: source, checked: !isSourceChecked(source) } })
+  await requestApply()
+}
+const toggleTrait = async (trait, option) => {
+  filterStore.changeTraits({ target: { checked: !isTraitChecked(trait, option) } }, trait, option)
+  await requestApply()
 }
 
 const handleApplyFilter = () => {
-  filterStore.setNeedsUpdate(true)
-  emit('toggle')
+  requestApply()
 }
 
 const handleResetFilter = () => {
   filterStore.clearFilter()
-  filterStore.setNeedsUpdate(true)
-  emit('toggle')
+  requestApply()
 }
+
+onBeforeUnmount(() => {
+  if (searchTimer) clearTimeout(searchTimer)
+})
 </script>
 
 <template>
@@ -73,73 +162,98 @@ const handleResetFilter = () => {
       <aside
         v-show="props.isFilterPanelOpen"
         id="filter-inner-panel"
-        class="fixed top-0 left-0 z-[9999] flex h-full w-full flex-col overflow-hidden text-white shadow-2xl sm:w-[440px] sm:rounded-none glass-surface glass-surface--radial"
+        class="fixed top-0 left-0 z-[9999] flex h-full w-full flex-col overflow-hidden text-white shadow-2xl sm:w-[720px] sm:max-w-[92vw] sm:rounded-none panel-shell"
         role="dialog"
         aria-modal="true"
         aria-labelledby="filters-title"
       >
         <!-- Header -->
-        <div class="flex items-center justify-between border-b border-white/10 px-6 py-5">
-          <div>
-            <p class="text-xs uppercase tracking-[0.4em] text-white/60">Filters</p>
-            <h2 id="filters-title" class="text-2xl font-semibold">Collection control</h2>
+        <div class="panel-header">
+          <div class="panel-headings">
+            <p class="panel-eyebrow">Filters</p>
+            <h2 id="filters-title" class="panel-title">Collection control</h2>
           </div>
-          <button
-            class="grid h-9 w-9 place-items-center rounded-full border border-white/15 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-sky-400"
-            @click="handleToggleFilter"
-            aria-label="Close filters"
-          >
-            <img src="@/assets/cross.svg" alt="Close" class="w-4 h-4" />
-          </button>
+          <div class="panel-actions">
+            <button
+              type="button"
+              class="close-btn close-btn--ghost"
+              @click="handleResetFilter"
+              aria-label="Reset filters"
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              class="close-btn"
+              @click="handleToggleFilter"
+              aria-label="Close filters"
+            >
+              <img src="@/assets/cross.svg" alt="Close" class="close-icon" />
+              Close
+            </button>
+          </div>
         </div>
 
         <!-- Content -->
-        <div class="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-          <!-- Status -->
-          <section class="section-container">
-            <div class="section-header" @click="handleToggleShow('Status')">
+        <div class="panel-body">
+          <section v-if="showSearch" class="filter-card">
+            <div class="section-head">
               <div>
-                <h4 class="text-base font-semibold uppercase tracking-[0.3em] text-white/70">Status</h4>
-                <p class="text-xs text-white/50">Listing availability</p>
+                <h4 class="sec-title">Search</h4>
               </div>
-              <ArrowIcon :is-open="openSections.Status" />
             </div>
-            <div :class="['section-content', { open: openSections.Status }]">
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  class="custom-checkbox"
-                  id="only-buy-now"
-                  name="tradeType"
-                  :checked="isTradeTypeChecked()"
-                  @click="handleTradeTypeClick"
-                />
-                <span class="text-sm font-semibold uppercase tracking-[0.2em]">Only Buy Now</span>
-              </label>
-
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  class="custom-checkbox"
-                  value="Normal"
-                  name="status"
-                  :checked="isStatusChecked('Normal')"
-                  @click="handleStatusClick"
-                />
-                <span class="text-sm font-semibold uppercase tracking-[0.2em]">Normal</span>
-              </label>
-
-              <label class="checkbox-label" v-if="['quartan_primes', 'primeace'].includes(currentSlug)">
-                <input
-                  type="checkbox"
-                  class="custom-checkbox"
-                  value="Uncreated"
-                  name="status"
-                  :checked="isStatusChecked('Uncreated')"
-                  @click="handleStatusClick"
-                />
-                <span class="text-sm font-semibold uppercase tracking-[0.2em]">Uncreated</span>
-              </label>
+            <div class="search-wrap">
+              <span class="search-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <path d="M20 20l-3.5-3.5"></path>
+                </svg>
+              </span>
+              <input
+                v-model.trim="searchValue"
+                id="traits-search"
+                name="traits-search"
+                type="search"
+                inputmode="search"
+                class="search-input"
+                placeholder="Search skills (e.g. Repair Support)"
+              />
+              <span v-if="searchStatus" class="search-status">{{ searchStatus }}</span>
+            </div>
+          </section>
+          <!-- Status -->
+          <section class="filter-card">
+            <div class="section-head">
+              <div>
+                <h4 class="sec-title">Status</h4>
+              </div>
+            </div>
+            <div class="tiles-grid">
+              <button
+                type="button"
+                class="tile"
+                :class="{ 'is-active': isTradeTypeChecked() }"
+                @click="toggleTradeType"
+              >
+                <span class="tile-label">Only Buy Now</span>
+              </button>
+              <button
+                type="button"
+                class="tile"
+                :class="{ 'is-active': isStatusChecked('Normal') }"
+                @click="toggleStatus('Normal')"
+              >
+                <span class="tile-label">Normal</span>
+              </button>
+              <button
+                v-if="['quartan_primes', 'primeace'].includes(currentSlug)"
+                type="button"
+                class="tile"
+                :class="{ 'is-active': isStatusChecked('Uncreated') }"
+                @click="toggleStatus('Uncreated')"
+              >
+                <span class="tile-label">Uncreated</span>
+              </button>
             </div>
           </section>
 
@@ -147,69 +261,51 @@ const handleResetFilter = () => {
           <section
             v-for="(filter, i) in Object.keys(currentCollection?.filters || {})"
             :key="i"
-            class="section-container"
+            class="filter-card"
           >
-            <div class="section-header" @click="handleToggleShow(filter)">
+            <div class="section-head">
               <div>
-                <h4 class="text-base font-semibold uppercase tracking-[0.3em] text-white/70">{{ filter }}</h4>
-                <p class="text-xs text-white/50">Traits & rolls</p>
+                <h4 class="sec-title">{{ filter }}</h4>
               </div>
-              <ArrowIcon :is-open="openSections[filter]" />
             </div>
-            <div :class="['section-content', { open: openSections[filter] }]">
-              <label
+            <div class="tiles-grid">
+              <button
                 v-for="(option, idx) in currentCollection?.filters?.[filter] || []"
                 :key="idx"
-                class="checkbox-label"
+                type="button"
+                class="tile"
+                :class="{ 'is-active': isTraitChecked(filter, option) }"
+                :style="gradeTileStyle(filter, option, isTraitChecked(filter, option))"
+                @click="toggleTrait(filter, option)"
               >
-                <input
-                  type="checkbox"
-                  class="custom-checkbox"
-                  :value="`${filter}:${option}`"
-                  name="trait"
-                  :checked="isTraitChecked(filter, option)"
-                  @click="handleClick"
-                />
-                <span class="text-sm font-semibold uppercase tracking-[0.2em]">{{ option }}</span>
-              </label>
+                <span class="tile-label">{{ option }}</span>
+              </button>
             </div>
           </section>
 
           <!-- Sources -->
-          <section class="section-container">
-            <div class="section-header" @click="handleToggleShow('Sources')">
+          <section class="filter-card">
+            <div class="section-head">
               <div>
-                <h4 class="text-base font-semibold uppercase tracking-[0.3em] text-white/70">Sources</h4>
-                <p class="text-xs text-white/50">Marketplaces</p>
+                <h4 class="sec-title">Sources</h4>
               </div>
-              <ArrowIcon :is-open="openSections.Sources" />
             </div>
-            <div :class="['section-content', { open: openSections.Sources }]">
-              <label
+            <div class="tiles-grid">
+              <button
                 v-for="(option, i) in currentCollection?.sources || []"
                 :key="i"
-                class="checkbox-label"
+                type="button"
+                class="tile tile--icon"
+                :class="{ 'is-active': isSourceChecked(option) }"
+                @click="toggleSource(option)"
               >
-                <input
-                  type="checkbox"
-                  class="custom-checkbox"
-                  :value="option"
-                  name="source"
-                  :checked="isSourceChecked(option)"
-                  @click="handleSourcesClick"
-                />
-                <img :src="platformIcon[option]" class="w-5 h-5 ms-2 mr-2" />
-                <span class="text-sm font-semibold uppercase tracking-[0.2em]">{{ option }}</span>
-              </label>
+                <img :src="platformIcon[option]" class="tile-icon" alt="" />
+                <span class="tile-label">{{ option }}</span>
+              </button>
             </div>
           </section>
         </div>
 
-        <!-- Footer -->
-        <div class="flex items-center justify-between gap-3 border-t border-white/10 px-6 py-5">
-          <button class="action-button ghost" @click="handleResetFilter">Reset</button>
-          <button class="action-button solid" @click="handleApplyFilter">Apply</button>
-        </div>
       </aside>
     </transition>
   </teleport>
@@ -232,47 +328,256 @@ const handleResetFilter = () => {
   border-radius: 0;
 }
 
-/* Layout */
-.section-container {
-  max-width: 24rem;
-  margin-left: auto;
-  margin-right: auto;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 1rem;
-  padding: 1.25rem;
-  background: rgba(255,255,255,0.02);
-  backdrop-filter: blur(12px);
-}
-.section-header { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; cursor: pointer; }
-.section-content { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; padding: 0.2rem 0.5rem 0; max-height: 0; overflow: hidden; transition: max-height 400ms ease-in; }
-.open { max-height: 1000px; }
-
-.checkbox-label { display: inline-flex; align-items: center; width: 100%; cursor: pointer; gap: 0.75rem; }
-.custom-checkbox {
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 0.35rem;
-  border: 1px solid rgba(255,255,255,0.35);
-  background-color: rgba(255,255,255,0.05);
+/* Panel shell */
+.panel-shell {
+  background:
+    radial-gradient(circle at 15% 0%, rgba(84,141,194,0.16), rgba(10,16,28,0.78)),
+    rgba(10,16,28,0.9);
+  border-right: 1px solid rgba(99,180,200,0.12);
+  box-shadow: 0 30px 80px rgba(2,6,18,0.7);
 }
 
-.action-button {
-  width: 100%;
-  border-radius: 999px;
-  padding: 0.75rem 1rem;
-  font-size: 0.95rem;
+/* Header */
+.panel-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(6, 10, 22, 0.82);
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+@media (min-width: 640px) {
+  .panel-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+.panel-headings {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.panel-eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: #63B4C8;
+}
+.panel-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #f4f7ff;
+}
+.panel-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+.close-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(99,180,200,0.25);
+  background: rgba(255,255,255,0.04);
+  padding: 0.55rem 1rem;
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.2em;
+  color: rgba(226,236,255,0.85);
+  transition: border-color .2s ease, color .2s ease, background-color .2s ease;
 }
-.action-button.ghost {
-  border: 1px solid rgba(255,255,255,0.3);
-  color: white;
+.close-btn--ghost {
+  border-color: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.02);
 }
-.action-button.solid {
+.close-btn:hover {
+  border-color: rgba(99,180,200,0.6);
+  color: #fff;
+  background: rgba(99,180,200,0.12);
+}
+.close-icon { width: 14px; height: 14px; }
+@media (max-width: 640px) {
+  .close-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.8rem 1rem;
+    border-radius: 0.95rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.22em;
+    background: rgba(12,18,28,0.9);
+  }
+  .panel-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+}
+
+/* Body */
+.panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.5rem 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Layout */
+.filter-card {
+  width: 100%;
+  max-width: 40rem;
+  margin-left: auto;
+  margin-right: auto;
   border: none;
-  background: var(--grad-btn-accent);
-  color: white;
-  box-shadow: 0 12px 30px rgba(7,14,26,0.6);
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+.sec-title {
+  font-size: 0.75rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(99,180,200,0.9);
+  font-weight: 700;
+}
+.sec-sub {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.5);
+}
+
+/* Tiles */
+.tiles-grid {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (max-width: 640px) {
+  .tiles-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 768px) {
+  .tiles-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1100px) {
+  .tiles-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.tile {
+  --tile-accent: rgba(99,180,200,0.8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  user-select: none;
+  transition: box-shadow .2s ease, background-color .2s ease, transform .06s ease, border-color .2s ease;
+}
+.tile:hover {
+  box-shadow: 0 12px 28px rgba(6,10,24,0.6);
+  background: rgba(255,255,255,0.08);
+}
+.tile:active { transform: translateY(1px); }
+.tile-label {
+  font-size: 0.75rem;
+  text-align: center;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-weight: 700;
+  color: rgba(233,240,255,0.92);
+}
+.tile--icon {
+  justify-content: flex-start;
+}
+.tile-icon {
+  width: 18px;
+  height: 18px;
+}
+.tile.is-active {
+  border-color: var(--tile-accent);
+  background: linear-gradient(135deg, rgba(99,180,200,0.16), rgba(12,18,28,0.9));
+  box-shadow: 0 12px 30px rgba(7,14,26,0.6), inset 0 0 0 1px rgba(99,180,200,0.35);
+}
+
+/* Search */
+.search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-bottom: 1.1rem;
+}
+.search-input {
+  width: 100%;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(99,180,200,0.2);
+  background: rgba(9,12,20,0.8);
+  color: #f2f6ff;
+  padding: 0.75rem 1.7rem 0.75rem 2.4rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.search-input::-webkit-search-cancel-button {
+  margin-right: 0.15rem;
+}
+.search-input::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+.search-input::placeholder {
+  color: rgba(226,236,255,0.35);
+}
+.search-input:focus {
+  outline: none;
+  border-color: rgba(99,180,200,0.5);
+  box-shadow: 0 0 0 2px rgba(99,180,200,0.15);
+}
+.search-icon {
+  position: absolute;
+  left: 0.85rem;
+  width: 16px;
+  height: 16px;
+  color: rgba(99,180,200,0.8);
+}
+.search-icon svg {
+  width: 100%;
+  height: 100%;
+}
+.search-status {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(99,180,200,0.85);
+  pointer-events: none;
+  background: rgba(6,10,18,0.75);
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(99,180,200,0.3);
 }
 </style>

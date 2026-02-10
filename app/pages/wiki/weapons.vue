@@ -226,7 +226,7 @@ watch(filters, (val) => {
 </script>
 
 <template>
-  <section class="mx-auto w-full max-w-[98vw] px-2 sm:px-4 lg:px-6 space-y-4">
+  <section class="w-full space-y-4">
     <section class="space-y-3" aria-label="Weapons navigation and filters">
       <div class="flex items-center justify-between">
         <h1 class="text-2xl font-semibold">Wiki - Weapons</h1>
@@ -420,6 +420,7 @@ watch(filters, (val) => {
   </section>
 </template>
 <style scoped>
+@reference "tailwindcss";
 :global(.hidden-scroll) { overflow: hidden !important; }
 
 .filter-toggle {

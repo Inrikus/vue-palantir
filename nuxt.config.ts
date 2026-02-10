@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import type { NuxtI18nOptions } from '@nuxtjs/i18n';
+import tailwindcss from '@tailwindcss/vite';
 
 const i18nOptions: NuxtI18nOptions & { lazy: true } = {
   locales: [
@@ -21,23 +22,16 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   modules: [
-    '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
     '@nuxtjs/i18n',
+    '@nuxt/ui',
     'nuxt-gtag'
   ],
 
   css: ['~/assets/main.css'],
 
-  tailwindcss: {
-    viewer: false
-  },
-
-  postcss: {
-    plugins: {
-      tailwindcss: {},
-      autoprefixer: {}
-    }
+  vite: {
+    plugins: [tailwindcss()],
   },
 
   runtimeConfig: {
@@ -57,9 +51,5 @@ export default defineNuxtConfig({
 
   i18n: i18nOptions,
 
-  content: {
-    // highlight: {
-      // theme: 'github-dark'
-    // }
-  }
+
 })
