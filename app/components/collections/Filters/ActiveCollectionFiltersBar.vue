@@ -87,7 +87,6 @@ const chips = computed(() => {
       color: '#F472B6',
       onRemove: async () => {
         filterStore.setSearch('')
-        await requestApply()
       }
     })
   }

@@ -35,6 +35,11 @@ let searchTimer = null
 const scheduleSearchApply = (value) => {
   if (searchTimer) clearTimeout(searchTimer)
   const term = String(value || '').trim()
+  if (!term) {
+    isSearchPending.value = false
+    requestApply()
+    return
+  }
   if (term && term.length < 3) {
     isSearchPending.value = false
     return
