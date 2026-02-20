@@ -79,12 +79,13 @@ const cryptos = computed(() => {
       <!-- Лого -->
       <NuxtLink
         to="/"
-        class="group flex items-center gap-4 rounded-2xl border border-white/5 bg-white/5 px-4 py-2 backdrop-blur"
+        class="brand-card group relative flex items-center gap-4 overflow-hidden rounded-2xl px-4 py-2"
       >
-        <div class="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-sky-400/70 to-blue-500/70 text-white shadow-lg shadow-sky-900/50 transition duration-300 group-hover:scale-105">
+        <div class="brand-card__shine" aria-hidden="true" />
+        <div class="brand-emblem grid h-12 w-12 place-items-center rounded-xl text-white transition duration-300 group-hover:scale-105">
           <img src="/logo_cropped.png" alt="PALANTIR logo" class="h-8 w-8" />
         </div>
-        <div>
+        <div class="relative z-[1]">
           <p class="text-[10px] uppercase tracking-[0.5em] text-white/70">Fusionist</p>
           <p class="text-2xl font-semibold tracking-[0.3em] text-white drop-shadow logo-grad">Palantir</p>
         </div>
@@ -94,18 +95,25 @@ const cryptos = computed(() => {
       <nav class="flex flex-col gap-3 text-sm font-semibold text-white/80 sm:flex-row sm:items-center sm:gap-4">
         <div class="flex items-center gap-2 justify-center">
           <button
-            class="nav-chip"
+            class="nav-cta nav-cta--collections"
             @click="toggle"
             :aria-expanded="isOpen ? 'true' : 'false'"
             aria-controls="collections-drawer"
           >
             <span class="inline-flex h-2 w-2 animate-pulse rounded-full bg-emerald-400" aria-hidden="true" />
             Collections
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14" />
+              <path d="M13 5l7 7-7 7" />
+            </svg>
           </button>
 
-          <NuxtLink to="/wiki" class="nav-chip relative">
+          <NuxtLink to="/wiki" class="nav-cta nav-cta--wiki relative">
             Wiki Hub
-            <span class="badge">NEW</span>
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14" />
+              <path d="M13 5l7 7-7 7" />
+            </svg>
           </NuxtLink>
         </div>
 
@@ -147,11 +155,16 @@ const cryptos = computed(() => {
         <li
           v-for="c in cryptos"
           :key="c.symbol"
-          class="glass-chip flex items-center gap-2 rounded-full px-4 py-1.5"
+          class="crypto-tile"
         >
-          <img :src="iconFor(c.symbol)" :alt="c.symbol" class="h-4 w-4" />
-          <span class="text-[11px] uppercase tracking-[0.25em] text-white/60">{{ c.symbol }}</span>
-          <span class="tabular-nums text-white">{{ fmt(c.value) }}</span>
+          <span class="crypto-tile__left">
+            <span class="crypto-icon-wrap">
+              <img :src="iconFor(c.symbol)" :alt="c.symbol" class="h-4 w-4" />
+            </span>
+            <span class="crypto-symbol">{{ c.symbol }}</span>
+          </span>
+          <span class="crypto-sep" aria-hidden="true"></span>
+          <span class="crypto-price tabular-nums">${{ fmt(c.value) }}</span>
         </li>
       </ul>
     </div>
@@ -288,8 +301,51 @@ const cryptos = computed(() => {
 /* Ровные цифры для цен */
 .tabular-nums { font-variant-numeric: tabular-nums; }
 
-.nav-chip {
-  @apply inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-white/80 transition hover:border-white/30 hover:text-white;
+.brand-card {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.05)),
+    rgba(12, 18, 35, 0.52);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.24),
+    inset 0 -1px 0 rgba(255,255,255,0.06),
+    0 16px 36px rgba(3, 8, 20, 0.42);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+}
+
+.brand-card__shine {
+  position: absolute;
+  inset: -40% auto auto -35%;
+  width: 220px;
+  height: 220px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(140, 199, 255, 0.28) 0%, rgba(140, 199, 255, 0) 70%);
+  pointer-events: none;
+}
+
+.brand-emblem {
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background:
+    linear-gradient(150deg, rgba(90, 196, 255, 0.7), rgba(67, 108, 255, 0.68)),
+    rgba(8, 16, 40, 0.6);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.35),
+    0 12px 24px rgba(9, 25, 57, 0.46);
+}
+
+.nav-cta {
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-2 text-base font-semibold text-white shadow-lg transition;
+}
+
+.nav-cta--collections {
+  @apply bg-gradient-to-r from-violet-400/80 to-blue-500/80 shadow-indigo-900/40 hover:shadow-indigo-900/60;
+}
+
+.nav-cta--wiki {
+  @apply bg-gradient-to-r from-slate-100/90 to-zinc-200/85 text-slate-950 shadow-slate-900/35 hover:shadow-slate-900/55;
 }
 
 .header-blur {
@@ -299,13 +355,55 @@ const cryptos = computed(() => {
 
 
 .badge {
-  @apply ml-2 inline-flex items-center rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white;
+  @apply ml-1 inline-flex items-center rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white;
 }
 
-.glass-chip {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.12);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+.crypto-tile {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.38rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background:
+    linear-gradient(130deg, rgba(255,255,255,0.14), rgba(255,255,255,0.03)),
+    rgba(11, 18, 34, 0.58);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.22),
+    0 10px 24px rgba(4, 8, 20, 0.32);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+
+.crypto-tile__left {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.crypto-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.crypto-symbol {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(236, 247, 255, 0.78);
+}
+
+.crypto-sep {
+  width: 1px;
+  height: 14px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.45), rgba(255,255,255,0));
+}
+
+.crypto-price {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .panel-body-bg {

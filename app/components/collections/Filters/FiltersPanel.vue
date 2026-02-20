@@ -27,6 +27,11 @@ const isStatusChecked = (status) => filterStore.status?.includes(status) || fals
 const isSourceChecked = (source) => filterStore.sources?.includes(source) || false
 const isTradeTypeChecked = () => filterStore.tradeType === 1
 const showSearch = computed(() => currentSlug.value === 'battle_mech')
+const statusOptions = computed(() => {
+  const raw = Array.isArray(currentCollection.value?.status) ? currentCollection.value.status : []
+  const normalized = raw.filter((row) => typeof row === 'string' && row.trim().length > 0)
+  return Array.from(new Set(['Normal', ...normalized]))
+})
 
 const searchValue = ref(filterStore.search || '')
 const isSearchPending = ref(false)
@@ -243,21 +248,14 @@ onBeforeUnmount(() => {
                 <span class="tile-label">Only Buy Now</span>
               </button>
               <button
+                v-for="status in statusOptions"
+                :key="`status-${status}`"
                 type="button"
                 class="tile"
-                :class="{ 'is-active': isStatusChecked('Normal') }"
-                @click="toggleStatus('Normal')"
+                :class="{ 'is-active': isStatusChecked(status) }"
+                @click="toggleStatus(status)"
               >
-                <span class="tile-label">Normal</span>
-              </button>
-              <button
-                v-if="['quartan_primes', 'primeace'].includes(currentSlug)"
-                type="button"
-                class="tile"
-                :class="{ 'is-active': isStatusChecked('Uncreated') }"
-                @click="toggleStatus('Uncreated')"
-              >
-                <span class="tile-label">Uncreated</span>
+                <span class="tile-label">{{ status }}</span>
               </button>
             </div>
           </section>

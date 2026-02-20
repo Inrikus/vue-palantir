@@ -10,9 +10,9 @@ const props = defineProps({
 })
 
 const isMechBadge = computed(() =>
-  ['bi_mech', 'quartan_primes', 'battle_mech'].includes(props.card.collection_name) && props.card.status === 'Normal'
+  ['bi_mech', 'quartan_primes', 'battle_mech'].includes(props.card.collection_name)
 )
-const isBattleMechBadge = computed(() => props.card.collection_name === 'battle_mech' && props.card.status === 'Normal')
+const isBattleMechBadge = computed(() => props.card.collection_name === 'battle_mech')
 const isPlanetBadge = computed(() => props.card.collection_name === 'fusionist_planet')
 
 const platformIconSrc = computed(() => {

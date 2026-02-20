@@ -1,4 +1,9 @@
 export const getCollectionLink = {
+  battle_mech: {
+    'Trading Post': 'https://www.tesseract.world/nfts/list/648-0x863fc7e04d7b770cfc4e180bc0b9420271399bde',
+    Tesseract: 'https://www.tesseract.world/nfts/list/648-0x863fc7e04d7b770cfc4e180bc0b9420271399bde',
+    default: 'https://www.tesseract.world/nfts/list/648-0x863fc7e04d7b770cfc4e180bc0b9420271399bde'
+  },
   bi_mech: {
     Element: 'https://element.market/collections/bi-mech',
     OKX: 'https://www.okx.com/ru/web3/marketplace/nft/collection/bsc/bi-mech',
@@ -45,6 +50,7 @@ export const platformIcon = {
   Element: '/marketplace/element.webp',
   OKX: '/marketplace/okx.webp',
   Tesseract: '/marketplace/Tesseract.ico',
+  'Trading Post': '/marketplace/Trading_Post.png',
   MagicEden: '/marketplace/MagicEden.png'
 }
 
@@ -63,7 +69,7 @@ export const collections = {
     page: { name: 'Battle Mech', image: '/collections/fmech-avatar.png' },
     banner: { name: 'Battle Mech', image: '/banner/fmech-banner.png', link_to: '/collections/battle_mech' },
     // при необходимости можно хранить теги статуса/режимы здесь
-    status: [],
+    status: ['Ingame', 'Burned'],
     sources: ['Tesseract'],
     filters: {
       GRADE: ['Common', 'Elite', 'Epic', 'Legend', 'Mythical'],
