@@ -1,8 +1,8 @@
 export const getCollectionLink = {
   battle_mech: {
-    'Trading Post': 'https://www.tesseract.world/nfts/list/648-0x863fc7e04d7b770cfc4e180bc0b9420271399bde',
-    Tesseract: 'https://www.tesseract.world/nfts/list/648-0x863fc7e04d7b770cfc4e180bc0b9420271399bde',
-    default: 'https://www.tesseract.world/nfts/list/648-0x863fc7e04d7b770cfc4e180bc0b9420271399bde'
+    'Trading Post': 'https://www.tesseract.fusionist.io/nfts/list/648-0x863fc7e04d7b770cfc4e180bc0b9420271399bde',
+    Tesseract: 'https://www.tesseract.fusionist.io/nfts/list/648-0x863fc7e04d7b770cfc4e180bc0b9420271399bde',
+    default: 'https://www.tesseract.fusionist.io/nfts/list/648-0x863fc7e04d7b770cfc4e180bc0b9420271399bde'
   },
   bi_mech: {
     Element: 'https://element.market/collections/bi-mech',
@@ -34,12 +34,12 @@ export const getCollectionLink = {
     default: 'https://element.market/collections/pioneer-of-fusionist'
   },
   fusionist_planet: {
-    Tesseract: 'https://www.tesseract.world/nfts/list/648-0x7db2ee56b2c19ea0758631c24415ce3a5ec498f5',
-    default: 'https://www.tesseract.world/nfts/list/648-0x7db2ee56b2c19ea0758631c24415ce3a5ec498f5'
+    Tesseract: 'https://www.tesseract.fusionist.io/nfts/list/648-0x7db2ee56b2c19ea0758631c24415ce3a5ec498f5',
+    default: 'https://www.tesseract.fusionist.io/nfts/list/648-0x7db2ee56b2c19ea0758631c24415ce3a5ec498f5'
   },
   primeace: {
-    Tesseract: 'https://www.tesseract.world/nfts/list/648-0xaf8ef2b180fe7cade68643705adae08d1d2791a1',
-    default: 'https://www.tesseract.world/nfts/list/getCollectionLink'
+    Tesseract: 'https://www.tesseract.fusionist.io/nfts/list/648-0xaf8ef2b180fe7cade68643705adae08d1d2791a1',
+    default: 'https://www.tesseract.fusionist.io/nfts/list/getCollectionLink'
   },
 }
 
