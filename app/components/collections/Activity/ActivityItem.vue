@@ -28,7 +28,7 @@ const getNFTLink = (chain, collectionAddress, tokenId) => {
   switch (chain) {
     case 'BSC':       return `https://element.market/assets/bsc/${collectionAddress}/${tokenId}`
     case 'Ethereum':  return `https://blur.io/eth/asset/${collectionAddress}/${tokenId}`
-    case 'Endurance': return `https://www.tesseract.world/nfts/detail/648-${collectionAddress}-${tokenId}`
+    case 'Endurance': return `https://tesseract.fusionist.io/nfts/detail/648-${collectionAddress}-${tokenId}`
     default:          return '#'
   }
 }
